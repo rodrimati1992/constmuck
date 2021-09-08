@@ -11,6 +11,8 @@ mod pod;
 
 mod type_size;
 
+mod zeroable;
+
 #[doc(hidden)]
 pub mod __priv_utils;
 
@@ -21,6 +23,7 @@ pub use crate::{
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, ImplsPod},
     type_size::TypeSize,
+    zeroable::{zeroed, ImplsZeroed},
 };
 
 #[doc(hidden)]

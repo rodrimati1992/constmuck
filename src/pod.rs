@@ -36,6 +36,8 @@ impl<T: Pod> crate::Infer for ImplsPod<T> {
 
 /// For casting `T` into `U`
 ///
+/// Requires both `T` and `U` to implement `Pod`.
+///
 /// # Panics
 ///
 /// This panics if `T` is not the same size as `U`
@@ -49,7 +51,6 @@ impl<T: Pod> crate::Infer for ImplsPod<T> {
 ///
 /// assert_eq!(LE_BYTES, 0xAB1E_BEEF_u32.to_le_bytes());
 ///
-///
 /// ```
 pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
     unsafe {
@@ -61,6 +62,8 @@ pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
 }
 
 /// For casting `T` into `U`
+///
+/// Requires both `T` and `U` to implement `Pod`.
 ///
 /// # Errors
 ///
@@ -96,6 +99,8 @@ pub const fn try_cast<T, U>(
 }
 
 /// Cast a `&T` to `&U`
+///
+/// Requires both `T` and `U` to implement `Pod`.
 ///
 /// # Panics
 ///
@@ -135,6 +140,8 @@ pub const fn cast_ref_alt<T, U>(from: &T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -
 }
 
 /// Cast a `&T` to `&U`
+///
+/// Requires both `T` and `U` to implement `Pod`.
 ///
 /// # Errors
 ///
