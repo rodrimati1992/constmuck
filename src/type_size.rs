@@ -100,8 +100,43 @@ impl<B: Infer, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     };
 }
 
+impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
+    /// Sets the bounds field of a bound-less `TypeSize`.
+    ///
+    /// # Leaking
+    ///
+    /// Note that `B` is expected not to own memory,
+    /// dropping a `TypeSize<B, _, _>` will leak any resources it owns.
+    pub const fn with_bound<B>(self, bounds: B) -> TypeSize<B, T, SIZE> {
+        TypeSize {
+            bounds: ManuallyDrop::new(bounds),
+            _private: PhantomData,
+        }
+    }
+}
+
 impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
+    /// Replaces the bounds field with `bounds`.
+    ///
+    /// # Leaking
+    ///
+    /// Note that `V` is expected not to own memory,
+    /// dropping a `TypeSize<V, _, _>` will leak any resources it owns.
+    pub const fn set_bound<V>(self, bounds: V) -> TypeSize<V, T, SIZE> {
+        TypeSize {
+            bounds: ManuallyDrop::new(bounds),
+            _private: PhantomData,
+        }
+    }
+
+    /// Turns this TypeSize into its bounds field.
     pub const fn into_bounds(self) -> B {
         ManuallyDrop::into_inner(self.bounds)
+    }
+
+    /// Splits this `TypeSize` into its bounds field, and a bound-less `TypeSize`.
+    pub const fn split(self) -> (B, TypeSize<(), T, SIZE>) {
+        let bounds = ManuallyDrop::into_inner(self.bounds);
+        (bounds, TypeSize::__NEW__)
     }
 }

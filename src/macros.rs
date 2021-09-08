@@ -8,6 +8,15 @@ macro_rules! __priv_transmute_unchecked {
         )
     };
 }
+
+macro_rules! __priv_transmute_from_copy_unchecked {
+    ($from:ty, $to:ty, $value:expr) => {
+        core::mem::ManuallyDrop::into_inner(
+            crate::__priv_utils::TransmuterFromCopy::<$from, $to> { from: $value }.to,
+        )
+    };
+}
+
 macro_rules! __priv_transmute_ref_unchecked {
     ($from:ty, $to:ty, $reference:expr) => {
         crate::__priv_utils::PtrToRef::<$to> {

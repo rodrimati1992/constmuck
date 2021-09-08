@@ -5,6 +5,8 @@ mod macros;
 
 mod bytes_fns;
 
+pub mod copying;
+
 mod infer;
 
 mod pod;
@@ -17,6 +19,9 @@ mod zeroable;
 pub mod __priv_utils;
 
 pub use bytemuck::{self, Pod, PodCastError};
+
+#[doc(no_inline)]
+pub use crate::copying::ImplsCopy;
 
 pub use crate::{
     bytes_fns::bytes_of,

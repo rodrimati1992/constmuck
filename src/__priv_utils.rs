@@ -7,6 +7,12 @@ pub(crate) union Transmuter<F, T> {
 }
 
 #[repr(C)]
+pub(crate) union TransmuterFromCopy<F: Copy, T> {
+    pub(crate) from: F,
+    pub(crate) to: ManuallyDrop<T>,
+}
+
+#[repr(C)]
 pub(crate) union PtrToRef<'a, P> {
     pub(crate) ptr: *const P,
     pub(crate) reff: &'a P,
