@@ -13,5 +13,5 @@ pub use bytemuck::{self, Pod, PodCastError};
 
 pub use crate::{
     infer::Infer,
-    pod::{cast, try_cast, ImplsPod},
+    pod::{cast, cast_ref, try_cast, try_cast_ref, ImplsPod},
 };

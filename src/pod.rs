@@ -1,6 +1,6 @@
 use core::{marker::PhantomData, mem};
 
-use bytemuck::Pod;
+use bytemuck::{Pod, PodCastError};
 
 mod __ {
     use super::*;
@@ -91,6 +91,92 @@ pub const fn try_cast<T, U>(
             // Pod requires types to be Copy, so this never causes a leak
             mem::forget(from);
             Err(bytemuck::PodCastError::SizeMismatch)
+        }
+    }
+}
+
+/// Cast a `&T` to `&U`
+///
+/// # Panics
+///
+/// This function panics in these cases:
+/// - The alignment of `T` is larger than `U`
+/// - The size of `T` is not equal to `U`
+///
+/// # Difference with `bytemuck`
+///
+/// This function requires `T` to have an alignment larger or equal to `U`,
+/// while [`bytemuck::cast_ref`] only requires `from` to happen to be aligned
+/// to `U`.
+///
+/// # Example
+///
+/// ```
+/// use constmuck::{cast_ref, infer};
+///
+/// const U8: &[u8; 2] = cast_ref(&100u16.to_le(), infer!());
+///
+/// assert_eq!(U8[0], 100u8);
+/// assert_eq!(U8[1], 0);
+///
+/// ```
+pub const fn cast_ref<T, U>(from: &T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U {
+    match try_cast_ref(from, _bounds) {
+        Ok(x) => x,
+        Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
+            let x = mem::size_of::<T>();
+            [/* the alignment of T is larger than U */][x]
+        }
+        Err(PodCastError::SizeMismatch | _) => {
+            let x = mem::size_of::<T>();
+            [/* the size of T and U is not the same */][x]
+        }
+    }
+}
+
+/// Cast a `&T` to `&U`
+///
+/// # Errors
+///
+/// This function returns errors in these cases:
+/// - The alignment of `T` is larger than `U`, returning a
+/// `Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)`.
+///
+/// - The size of `T` is not equal to `U`, returning a
+/// `Err(PodCastError::SizeMismatch)`.
+///
+/// # Difference with `bytemuck`
+///
+/// This function requires `T` to have an alignment larger or equal to `U`,
+/// while [`bytemuck::try_cast_ref`] only requires `from` to happen to be aligned
+/// to `U`.
+///
+/// # Example
+///
+/// ```
+/// use constmuck::PodCastError;
+/// use constmuck::{infer, try_cast_ref};
+///
+/// const U8: Result<&[u8; 2], PodCastError> = try_cast_ref(&100u16.to_le(), infer!());
+/// const ERR_SIZE : Result<&u8, PodCastError> = try_cast_ref(&100u16.to_le(), infer!());
+/// const ERR_ALIGN: Result<&u16, PodCastError> = try_cast_ref(&100u8, infer!());
+///
+/// assert_eq!(U8, Ok(&[100u8, 0]));
+/// assert_eq!(ERR_SIZE, Err(PodCastError::SizeMismatch));
+/// assert_eq!(ERR_ALIGN, Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned));
+///
+/// ```
+pub const fn try_cast_ref<T, U>(
+    from: &T,
+    _bounds: (ImplsPod<T>, ImplsPod<U>),
+) -> Result<&U, crate::PodCastError> {
+    unsafe {
+        if mem::align_of::<T>() < mem::align_of::<U>() {
+            Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)
+        } else if mem::size_of::<T>() != mem::size_of::<U>() {
+            Err(PodCastError::SizeMismatch)
+        } else {
+            Ok(__priv_transmute_ref_unchecked!(T, U, from))
         }
     }
 }

@@ -1,4 +1,4 @@
-/// For constructing `Ìmpls*` types (values that represent trait bounds).
+/// For constructing `Impls*` types (values that represent trait bounds).
 ///
 /// # Example
 ///
@@ -34,5 +34,13 @@ macro_rules! __priv_transmute_unchecked {
             }
             .to,
         )
+    };
+}
+macro_rules! __priv_transmute_ref_unchecked {
+    ($from:ty, $to:ty, $reference:expr) => {
+        crate::__priv_utils::PtrToRef::<$to> {
+            ptr: $reference as *const $from as *const $to,
+        }
+        .reff
     };
 }
