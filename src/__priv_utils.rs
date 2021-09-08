@@ -11,3 +11,9 @@ pub(crate) union PtrToRef<'a, P> {
     pub(crate) ptr: *const P,
     pub(crate) reff: &'a P,
 }
+
+#[repr(C)]
+pub union BytesAndVal<T, const N: usize> {
+    pub(crate) bytes: [u8; N],
+    pub(crate) value: ManuallyDrop<T>,
+}

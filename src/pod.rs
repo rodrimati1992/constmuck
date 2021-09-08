@@ -112,16 +112,16 @@ pub const fn try_cast<T, U>(
 /// # Example
 ///
 /// ```
-/// use constmuck::{cast_ref, infer};
+/// use constmuck::{cast_ref_alt, infer};
 ///
-/// const U8: &[u8; 2] = cast_ref(&100u16.to_le(), infer!());
+/// const U8: &[u8; 2] = cast_ref_alt(&100u16.to_le(), infer!());
 ///
 /// assert_eq!(U8[0], 100u8);
 /// assert_eq!(U8[1], 0);
 ///
 /// ```
-pub const fn cast_ref<T, U>(from: &T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U {
-    match try_cast_ref(from, _bounds) {
+pub const fn cast_ref_alt<T, U>(from: &T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U {
+    match try_cast_ref_alt(from, _bounds) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
             let x = mem::size_of::<T>();
@@ -155,18 +155,18 @@ pub const fn cast_ref<T, U>(from: &T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U
 ///
 /// ```
 /// use constmuck::PodCastError;
-/// use constmuck::{infer, try_cast_ref};
+/// use constmuck::{infer, try_cast_ref_alt};
 ///
-/// const U8: Result<&[u8; 2], PodCastError> = try_cast_ref(&100u16.to_le(), infer!());
-/// const ERR_SIZE : Result<&u8, PodCastError> = try_cast_ref(&100u16.to_le(), infer!());
-/// const ERR_ALIGN: Result<&u16, PodCastError> = try_cast_ref(&100u8, infer!());
+/// const U8: Result<&[u8; 2], PodCastError> = try_cast_ref_alt(&100u16.to_le(), infer!());
+/// const ERR_SIZE : Result<&u8, PodCastError> = try_cast_ref_alt(&100u16.to_le(), infer!());
+/// const ERR_ALIGN: Result<&u16, PodCastError> = try_cast_ref_alt(&100u8, infer!());
 ///
 /// assert_eq!(U8, Ok(&[100u8, 0]));
 /// assert_eq!(ERR_SIZE, Err(PodCastError::SizeMismatch));
 /// assert_eq!(ERR_ALIGN, Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned));
 ///
 /// ```
-pub const fn try_cast_ref<T, U>(
+pub const fn try_cast_ref_alt<T, U>(
     from: &T,
     _bounds: (ImplsPod<T>, ImplsPod<U>),
 ) -> Result<&U, crate::PodCastError> {
