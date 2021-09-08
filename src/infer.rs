@@ -1,3 +1,24 @@
+/// For constructing `Impls*` types (values that represent trait bounds),
+/// and tuples of them.
+///
+/// For a more concise way to write to `Infer::INFER`, there's the [`infer`] macro.
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::cast;
+/// use constmuck::{Infer, ImplsPod};
+///
+/// const ARR: [i8; 3] = cast([3u8, 5, u8::MAX - 1], Infer::INFER);
+/// assert_eq!(ARR, [3, 5, -2]);
+///
+/// const fn requires_pod<T>(_bounds: ImplsPod<T>) {}
+/// requires_pod::<u32>(Infer::INFER);
+///
+/// const fn requires_2_pods<T, U>(_bounds: (ImplsPod<T>, ImplsPod<U>)) {}
+/// requires_2_pods::<u32, u64>(Infer::INFER);
+///  
+/// ```
 pub trait Infer: Sized + Copy {
     const INFER: Self;
 }

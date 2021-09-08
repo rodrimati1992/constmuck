@@ -7,11 +7,11 @@ mod infer;
 
 mod pod;
 
-mod utils;
+mod __priv_utils;
 
-pub use bytemuck;
+pub use bytemuck::{self, Pod, PodCastError};
 
 pub use crate::{
     infer::Infer,
-    pod::{cast, ImplsPod},
+    pod::{cast, try_cast, ImplsPod},
 };
