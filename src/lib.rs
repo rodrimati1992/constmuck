@@ -18,13 +18,14 @@ mod zeroable;
 #[doc(hidden)]
 pub mod __priv_utils;
 
+#[doc(no_inline)]
 pub use bytemuck::{self, Pod, PodCastError};
 
 pub use crate::{
     copying::impls_copy::ImplsCopy,
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, ImplsPod},
-    slice_fns::bytes_of,
+    slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
     type_size::TypeSize,
     zeroable::{zeroed, zeroed_array, ImplsZeroable},
 };

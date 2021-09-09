@@ -21,7 +21,7 @@ use crate::Infer;
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
 ///         // `bound.into_bounds()` here returns an `ImplsPod<T>`,
-///         // the first type argument of `bounds`
+///         // the first type argument of `bound`
 ///         (infer!(), bound.into_bounds())
 ///     )
 /// }
@@ -48,7 +48,7 @@ macro_rules! type_size {
 ///
 /// ```rust
 /// use constmuck::{map_bound, type_size};
-/// use constmuck::{ImplsPod, TypeSize, zeroed, zeroed_array};
+/// use constmuck::{ImplsPod, ImplsZeroable, TypeSize, zeroed, zeroed_array};
 ///
 /// use std::num::NonZeroU8;
 ///
@@ -105,7 +105,7 @@ macro_rules! map_bound {
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
 ///         // `bound.into_bounds()` here returns an `ImplsPod<T>`,
-///         // the first type argument of `bounds`
+///         // the first type argument of `bound`
 ///         (infer!(), bound.into_bounds())
 ///     )
 /// }

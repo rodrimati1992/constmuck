@@ -131,8 +131,8 @@ pub const fn try_cast<T, U>(
 /// assert_eq!(U8[1], 0);
 ///
 /// ```
-pub const fn cast_ref_alt<T, U>(from: &T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U {
-    match try_cast_ref_alt(from, _bounds) {
+pub const fn cast_ref_alt<T, U>(from: &T, bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U {
+    match try_cast_ref_alt(from, bounds) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
             let x = mem::size_of::<T>();
