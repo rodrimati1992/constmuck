@@ -2,7 +2,7 @@ use core::{marker::PhantomData, mem::MaybeUninit};
 
 use crate::TypeSize;
 
-mod __ {
+pub(crate) mod impls_copy {
     use super::*;
 
     /// Encodes a `T: Copy` bound as a value,
@@ -28,7 +28,7 @@ mod __ {
         };
     }
 }
-pub use __::ImplsCopy;
+use impls_copy::ImplsCopy;
 
 impl<T: Copy> crate::Infer for ImplsCopy<T> {
     const INFER: Self = Self::NEW;
@@ -46,7 +46,10 @@ impl<T: Copy> crate::Infer for ImplsCopy<T> {
 /// use constmuck::{copying, type_size};
 /// use constmuck::{ImplsCopy, TypeSize};
 ///
-/// const fn pair<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>, T, SIZE>) -> [T; 2] {
+/// const fn pair<T, const SIZE: usize>(
+///     reff: &T,
+///     bounds: TypeSize<ImplsCopy<T>, T, SIZE>
+/// ) -> [T; 2] {
 ///     [copying::copy(reff, bounds), copying::copy(reff, bounds)]
 /// }
 ///
@@ -63,7 +66,7 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>,
         __priv_transmute_from_copy_unchecked!(
             MaybeUninit<[u8; SIZE]>,
             T,
-            *crate::bytes_fns::maybe_uninit_bytes_of(reff, bounds)
+            *crate::slice_fns::maybe_uninit_bytes_of(reff, bounds)
         )
     }
 }
@@ -93,7 +96,7 @@ pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
         __priv_transmute_from_copy_unchecked!(
             [MaybeUninit<[u8; SIZE]>; ARR_LEN],
             [T; ARR_LEN],
-            [*crate::bytes_fns::maybe_uninit_bytes_of(reff, bounds); ARR_LEN]
+            [*crate::slice_fns::maybe_uninit_bytes_of(reff, bounds); ARR_LEN]
         )
     }
 }

@@ -1,4 +1,4 @@
-use core::mem::MaybeUninit;
+use core::mem::{self, MaybeUninit};
 
 use crate::{ImplsCopy, ImplsPod, TypeSize};
 

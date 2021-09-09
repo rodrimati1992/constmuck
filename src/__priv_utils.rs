@@ -13,7 +13,7 @@ pub(crate) union TransmuterFromCopy<F: Copy, T> {
 }
 
 #[repr(C)]
-pub(crate) union PtrToRef<'a, P> {
+pub(crate) union PtrToRef<'a, P: ?Sized> {
     pub(crate) ptr: *const P,
     pub(crate) reff: &'a P,
 }

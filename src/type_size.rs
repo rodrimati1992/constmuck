@@ -40,6 +40,52 @@ macro_rules! type_size {
     };
 }
 
+/// Maps the bound field of a [`TypeSize`]
+///
+/// # Example
+///
+/// Making a function to repeat a zeroed value, with stronger requirements than it needs.
+///
+/// ```rust
+/// use constmuck::{map_bound, type_size};
+/// use constmuck::{ImplsPod, TypeSize, zeroed, zeroed_array};
+///
+/// use std::num::NonZeroU8;
+///
+/// pub const fn zeroed_pair<T, const SIZE: usize, const LEN: usize>(
+///     bound: TypeSize<ImplsPod<T>, T, SIZE>,
+/// ) -> (T, [T; LEN]) {
+///     // The type annotation is just for the reader
+///     let bound: TypeSize<ImplsZeroable<T>, T, SIZE> =
+///         map_bound!(bound, |x| x.impls_zeroable);
+///     (zeroed(bound), zeroed_array(bound))
+/// }
+///
+/// const PAIR_U8: (u8, [u8; 4]) = zeroed_pair(type_size!(u8));
+///
+/// const PAIR_NONE: (Option<NonZeroU8>, [Option<NonZeroU8>; 2]) =
+///     zeroed_pair(type_size!(Option<NonZeroU8>));
+///
+/// assert_eq!(PAIR_U8, (0, [0, 0, 0, 0]));
+///
+/// assert_eq!(PAIR_NONE, (None, [None, None]));
+///
+/// ```
+#[macro_export]
+macro_rules! map_bound {
+    ($this:expr, |$bound:ident| $returned:expr $(,)*) => {{
+        let ($bound, this) = $crate::TypeSize::split($this);
+        this.with_bound($returned)
+    }};
+    ($this:expr, | $($anything:tt)* ) => {
+        compile_error!("expected a closure")
+    };
+    ($this:expr, $function:expr $(,)*) => {{
+        let (bound, this) = $crate::TypeSize::split($this);
+        this.with_bound($function(bound))
+    }};
+}
+
 /// For passing a type along with its size, constructible with the [`type_size`] macro.
 ///
 /// The `B` type parameter can be any type that implements [`Infer`],
@@ -100,7 +146,39 @@ impl<B: Infer, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     };
 }
 
+const UNIT_MD: ManuallyDrop<()> = ManuallyDrop::new(());
+
 impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
+    /// Constructs a bound-less `TypeSize`.
+    ///
+    /// # Safety
+    ///
+    /// You must ensure that `std::mem::size_of::<T>()` equals the `SIZE` const argument.
+    pub const unsafe fn new_unchecked() -> Self {
+        Self {
+            bounds: UNIT_MD,
+            _private: PhantomData,
+        }
+    }
+
+    /// Constructs a bound-less `TypeSize`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `std::mem::size_of::<T>()` does not equal the `SIZE` const argument.
+    pub const fn new_panicking() -> Self {
+        if mem::size_of::<T>() == SIZE {
+            Self {
+                bounds: UNIT_MD,
+                _private: PhantomData,
+            }
+        } else {
+            #[allow(non_snake_case)]
+            let size_of_T = mem::size_of::<T>();
+            [/* size_of::<T>() does not equal SIZE */][size_of_T]
+        }
+    }
+
     /// Sets the bounds field of a bound-less `TypeSize`.
     ///
     /// # Leaking

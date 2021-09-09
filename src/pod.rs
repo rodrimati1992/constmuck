@@ -2,12 +2,16 @@ use core::{marker::PhantomData, mem};
 
 use bytemuck::{Pod, PodCastError};
 
+use crate::{ImplsCopy, ImplsZeroable};
+
 mod __ {
     use super::*;
 
     /// Encodes a `T: Pod` bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     pub struct ImplsPod<T> {
+        pub impls_copy: ImplsCopy<T>,
+        pub impls_zeroable: ImplsZeroable<T>,
         _private: PhantomData<fn() -> T>,
     }
 
@@ -24,6 +28,8 @@ mod __ {
         ///
         /// You can also use the [`infer`] macro to construct `ImplsPod` arguments.
         pub const NEW: Self = Self {
+            impls_copy: ImplsCopy::NEW,
+            impls_zeroable: ImplsZeroable::NEW,
             _private: PhantomData,
         };
     }
