@@ -13,6 +13,8 @@ mod slice_fns;
 
 mod type_size;
 
+pub mod transmutable;
+
 mod zeroable;
 
 #[doc(hidden)]
@@ -26,6 +28,7 @@ pub use crate::{
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, ImplsPod},
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
+    transmutable::transmutable_into::TransmutableInto,
     type_size::TypeSize,
     zeroable::{zeroed, zeroed_array, ImplsZeroable},
 };
