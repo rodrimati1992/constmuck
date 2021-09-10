@@ -1,9 +1,21 @@
 [package]
 name = "constmuck"
-version = "0.1.0"
+version = "0.0.0"
+authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "Zlib"
+description = "const-equivalents of bytemuck functions, and more"
+documentation = "https://docs.rs/constmuck/"
+readme="./README.md"
+keywords = ["no-std", "transmute", "casting", "const-fn"]
+categories = ["no-std"]
+repository = "https://github.com/rodrimati1992/constmuck/"
+include = [
+    "Cargo.toml", 
+    "src/**/*.rs", 
+    "README.md",
+    "LICENSE-ZLIB.md", 
+]
 
 [dependencies.bytemuck]
 version = "1.7.2"
