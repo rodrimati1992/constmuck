@@ -31,6 +31,23 @@ mod __ {
             _private: PhantomData,
         };
     }
+
+    impl<T> ImplsZeroable<T> {
+        const __NEW_UNCHECKED__: Self = Self {
+            _private: PhantomData,
+        };
+
+        /// Constructs an `ImplsZeroable<T>` without checking that `T` implements [`Zeroable`].
+        ///
+        /// # Safety
+        ///
+        /// You must ensure that `T` follows the
+        /// [safety requirements of `Zeroable`](bytemuck::Zeroable#safety)
+        #[inline(always)]
+        pub const unsafe fn new_unchecked() -> Self {
+            Self::__NEW_UNCHECKED__
+        }
+    }
 }
 pub use __::ImplsZeroable;
 

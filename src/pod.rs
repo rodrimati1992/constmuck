@@ -65,6 +65,39 @@ mod __ {
             _private: PhantomData,
         };
     }
+
+    impl<T> ImplsPod<T> {
+        const __NEW_UNCHECKED__: Self = unsafe {
+            Self {
+                impls_copy: ImplsCopy::new_unchecked(),
+                impls_zeroable: ImplsZeroable::new_unchecked(),
+                _private: PhantomData,
+            }
+        };
+
+        /// Constructs an `ImplsPod<T>` without checking that `T` implements [`Pod`].
+        ///
+        /// # Safety
+        ///
+        /// You must ensure that `T` follows the
+        /// [safety requirements of `Pod`](bytemuck::Pod#safety)
+        ///
+        /// ```rust
+        /// use constmuck::{ImplsPod, cast, infer};
+        ///
+        /// #[repr(transparent)]
+        /// struct Foo([u8; 4]);
+        ///
+        /// unsafe{
+        ///     let bounds = (ImplsPod::new_unchecked(), ImplsPod::new_unchecked());
+        ///     assert_eq!(cast::<u32, Foo>(12345678, bounds).0, 12345678u32.to_ne_bytes());
+        /// }
+        /// ```
+        #[inline(always)]
+        pub const unsafe fn new_unchecked() -> Self {
+            Self::__NEW_UNCHECKED__
+        }
+    }
 }
 pub use __::ImplsPod;
 

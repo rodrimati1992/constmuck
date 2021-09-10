@@ -33,6 +33,23 @@ pub(crate) mod impls_copy {
             _private: PhantomData,
         };
     }
+
+    impl<T> ImplsCopy<T> {
+        const __NEW_UNCHECKED__: Self = Self {
+            _private: PhantomData,
+        };
+
+        /// Constructs an `ImplsCopy<T>` without checking that `T` implements [`Copy`].
+        ///
+        /// # Safety
+        ///
+        /// You must ensure that `T` is safe to `memcpy` without forgetting the
+        /// copied-from value.
+        #[inline(always)]
+        pub const unsafe fn new_unchecked() -> Self {
+            Self::__NEW_UNCHECKED__
+        }
+    }
 }
 use impls_copy::ImplsCopy;
 
