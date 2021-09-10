@@ -4,7 +4,9 @@
 ///
 /// ```rust
 /// use constmuck::{cast, infer};
-/// use constmuck::ImplsPod;
+/// use constmuck::{ImplsPod, ImplsTransparentWrapper};
+///
+/// use std::num::Wrapping;
 ///
 /// const ARR: [u8; 4] = cast([-3i8, -2, -1, 0], infer!());
 /// assert_eq!(ARR, [253, 254, 255, 0]);
@@ -12,8 +14,8 @@
 /// const fn requires_pod<T>(_bounds: ImplsPod<T>) {}
 /// requires_pod::<u32>(infer!());
 ///
-/// const fn requires_2_pods<T, U>(_bounds: (ImplsPod<T>, ImplsPod<U>)) {}
-/// requires_2_pods::<u32, u64>(infer!());
+/// const fn requires_2_bounds<T, U>(_bounds: (ImplsPod<T>, ImplsTransparentWrapper<U, T>)) {}
+/// requires_2_bounds::<u32, Wrapping<u32>>(infer!());
 ///  
 /// ```
 #[macro_export]
@@ -35,7 +37,9 @@ macro_rules! infer {
 ///
 /// ```rust
 /// use constmuck::cast;
-/// use constmuck::{Infer, ImplsPod};
+/// use constmuck::{Infer, ImplsPod, ImplsTransparentWrapper};
+///
+/// use std::num::Wrapping;
 ///
 /// const ARR: [i8; 3] = cast([3u8, 5, u8::MAX - 1], Infer::INFER);
 /// assert_eq!(ARR, [3, 5, -2]);
@@ -43,11 +47,12 @@ macro_rules! infer {
 /// const fn requires_pod<T>(_bounds: ImplsPod<T>) {}
 /// requires_pod::<u32>(Infer::INFER);
 ///
-/// const fn requires_2_pods<T, U>(_bounds: (ImplsPod<T>, ImplsPod<U>)) {}
-/// requires_2_pods::<u32, u64>(Infer::INFER);
+/// const fn requires_2_bounds<T, U>(_bounds: (ImplsPod<T>, ImplsTransparentWrapper<U, T>)) {}
+/// requires_2_bounds::<u32, Wrapping<u32>>(Infer::INFER);
 ///  
 /// ```
 pub trait Infer: Sized + Copy {
+    /// Constructs this type.
     const INFER: Self;
 }
 

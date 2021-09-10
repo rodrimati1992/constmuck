@@ -37,7 +37,9 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 ///     const WRAP_VAL_ONE: Foo<i8> = wrapper::wrap(3, infer_tw!());
 ///     
 ///     // Transmute `[u8; 3]` to `[Foo<u8>; 3]`
-///     // The `.array()` is required to wrap arrays of types that impl `TransparentWrapper`.
+///     //
+///     // The `.array()` is required to transmute arrays of values into arrays of
+///     // wrappers around those values.
 ///     const WRAP_VAL_ARR: [Foo<u8>; 3] = wrapper::wrap([5, 8, 13], infer_tw!().array());
 ///     
 ///     assert_eq!(WRAP_VAL_ONE, Foo(3));
@@ -48,7 +50,6 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 ///     const WRAP_REF_ONE: &Foo<i8> = wrapper::wrap_ref(&3, infer_tw!());
 ///     
 ///     // Transmute `&[u8; 3]` to `&[Foo<u8>; 3]`
-///     // The `.array()` is required to wrap arrays of types that impl `TransparentWrapper`.
 ///     const WRAP_REF_ARR: &[Foo<u8>; 3] = wrapper::wrap_ref(&[5, 8, 13], infer_tw!().array());
 ///     
 ///     assert_eq!(WRAP_REF_ONE, &Foo(3));
@@ -75,8 +76,8 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 /// {
 ///     // Transmuting `&Wrapping<u8>` to `&u8`,
 ///     //
-///     // `infer_tw!().into_inner` allows transmuting
-///     // from `T` to `U` where `T` impls `TransparentWrapper<U>`.
+///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+///     // whose `into_inner` field allows transmuting from a wrapper into the value in it.
 ///     const UNWRAPPED: &u8 = transmute_ref(&Wrapping(5), infer_tw!().into_inner);
 ///     assert_eq!(*UNWRAPPED, 5);
 /// }
@@ -84,8 +85,8 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 /// {
 ///     // Transmuting `&u8` to `&Wrapping<u8>`
 ///     //
-///     // `infer_tw!().from_inner` allows transmuting
-///     // from `U` to `T` where `T` impls `TransparentWrapper<U>`.
+///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+///     // whose `from_inner` field allows transmuting from a value into a wrapper around it.
 ///     const WRAPPED: &Wrapping<u8> = transmute_ref(&7, infer_tw!().from_inner);
 ///    
 ///     assert_eq!(*WRAPPED, Wrapping(7));
@@ -105,11 +106,59 @@ macro_rules! infer_tw {
 pub(crate) mod impls_tw {
     use super::*;
 
-    /// Encodes a `T: TransparentWrapper` bound as a value,
+    /// Encodes a `T:`[`TransparentWrapper`] bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     ///
-    /// Related: [`wrapper`](crate::wrapper) module
+    /// Constructible with [`NEW`](Self::NEW) associated constant,
+    /// or [`infer_tw`] macro.
     ///
+    /// Related: [`wrapper`](crate::wrapper) module.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use constmuck::{infer_tw, wrapper};
+    ///
+    /// #[derive(Debug, PartialEq)]
+    /// #[repr(transparent)]
+    /// pub struct This<T>(pub T);
+    ///
+    /// unsafe impl<T> constmuck::TransparentWrapper<T> for This<T> {}
+    ///
+    /// {
+    ///     // Transmuting from `&&str` to `&This<&str>`
+    ///     //
+    ///     // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+    ///     const WRAPPED: &This<&str> = wrapper::wrap_ref(&"hi", infer_tw!());
+    ///     assert_eq!(*WRAPPED, This("hi"));
+    /// }
+    ///
+    /// {
+    ///     // Transmuting from `&This<&str>` to `&&str`
+    ///     const UNWRAPPED: &&str = wrapper::peel_ref(&This("hello"), infer_tw!());
+    ///     assert_eq!(*UNWRAPPED, "hello");
+    /// }
+    ///
+    /// {
+    ///     // Transmuting from `[u64; 2]` to `[This<u64>; 2]`
+    ///     //
+    ///     // The `.array()` is required to transmute arrays of values into arrays of
+    ///     // wrappers around those values.
+    ///     const WRAPPED_ARR: [This<u64>; 2] = wrapper::wrap([9, 99], infer_tw!().array());
+    ///     assert_eq!(WRAPPED_ARR, [This(9), This(99)]);
+    /// }
+    ///
+    /// {
+    ///     // Transmuting from `[This<i8>; 2]` to `[i8; 2]`
+    ///     //
+    ///     // `.array()` also allows transmuting arrays of wrappers into
+    ///     // arrays of the values inside those wrappers, using the `peel*` functions.
+    ///     const UNWRAPPED_ARR: [i8; 2] =
+    ///         wrapper::peel([This(2), This(22)], infer_tw!().array());
+    ///     assert_eq!(UNWRAPPED_ARR, [2, 22]);
+    /// }
+    ///
+    /// ```
     pub struct ImplsTransparentWrapper<Outer, Inner> {
         pub from_inner: TransmutableInto<Inner, Outer>,
         pub into_inner: TransmutableInto<Outer, Inner>,
@@ -141,6 +190,38 @@ pub(crate) mod impls_tw {
     impl<Outer, Inner> ImplsTransparentWrapper<Outer, Inner> {
         /// Turns a `ImplsTransparentWrapper<Outer, Inner>` into a
         /// `ImplsTransparentWrapper<[Outer; LEN], [Inner; LEN]>`.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::{infer_tw, wrapper};
+        ///
+        /// #[derive(Debug, PartialEq)]
+        /// #[repr(transparent)]
+        /// pub struct Xyz<T>(pub T);
+        ///
+        /// unsafe impl<T> constmuck::TransparentWrapper<T> for Xyz<T> {}
+        ///
+        /// {
+        ///     // Transmuting from `[u32; 5]` to `[Xyz<u32>; 5]`
+        ///     const ARR: [Xyz<u32>; 5] = wrapper::wrap(
+        ///         [3, 5, 13, 34, 89],
+        ///         infer_tw!().array(),
+        ///     );
+        ///    
+        ///     assert_eq!(ARR, [Xyz(3), Xyz(5), Xyz(13), Xyz(34), Xyz(89)]);
+        /// }
+        ///
+        /// {
+        ///     // Transmuting from `[Xyz<u32>; 5]` to `[u32; 5]`
+        ///     const ARR: [u32; 5] = wrapper::peel(
+        ///         [Xyz(3), Xyz(5), Xyz(13), Xyz(34), Xyz(89)],
+        ///         infer_tw!().array(),
+        ///     );
+        ///    
+        ///     assert_eq!(ARR, [3, 5, 13, 34, 89]);
+        /// }
+        /// ```
         #[inline(always)]
         pub const fn array<const LEN: usize>(
             self,
@@ -172,20 +253,26 @@ where
 /// ```rust
 /// use constmuck::{infer_tw, wrapper};
 ///
-/// use std::num::Wrapping;
+/// #[derive(Debug, PartialEq)]
+/// #[repr(transparent)]
+/// pub struct Qux<T>(pub T);
 ///
-/// // Transmuting `&u32` to `Wrapping<u32>`
+/// unsafe impl<T> constmuck::TransparentWrapper<T> for Qux<T> {}
+///
+///
+/// // Transmuting `&u32` to `Qux<u32>`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
-/// const VALUE: Wrapping<u32> = wrapper::wrap(3, infer_tw!());
+/// const VALUE: Qux<u32> = wrapper::wrap(3, infer_tw!());
 ///
-/// // Transmuting `[u32; 3]` to `[Wrapping<u32>; 3]`
+/// // Transmuting `[u32; 3]` to `[Qux<u32>; 3]`
 /// //
-/// // The `.array()` is required to wrap arrays of types that impl `TransparentWrapper`.
-/// const ARR: [Wrapping<u32>; 3] = wrapper::wrap([5, 8, 13], infer_tw!().array());
+/// // The `.array()` is required to transmute arrays of values into arrays of
+/// // wrappers around those values.
+/// const ARR: [Qux<u32>; 3] = wrapper::wrap([5, 8, 13], infer_tw!().array());
 ///
-/// assert_eq!(VALUE, Wrapping(3));
-/// assert_eq!(ARR, [Wrapping(5), Wrapping(8), Wrapping(13)]);
+/// assert_eq!(VALUE, Qux(3));
+/// assert_eq!(ARR, [Qux(5), Qux(8), Qux(13)]);
 ///
 /// ```
 pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, Inner>) -> Outer {
@@ -276,7 +363,8 @@ pub const fn wrap_slice<Inner, Outer>(
 ///
 /// // Transmuting `[Wrapping<u32>; 3]` to `[u32; 3]`
 /// //
-/// // The `.array()` is required to unwrap arrays of types that impl `TransparentWrapper`.
+/// // The `.array()` is required to transmute arrays of wrappers into
+/// // arrays of the values inside those wrappers.
 /// const ARR: [u32; 3] = wrapper::peel(
 ///     [Wrapping(5), Wrapping(8), Wrapping(13)],
 ///     infer_tw!().array(),
@@ -299,8 +387,6 @@ pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, In
 ///
 /// ```rust
 /// use constmuck::{infer_tw, wrapper};
-///
-/// use std::num::Wrapping;
 ///
 /// #[derive(Debug, PartialEq)]
 /// #[repr(transparent)]
@@ -334,8 +420,6 @@ pub const fn peel_ref<Inner, Outer>(
 ///
 /// ```rust
 /// use constmuck::{infer_tw, wrapper};
-///
-/// use std::num::Wrapping;
 ///
 /// #[derive(Debug, PartialEq)]
 /// #[repr(transparent)]

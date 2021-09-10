@@ -7,8 +7,40 @@ use crate::{ImplsCopy, ImplsZeroable};
 mod __ {
     use super::*;
 
-    /// Encodes a `T: Pod` bound as a value,
+    /// Encodes a `T:`[`Pod`] bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use constmuck::{ImplsPod, cast, cast_ref_alt, cast_slice_alt, infer};
+    ///
+    /// {
+    ///     // transmuting `i16` to `u16`
+    ///     const FOO1: u16 = cast(-1i16, (ImplsPod::NEW, ImplsPod::NEW));
+    ///    
+    ///     // The same as the above constant
+    ///     const FOO2: u16 = cast(-1i16, infer!());
+    ///    
+    ///     assert_eq!(FOO1, u16::MAX);
+    ///     assert_eq!(FOO2, u16::MAX);
+    /// }
+    ///
+    /// {
+    ///     // transmuting `&i8` to `&u8`
+    ///     const REFF: &u8 = cast_ref_alt(&-2i8, infer!());
+    ///    
+    ///     assert_eq!(REFF, &254);
+    /// }
+    ///
+    /// {
+    ///     // transmuting `&[u8]` to `&[i8]`
+    ///     const REFF: &[i8] = cast_slice_alt(&[0u8, 127, 128, 255], infer!());
+    ///    
+    ///     assert_eq!(REFF, &[0i8, 127, -128, -1]);
+    /// }
+    ///
+    /// ```
     pub struct ImplsPod<T> {
         pub impls_copy: ImplsCopy<T>,
         pub impls_zeroable: ImplsZeroable<T>,

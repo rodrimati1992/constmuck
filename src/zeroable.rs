@@ -7,8 +7,10 @@ use crate::TypeSize;
 mod __ {
     use super::*;
 
-    /// Encodes a `T: Zeroable` bound as a value,
+    /// Encodes a `T:`[`Zeroable`] bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
+    ///
+    /// Related: the [`zeroed`] and [`zeroed_array`] functions.
     pub struct ImplsZeroable<T> {
         _private: PhantomData<fn() -> T>,
     }

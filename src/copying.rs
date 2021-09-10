@@ -1,3 +1,7 @@
+//! For copying values in generic contexts.
+//!
+//! Related: [`ImplsCopy`] type, [`type_size`] macro.
+
 use core::{marker::PhantomData, mem::MaybeUninit};
 
 use crate::TypeSize;
@@ -7,6 +11,8 @@ pub(crate) mod impls_copy {
 
     /// Encodes a `T: Copy` bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
+    ///
+    /// Related: the [`copying`](crate::copying) module
     pub struct ImplsCopy<T> {
         _private: PhantomData<fn() -> T>,
     }
@@ -34,7 +40,7 @@ impl<T: Copy> crate::Infer for ImplsCopy<T> {
     const INFER: Self = Self::NEW;
 }
 
-/// Creates a `[T; ARR_LEN]` by copying from `reff`
+/// Copies a `T` from a `&T`
 ///
 /// Requires that `T` implements `Copy`
 ///

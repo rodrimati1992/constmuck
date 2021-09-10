@@ -5,7 +5,9 @@ use core::{
 
 use crate::Infer;
 
-/// Constructs a [`TypeSize`]
+/// Constructs a [`TypeSize`].
+///
+/// This implicitly constructs the `bounds` field of a `TypeSize` with [`Infer::INFER`].
 ///
 /// # Example
 ///
@@ -20,7 +22,7 @@ use crate::Infer;
 ///         [1; SIZE],
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` here returns an `ImplsPod<T>`.
+///         // `bound.into_bounds()` extracts the `bounds` field, which is `ImplsPod<T>` here.
 ///         (infer!(), bound.into_bounds())
 ///     )
 /// }
@@ -87,7 +89,7 @@ macro_rules! map_bound {
 
 /// For passing a type along with its size, constructible with the [`type_size`] macro.
 ///
-/// The `B` type parameter can be any type that implements [`Infer`],
+/// The `B` (bounds) type parameter can be any type that implements [`Infer`],
 /// and is implicitly constructed by the [`type_size`] macro.
 ///
 /// # Example

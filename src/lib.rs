@@ -23,7 +23,7 @@ mod zeroable;
 pub mod __priv_utils;
 
 #[doc(no_inline)]
-pub use bytemuck::{self, Pod, PodCastError, TransparentWrapper};
+pub use bytemuck::{self, Pod, PodCastError, TransparentWrapper, Zeroable};
 
 pub use crate::{
     copying::impls_copy::ImplsCopy,
