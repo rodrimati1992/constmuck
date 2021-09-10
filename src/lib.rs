@@ -7,6 +7,8 @@ mod macros;
 
 pub mod copying;
 
+pub mod contiguous;
+
 mod infer;
 
 mod pod;
@@ -25,9 +27,10 @@ mod zeroable;
 pub mod __priv_utils;
 
 #[doc(no_inline)]
-pub use bytemuck::{self, Pod, PodCastError, TransparentWrapper, Zeroable};
+pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
 
 pub use crate::{
+    contiguous::impls_contiguous::ImplsContiguous,
     copying::impls_copy::ImplsCopy,
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, ImplsPod},

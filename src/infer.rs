@@ -1,4 +1,4 @@
-/// For constructing `Impls*` types (values that represent trait bounds).
+/// For constructing types that implement [`Infer`], this includes `Impls*` types.
 ///
 /// # Example
 ///

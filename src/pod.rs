@@ -107,7 +107,7 @@ impl<T: Pod> crate::Infer for ImplsPod<T> {
 
 /// For casting `T` into `U`
 ///
-/// Requires both `T` and `U` to implement `Pod`.
+/// Requires both `T` and `U` to implement [`Pod`].
 ///
 /// # Panics
 ///
@@ -134,7 +134,7 @@ pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
 
 /// For casting `T` into `U`
 ///
-/// Requires both `T` and `U` to implement `Pod`.
+/// Requires both `T` and `U` to implement [`Pod`].
 ///
 /// # Errors
 ///
@@ -171,7 +171,7 @@ pub const fn try_cast<T, U>(
 
 /// Cast a `&T` to `&U`
 ///
-/// Requires both `T` and `U` to implement `Pod`.
+/// Requires both `T` and `U` to implement [`Pod`].
 ///
 /// # Panics
 ///
@@ -212,7 +212,7 @@ pub const fn cast_ref_alt<T, U>(from: &T, bounds: (ImplsPod<T>, ImplsPod<U>)) ->
 
 /// Cast a `&T` to `&U`
 ///
-/// Requires both `T` and `U` to implement `Pod`.
+/// Requires both `T` and `U` to implement [`Pod`].
 ///
 /// # Errors
 ///
