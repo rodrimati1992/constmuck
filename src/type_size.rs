@@ -20,8 +20,7 @@ use crate::Infer;
 ///         [1; SIZE],
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` here returns an `ImplsPod<T>`,
-///         // the first type argument of `bound`
+///         // `bound.into_bounds()` here returns an `ImplsPod<T>`.
 ///         (infer!(), bound.into_bounds())
 ///     )
 /// }
@@ -104,8 +103,7 @@ macro_rules! map_bound {
 ///         [u8::MAX; SIZE],
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` here returns an `ImplsPod<T>`,
-///         // the first type argument of `bound`
+///         // `bound.into_bounds()` here returns an `ImplsPod<T>`.
 ///         (infer!(), bound.into_bounds())
 ///     )
 /// }
@@ -178,7 +176,9 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
             [/* size_of::<T>() does not equal SIZE */][size_of_T]
         }
     }
+}
 
+impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
     /// Sets the bounds field of a bound-less `TypeSize`.
     ///
     /// # Leaking

@@ -15,13 +15,15 @@ mod type_size;
 
 pub mod transmutable;
 
+pub mod wrapper;
+
 mod zeroable;
 
 #[doc(hidden)]
 pub mod __priv_utils;
 
 #[doc(no_inline)]
-pub use bytemuck::{self, Pod, PodCastError};
+pub use bytemuck::{self, Pod, PodCastError, TransparentWrapper};
 
 pub use crate::{
     copying::impls_copy::ImplsCopy,
@@ -30,6 +32,7 @@ pub use crate::{
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
     transmutable::transmutable_into::TransmutableInto,
     type_size::TypeSize,
+    wrapper::impls_tw::ImplsTransparentWrapper,
     zeroable::{zeroed, zeroed_array, ImplsZeroable},
 };
 

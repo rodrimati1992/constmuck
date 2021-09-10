@@ -1,3 +1,7 @@
+//! Functions for safely transmuting types with a [`TransmutableInto`] parameter.
+//!
+//!
+
 use core::{marker::PhantomData, mem};
 
 use crate::{ImplsPod, __priv_utils::MakePhantom};
@@ -11,7 +15,7 @@ pub(crate) mod transmutable_into {
     /// Marker type which guarantees that `Fro` is safely transmutable into `To`,
     /// both by value and by reference (and other pointer types).
     ///
-    ///
+    /// Related: [`transmutable`](crate::transmutable) module.
     ///
     pub struct TransmutableInto<Fro, To> {
         _private: PhantomData<(
@@ -70,6 +74,15 @@ pub(crate) mod transmutable_into {
                 }
             }
         }
+
+        /// Turns a `TransmutableInto<Fro, To>` into a
+        /// `TransmutableInto<[Fro; LEN], [To; LEN]>`.
+        #[inline(always)]
+        pub const fn array<const LEN: usize>(self) -> TransmutableInto<[Fro; LEN], [To; LEN]> {
+            TransmutableInto {
+                _private: MakePhantom::MAKE,
+            }
+        }
     }
 }
 
@@ -121,4 +134,35 @@ pub const fn transmute_into<T, U>(value: T, _bounds: TransmutableInto<T, U>) -> 
 /// ```
 pub const fn transmute_ref<T, U>(value: &T, _bounds: TransmutableInto<T, U>) -> &U {
     unsafe { __priv_transmute_ref_unchecked!(T, U, value) }
+}
+
+/// Transmutes `&[T]` into `&[U]`, given a [`TransmutableInto`].
+///
+/// # Example
+///
+/// ```
+/// use constmuck::{
+///     transmutable::{TransmutableInto, transmute_slice},
+///     infer, infer_tw,
+/// };
+///
+/// use std::num::Wrapping;
+///
+///
+/// const X: &[i8] = transmute_slice(&[5u8, 250u8, 255u8], TransmutableInto::pod(infer!()));
+///
+/// // Casting a slice of `TransparentWrapper`s to a slice of what they wrap.
+/// const UNWRAPPED: &[u8] =
+///     transmute_slice(&[Wrapping(5), Wrapping(250)], infer_tw!().into_inner);
+///
+/// // Casting a slice of elements to a slice of `TransparentWrapper`s around them.
+/// const WRAPPED: &[Wrapping<u8>] = transmute_slice(&[7, 78], infer_tw!().from_inner);
+///
+/// assert_eq!(*X, [5, -6, -1]);
+/// assert_eq!(*UNWRAPPED, [5, 250]);
+/// assert_eq!(*WRAPPED, [Wrapping(7), Wrapping(78)]);
+///
+/// ```
+pub const fn transmute_slice<T, U>(value: &[T], _bounds: TransmutableInto<T, U>) -> &[U] {
+    unsafe { __priv_transmute_ref_unchecked!([T], [U], value) }
 }
