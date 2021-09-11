@@ -1,3 +1,6 @@
+//! Functions for converting types that implement [`Contiguous`]
+//! into and from their integer representation.
+
 use bytemuck::Contiguous;
 
 use core::marker::PhantomData;
@@ -111,7 +114,7 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntR
 ///
 /// Requires that `T` implements [`Contiguous<Int = u8>`](bytemuck::Contiguous)
 ///
-/// # Example
+/// # Examples
 ///
 /// ### `NonZeroU8`
 ///
@@ -120,13 +123,13 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntR
 ///
 /// use std::num::NonZeroU8;
 ///
-/// const ZERO: Option<NonZeroU8> = contiguous::from_u8_integer(0, infer!());
-/// assert_eq!(ZERO, NonZeroU8::new(0));
+/// const ZERO: Option<NonZeroU8> = contiguous::from_u8(0, infer!());
+/// assert_eq!(ZERO, None);
 ///
-/// const ONE: Option<NonZeroU8> = contiguous::from_u8_integer(1, infer!());
+/// const ONE: Option<NonZeroU8> = contiguous::from_u8(1, infer!());
 /// assert_eq!(ONE, NonZeroU8::new(1));
 ///
-/// const HUNDRED: Option<NonZeroU8> = contiguous::from_u8_integer(100, infer!());
+/// const HUNDRED: Option<NonZeroU8> = contiguous::from_u8(100, infer!());
 /// assert_eq!(HUNDRED, NonZeroU8::new(100));
 ///
 /// ```
@@ -153,35 +156,133 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntR
 /// }
 ///
 ///
-/// const NONE0: Option<Direction> = contiguous::from_u8_integer(0, infer!());
+/// const NONE0: Option<Direction> = contiguous::from_u8(0, infer!());
 /// assert_eq!(NONE0, None);
 ///
-/// const NONE9: Option<Direction> = contiguous::from_u8_integer(9, infer!());
+/// const NONE9: Option<Direction> = contiguous::from_u8(9, infer!());
 /// assert_eq!(NONE9, None);
 ///
-/// const UP: Option<Direction> = contiguous::from_u8_integer(10, infer!());
+/// const UP: Option<Direction> = contiguous::from_u8(10, infer!());
 /// assert_eq!(UP, Some(Direction::Up));
 ///
-/// const DOWN: Option<Direction> = contiguous::from_u8_integer(11, infer!());
+/// const DOWN: Option<Direction> = contiguous::from_u8(11, infer!());
 /// assert_eq!(DOWN, Some(Direction::Down));
 ///
-/// const LEFT: Option<Direction> = contiguous::from_u8_integer(12, infer!());
+/// const LEFT: Option<Direction> = contiguous::from_u8(12, infer!());
 /// assert_eq!(LEFT, Some(Direction::Left));
 ///
-/// const RIGHT: Option<Direction> = contiguous::from_u8_integer(13, infer!());
+/// const RIGHT: Option<Direction> = contiguous::from_u8(13, infer!());
 /// assert_eq!(RIGHT, Some(Direction::Right));
 ///
-/// const NONE14: Option<Direction> = contiguous::from_u8_integer(14, infer!());
+/// const NONE14: Option<Direction> = contiguous::from_u8(14, infer!());
 /// assert_eq!(NONE14, None);
 ///
-/// const NONE15: Option<Direction> = contiguous::from_u8_integer(15, infer!());
-/// assert_eq!(NONE15, None);
-///
 /// ```
-pub const fn from_u8_integer<T>(integer: u8, bounds: ImplsContiguous<T, u8>) -> Option<T> {
+pub const fn from_u8<T>(integer: u8, bounds: ImplsContiguous<T, u8>) -> Option<T> {
     if bounds.min_value <= integer && integer <= bounds.max_value {
         unsafe { Some(__priv_transmute_from_copy_unchecked!(u8, T, integer)) }
     } else {
         None
     }
 }
+
+macro_rules! declare_from_integer_fns {
+    ($(($fn_name:ident, $Int:ident))*) => (
+        declare_from_integer_fns!{
+            @inner
+            $((
+                $fn_name,
+                $Int,
+                concat!(
+                    "Converts `ìnteger: ", stringify!($Int), "` to `T` if it's between ",
+                    "the minimum and maximum values for `T`, otherwise returns `None`.\n\n",
+                    "Requires that `T` implements [`Contiguous<Int = ", stringify!($Int),
+                    ">`](bytemuck::Contiguous)"
+                )
+            ))*
+        }
+    );
+    (@inner $(($fn_name:ident, $Int:ident, $shared_doc:expr))*)=>{
+        $(
+            impl<T> FromInteger<T, $Int> {
+                #[doc = $shared_doc]
+                #[inline(always)]
+                pub const fn call(self) -> Option<T> {
+                    $fn_name(self.0, self.1)
+                }
+            }
+        )*
+
+        $(
+            declare_from_integer_fns!{@free_fn $fn_name, $Int, $shared_doc}
+        )*
+    };
+    (@free_fn from_u8, $Int:ident, $shared_doc:expr)=>{};
+    (@free_fn $fn_name:ident, $Int:ident, $shared_doc:expr)=>{
+        #[doc = $shared_doc]
+        /// # Examples
+        ///
+        /// For examples, you can look
+        /// [at the ones for `from_u8`](self::from_u8#examples).
+        ///
+        pub const fn $fn_name<T>(integer: $Int, bounds: ImplsContiguous<T, $Int>) -> Option<T> {
+            if bounds.min_value <= integer && integer <= bounds.max_value {
+                unsafe { Some(__priv_transmute_from_copy_unchecked!($Int, T, integer)) }
+            } else {
+                None
+            }
+        }
+    };
+}
+
+declare_from_integer_fns! {
+    (from_i8, i8)
+    (from_i16, i16)
+    (from_i32, i32)
+    (from_i64, i64)
+    (from_i128, i128)
+    (from_isize, isize)
+    (from_u8, u8)
+    (from_u16, u16)
+    (from_u32, u32)
+    (from_u64, u64)
+    (from_u128, u128)
+    (from_usize, usize)
+}
+
+/// Converts `IntRepr` to `T` if it's between the minimum and maximum values for `T`,
+/// otherwise returns `None`.
+///
+/// This is only useful over the functions in the [`contiguous`](crate::contiguous)
+/// module when one needs to select the method based on the type of the integer.
+///
+/// # Limitation
+///
+/// The concrete type of the integer must be known for the `call` method to be callable,
+/// it can't be inferred from the type that it's converted into.
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::contiguous::FromInteger;
+/// use constmuck::infer;
+///
+/// use std::num::{NonZeroU32, NonZeroUsize};
+///
+/// const ZERO_USIZE: Option<NonZeroUsize> = FromInteger(0usize, infer!()).call();
+/// assert_eq!(ZERO_USIZE, None);
+///
+/// const TWO_USIZE: Option<NonZeroUsize> = FromInteger(2usize, infer!()).call();
+/// assert_eq!(TWO_USIZE, NonZeroUsize::new(2));
+///
+///
+/// const ZERO_U64: Option<NonZeroU32> = FromInteger(0u32, infer!()).call();
+/// assert_eq!(ZERO_U64, None);
+///
+/// const ONE_U64: Option<NonZeroU32> = FromInteger(1u32, infer!()).call();
+/// assert_eq!(ONE_U64, NonZeroU32::new(1));
+///
+///
+/// ```
+///
+pub struct FromInteger<T, IntRepr>(pub IntRepr, pub ImplsContiguous<T, IntRepr>);
