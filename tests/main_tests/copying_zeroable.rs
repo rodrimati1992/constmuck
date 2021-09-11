@@ -1,8 +1,9 @@
-use constmuck::{copying, infer, type_size, zeroed, zeroed_array};
+use constmuck::{copying, type_size, zeroed, zeroed_array};
 
 #[test]
 fn test_copy() {
     assert_eq!(copying::copy(&"hello", type_size!(&str)), "hello");
+
     assert_eq!(copying::copy(&10, type_size!(u32)), 10);
 
     let local = 13;

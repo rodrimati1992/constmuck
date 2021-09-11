@@ -98,6 +98,9 @@ macro_rules! infer_tw {
     () => {
         <$crate::ImplsTransparentWrapper<_, _> as $crate::Infer>::INFER
     };
+    ($outer:ty $(,)*) => {
+        <$crate::ImplsTransparentWrapper<$outer, _> as $crate::Infer>::INFER
+    };
     ($outer:ty, $inner:ty $(,)*) => {
         <$crate::ImplsTransparentWrapper<$outer, $inner> as $crate::Infer>::INFER
     };
@@ -188,6 +191,26 @@ pub(crate) mod impls_tw {
     }
 
     impl<Outer, Inner> ImplsTransparentWrapper<Outer, Inner> {
+        const __NEW_UNCHECKED__: Self = unsafe {
+            Self {
+                from_inner: TransmutableInto::new_unchecked(),
+                into_inner: TransmutableInto::new_unchecked(),
+            }
+        };
+
+        /// Constructs an `ImplsTransparentWrapper` without checking that `T` implements
+        /// [`TransparentWrapper`].
+        ///
+        /// # Safety
+        ///
+        /// You must ensure that `T` follows the
+        /// [safety requirements of `TransparentWrapper`](bytemuck::TransparentWrapper#safety)
+        ///
+        #[inline(always)]
+        pub const unsafe fn new_unchecked() -> Self {
+            Self::__NEW_UNCHECKED__
+        }
+
         /// Turns a `ImplsTransparentWrapper<Outer, Inner>` into a
         /// `ImplsTransparentWrapper<[Outer; LEN], [Inner; LEN]>`.
         ///

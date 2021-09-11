@@ -1,6 +1,6 @@
 use constmuck::{
     contiguous::{self, FromInteger},
-    infer, Contiguous,
+    infer, Contiguous, ImplsContiguous,
 };
 
 #[repr(i8)]
@@ -17,6 +17,20 @@ unsafe impl Contiguous for Tiny {
 
     const MIN_VALUE: i8 = -1;
     const MAX_VALUE: i8 = 2;
+}
+
+#[test]
+fn contiguous_accessors() {
+    {
+        let ic = ImplsContiguous::<Tiny, i8>::NEW;
+        assert_eq!(ic.min_value(), &-1);
+        assert_eq!(ic.max_value(), &2);
+    }
+    {
+        let ic = ImplsContiguous::<u32, u32>::NEW;
+        assert_eq!(ic.min_value(), &0);
+        assert_eq!(ic.max_value(), &u32::MAX);
+    }
 }
 
 #[test]
