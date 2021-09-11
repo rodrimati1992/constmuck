@@ -3,7 +3,7 @@ use core::{
     mem::{self, ManuallyDrop},
 };
 
-use crate::Infer;
+use crate::{ImplsCopy, ImplsZeroable, Infer};
 
 /// Constructs a [`TypeSize`].
 ///
@@ -192,6 +192,60 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
             bounds: ManuallyDrop::new(bounds),
             _private: PhantomData,
         }
+    }
+}
+
+impl<T, const SIZE: usize> TypeSize<ImplsCopy<T>, T, SIZE> {
+    /// Equivalent to [`copying::repeat`](crate::copying::repeat)
+    /// but allows passing the length of the retuned array.
+    ///
+    /// Creates a `[T; ARR_LEN]` by copying from a `&T`
+    ///
+    /// Requires that `T` implements `Copy`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use constmuck::type_size;
+    ///
+    /// const PAIR: &[Option<u8>] = &type_size!(Option<u8>).repeat::<2>(&None);
+    /// const TEN: &[&str] = &type_size!(&str).repeat::<10>(&"world");
+    ///
+    /// assert_eq!(PAIR, &[None, None]);
+    ///
+    /// assert_eq!(TEN, &["world"; 10]);
+    ///
+    /// ```
+    #[inline(always)]
+    pub const fn repeat<const LEN: usize>(self, reff: &T) -> [T; LEN] {
+        crate::copying::repeat(reff, self)
+    }
+}
+
+impl<T, const SIZE: usize> TypeSize<ImplsZeroable<T>, T, SIZE> {
+    /// Equivalent to [`constmuck::zeroed_array`](crate::zeroed_array)
+    /// but allows passing the length of the retuned array.
+    ///
+    /// For safely getting a [`std::mem::zeroed`](core::mem::zeroed) `[T; N]`.
+    ///
+    /// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use constmuck::{zeroed_array, type_size};
+    ///
+    /// const BYTES: &[u8] = &type_size!(u8).zeroed_array::<2>();
+    /// const CHARS: &[char] = &type_size!(char).zeroed_array::<4>();
+    ///
+    /// assert_eq!(BYTES, [0, 0]);
+    /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
+    ///
+    ///
+    /// ```
+    #[inline(always)]
+    pub const fn zeroed_array<const LEN: usize>(self) -> [T; LEN] {
+        crate::zeroed_array(self)
     }
 }
 

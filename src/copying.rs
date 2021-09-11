@@ -98,6 +98,9 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>,
 ///
 /// Requires that `T` implements `Copy`
 ///
+/// To specify the length of the returned array,
+/// [`TypeSize::repeat`] can be used instead.
+///
 /// # Example
 ///
 /// ```rust
@@ -108,7 +111,12 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>,
 ///
 /// assert_eq!(PAIR, [None, None]);
 ///
+/// // you can use `TypeSize::repeat` like here to pass the length of the returned array.
+/// assert_eq!(type_size!(Option<u8>).repeat::<2>(&None), [None, None]);
+///
+///
 /// assert_eq!(TEN, ["world"; 10]);
+/// assert_eq!(type_size!(&str).repeat::<10>(&"world"), ["world"; 10]);
 ///
 /// ```
 pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(

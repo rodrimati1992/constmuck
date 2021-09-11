@@ -80,16 +80,28 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<ImplsZeroable<T>, T,
 ///
 /// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
 ///
+/// To specify the length of the returned array, [`TypeSize::zeroed_array`]
+/// can be used instead.
+///
 /// # Example
 ///
 /// ```rust
 /// use constmuck::{zeroed_array, type_size};
 ///
-/// const BYTES: [u8; 4] = zeroed_array(type_size!(u8));
+/// const BYTES: [u8; 2] = zeroed_array(type_size!(u8));
 /// const CHARS: [char; 4] = zeroed_array(type_size!(char));
 ///
-/// assert_eq!(BYTES, [0, 0, 0, 0]);
+/// assert_eq!(BYTES, [0, 0]);
+///
+/// // you can use `TypeSize::zeroed_array` like here to pass the length of the returned array.
+/// assert_eq!(type_size!(u8).zeroed_array::<2>(), [0, 0]);
+///
+///
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
+/// assert_eq!(type_size!(char).zeroed_array::<4>(), ['\0', '\0', '\0', '\0']);
+///
+///
+///
 ///
 ///
 /// ```
