@@ -1,5 +1,53 @@
 //! Functions for converting types that implement [`Contiguous`]
 //! into and from their integer representation.
+//!
+//! Related: the [`ImplsContiguous`] type.
+//!
+//! # Example
+//!
+//! Converting an enum both from and into an integer.
+//!
+//! ```rust
+//! use constmuck::{Contiguous, contiguous, infer};
+//!
+//! #[repr(u32)]
+//! #[derive(Debug, PartialEq, Copy, Clone)]
+//! enum Side {
+//!     Front = 0,
+//!     Back = 1,
+//!     Sides = 2,
+//! }
+//!
+//! unsafe impl Contiguous for Side {
+//!    type Int = u32;
+//!
+//!    const MIN_VALUE: u32 = 0;
+//!    const MAX_VALUE: u32 = 2;
+//! }
+//!
+//! const SIDE_INTS: [u32; 3] = [
+//!     contiguous::into_integer(Side::Front, infer!()),
+//!     contiguous::into_integer(Side::Back, infer!()),
+//!     contiguous::into_integer(Side::Sides, infer!()),
+//! ];
+//! assert_eq!(SIDE_INTS, [0, 1, 2]);
+//!
+//!
+//! const SIDE_OPTS: [Option<Side>; 4] = [
+//!     contiguous::from_u32(0, infer!()),
+//!     contiguous::from_u32(1, infer!()),
+//!     contiguous::from_u32(2, infer!()),
+//!     contiguous::from_u32(3, infer!()),
+//! ];
+//!
+//! assert_eq!(
+//!     SIDE_OPTS,
+//!     [Some(Side::Front), Some(Side::Back), Some(Side::Sides), None],
+//! );
+//!
+//!
+//! ```
+//!
 
 use bytemuck::Contiguous;
 

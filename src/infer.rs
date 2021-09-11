@@ -13,9 +13,13 @@
 ///
 /// const fn requires_pod<T>(_bounds: ImplsPod<T>) {}
 /// requires_pod::<u32>(infer!());
+/// // the same as the above call
+/// requires_pod(infer!(ImplsPod<u32>));
 ///
 /// const fn requires_2_bounds<T, U>(_bounds: (ImplsPod<T>, ImplsTransparentWrapper<U, T>)) {}
 /// requires_2_bounds::<u32, Wrapping<u32>>(infer!());
+/// // the same as the above call
+/// requires_2_bounds(infer!((ImplsPod<u32>, ImplsTransparentWrapper<Wrapping<u32>, u32>)));
 ///  
 /// ```
 #[macro_export]

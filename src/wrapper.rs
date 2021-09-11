@@ -2,6 +2,66 @@
 //!
 //! Related: [`ImplsTransparentWrapper`] type and [`infer_tw`] macro.
 //!
+//! # Example
+//!
+//! Tranmuting between arrays of values and arrays of wrappers.
+//!
+//! ```rust
+//! use constmuck::{infer_tw, wrapper};
+//!
+//! #[derive(Debug, PartialEq)]
+//! #[repr(transparent)]
+//! pub struct Foo<T>(pub T);
+//!
+//! unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
+//!
+//! // `[u8; 3]` to `[Foo<u8>; 3]`
+//! {
+//!     const ARR: [Foo<u8>; 3] = wrapper::wrap([3, 5, 8], infer_tw!().array());
+//!
+//!     assert_eq!(ARR, [Foo(3), Foo(5), Foo(8)]);
+//!     // `infer_tw!(Foo<_>)` is required because any type can implement comparison with `Foo`.
+//!     assert_eq!(
+//!         wrapper::wrap([13, 21, 34], infer_tw!(Foo<_>).array()),
+//!         [Foo(13), Foo(21), Foo(34)],
+//!     );
+//! }
+//!
+//! // `[Foo<u8>; 3]` to `[u8; 3]`
+//! {
+//!     const ARR: [u8; 3] = wrapper::peel([Foo(3), Foo(5), Foo(8)], infer_tw!().array());
+//!
+//!     assert_eq!(ARR, [3, 5, 8]);
+//!     assert_eq!(
+//!         wrapper::peel([Foo(13), Foo(21), Foo(34)], infer_tw!(Foo<_>).array()),
+//!         [13, 21, 34],
+//!     );
+//! }
+//!
+//! // `&[u8; 3]` to `&[Foo<u8>; 3]`
+//! {
+//!     const REF_ARR: &[Foo<u8>; 3] = wrapper::wrap_ref(&[3, 5, 8], infer_tw!().array());
+//!
+//!     assert_eq!(REF_ARR, &[Foo(3), Foo(5), Foo(8)]);
+//!     assert_eq!(
+//!         wrapper::wrap_ref(&[13, 21, 34], infer_tw!(Foo<_>).array()),
+//!         &[Foo(13), Foo(21), Foo(34)],
+//!     );    
+//! }
+//!
+//! // `&[Foo<u8>; 3]` to `&[u8; 3]`
+//! {
+//!     const REF_ARR: &[u8; 3] = wrapper::peel_ref(&[Foo(3), Foo(5), Foo(8)], infer_tw!().array());
+//!
+//!     assert_eq!(REF_ARR, &[3, 5, 8]);
+//!     assert_eq!(
+//!         wrapper::peel_ref(&[Foo(13), Foo(21), Foo(34)], infer_tw!(Foo<_>).array()),
+//!         &[13, 21, 34],
+//!     );    
+//! }
+//!
+//! ```
+//!
 
 use bytemuck::TransparentWrapper;
 
@@ -43,7 +103,18 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 ///     const WRAP_VAL_ARR: [Foo<u8>; 3] = wrapper::wrap([5, 8, 13], infer_tw!().array());
 ///     
 ///     assert_eq!(WRAP_VAL_ONE, Foo(3));
+///     assert_eq!(wrapper::wrap(3, infer_tw!(Foo<i8>)), Foo(3));
+///     assert_eq!(wrapper::wrap(3, infer_tw!(Foo<i8>, i8)), Foo(3));
+///     
 ///     assert_eq!(WRAP_VAL_ARR, [Foo(5), Foo(8), Foo(13)]);
+///     assert_eq!(
+///         wrapper::wrap([5, 8, 13], infer_tw!(Foo<u8>).array()),
+///         [Foo(5), Foo(8), Foo(13)],
+///     );
+///     assert_eq!(
+///         wrapper::wrap([5, 8, 13], infer_tw!(Foo<u8>, u8).array()),
+///         [Foo(5), Foo(8), Foo(13)],
+///     );
 /// }
 /// {
 ///     // Transmute `&i8` to `&Foo<i8>`
@@ -239,7 +310,7 @@ pub(crate) mod impls_tw {
         ///     // Transmuting from `[Xyz<u32>; 5]` to `[u32; 5]`
         ///     const ARR: [u32; 5] = wrapper::peel(
         ///         [Xyz(3), Xyz(5), Xyz(13), Xyz(34), Xyz(89)],
-        ///         infer_tw!().array(),
+        ///         infer_tw!().array::<5>(),
         ///     );
         ///    
         ///     assert_eq!(ARR, [3, 5, 13, 34, 89]);
@@ -288,14 +359,24 @@ where
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const VALUE: Qux<u32> = wrapper::wrap(3, infer_tw!());
 ///
+/// assert_eq!(VALUE, Qux(3));
+///
+/// // `infer_tw!(Qux<_>)` is required because any type can implement comparison with `Qux`.
+/// assert_eq!(wrapper::wrap(3, infer_tw!(Qux<_>)), Qux(3));
+///
+///
 /// // Transmuting `[u32; 3]` to `[Qux<u32>; 3]`
 /// //
 /// // The `.array()` is required to transmute arrays of values into arrays of
 /// // wrappers around those values.
 /// const ARR: [Qux<u32>; 3] = wrapper::wrap([5, 8, 13], infer_tw!().array());
 ///
-/// assert_eq!(VALUE, Qux(3));
 /// assert_eq!(ARR, [Qux(5), Qux(8), Qux(13)]);
+///
+/// assert_eq!(
+///     wrapper::wrap([5, 8, 13], infer_tw!(Qux<_>).array()),
+///     [Qux(5), Qux(8), Qux(13)],
+/// );
 ///
 /// ```
 pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, Inner>) -> Outer {
@@ -324,6 +405,9 @@ pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, In
 /// const X: &Foo<u32> = wrapper::wrap_ref(&100, infer_tw!());
 ///
 /// assert_eq!(X, &Foo(100));
+///
+/// // `infer_tw!(Foo<_>)` is required because any type can implement comparison with `Foo`.
+/// assert_eq!(wrapper::wrap_ref(&100, infer_tw!(Foo<_>)), &Foo(100));
 ///
 /// ```
 pub const fn wrap_ref<Inner, Outer>(
@@ -357,6 +441,12 @@ pub const fn wrap_ref<Inner, Outer>(
 /// const X: &[Bar<&str>] = wrapper::wrap_slice(&["hello", "world"], infer_tw!());
 ///
 /// assert_eq!(X, [Bar("hello"), Bar("world")]);
+///
+/// // `infer_tw!(Bar<_>)` is required because any type can implement comparison with `Bar`.
+/// assert_eq!(
+///     wrapper::wrap_slice(&["hello", "world"], infer_tw!(Bar<_>)),
+///     [Bar("hello"), Bar("world")],
+/// );
 ///
 /// ```
 pub const fn wrap_slice<Inner, Outer>(

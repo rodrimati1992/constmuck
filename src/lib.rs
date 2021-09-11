@@ -1,4 +1,14 @@
-//! WORK IN PROGRESS
+//! Const equivalents of many [`bytemuck`] functions,
+//! and a few additional const functions.
+//!
+//! The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
+//! each one describes how it's different.
+//!
+//! # Features
+//!
+//! There are no crate features to enable in the `Cargo.toml` yet.
+//!
+//!
 
 #![no_std]
 
