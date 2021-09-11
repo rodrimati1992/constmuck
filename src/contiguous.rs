@@ -14,6 +14,7 @@ pub(crate) mod impls_contiguous {
     /// Encodes a `T:`[`Contiguous`] bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     ///
+    /// Related: the [`contiguous`](crate::contiguous) module.
     pub struct ImplsContiguous<T, IntRepr> {
         pub(super) min_value: IntRepr,
         pub(super) max_value: IntRepr,

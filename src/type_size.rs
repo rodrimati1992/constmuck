@@ -37,7 +37,7 @@ use crate::Infer;
 #[macro_export]
 macro_rules! type_size {
     ($ty:ty) => {
-        $crate::TypeSize::<_, $ty, { $crate::__::size_of::<$ty>() }>::__NEW__
+        $crate::TypeSize::<_, $ty, { $crate::__::size_of::<$ty>() }>::__13878307735224946849NEW__
     };
 }
 
@@ -134,7 +134,7 @@ impl<B: Copy, T, const SIZE: usize> Clone for TypeSize<B, T, SIZE> {
 
 impl<B: Infer, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     #[doc(hidden)]
-    pub const __NEW__: Self = {
+    pub const __13878307735224946849NEW__: Self = {
         if mem::size_of::<T>() != SIZE {
             [/* WTF */][mem::size_of::<T>()]
         } else {
@@ -217,6 +217,6 @@ impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     /// Splits this `TypeSize` into its bounds field, and a bound-less `TypeSize`.
     pub const fn split(self) -> (B, TypeSize<(), T, SIZE>) {
         let bounds = ManuallyDrop::into_inner(self.bounds);
-        (bounds, TypeSize::__NEW__)
+        (bounds, TypeSize::__13878307735224946849NEW__)
     }
 }
