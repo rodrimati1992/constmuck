@@ -9,6 +9,8 @@ pub use crate::{
     trans::{
         AssertTP,
         AssertTPCasted,
+        AssertTWPInner,
+        AssertTWPOuter,
         PhantomRef,
         TPPtrToRef,
     },

@@ -24,6 +24,47 @@ macro_rules! transmute_ref {
 }
 
 
+#[macro_export]
+macro_rules! wrapper_inner {
+    ($inner:expr, $impls_wrapper:expr, $AssertTWP:ident, $tw_field:ident) => {
+        match ($inner, $impls_wrapper) {
+            (inner, impls_wrapper) => {
+                let ass = $crate::$AssertTWP(
+                    inner,
+                    impls_wrapper._transparent_wrapper_proof,
+                    $crate::PhantomRef::NEW,
+                );
+
+                unsafe{
+                    $crate::TPPtrToRef{
+                        ptr: $crate::AssertTPCasted(
+                            ass.0 as *const _ as *const _,
+                            ass.1.$tw_field,
+                            ass.2,
+                        ),
+                    }.reff
+                }
+            }
+        }
+    }
+}
+
+
+#[macro_export]
+macro_rules! wrapper_wrap_ref {
+    ($inner:expr, $impls_wrapper:expr $(,)*) => {
+        $crate::wrapper_inner!($inner, $impls_wrapper, AssertTWPInner, from_inner)
+    };
+}
+
+#[macro_export]
+macro_rules! wrapper_peel_ref {
+    ($outer:expr, $impls_wrapper:expr $(,)*) => {
+        $crate::wrapper_inner!($outer, $impls_wrapper, AssertTWPOuter, into_inner)
+    };
+}
+
+
 ///////////////////////////
 
 pub struct PhantomRef<'a, T: ?Sized>{
@@ -53,13 +94,26 @@ pub struct AssertTP<'a, Fro: ?Sized, To: ?Sized>(
     pub PhantomRef<'a, Fro>,
 );
 
-impl<'a, Fro: ?Sized, To: ?Sized> Copy for AssertTP<'a, Fro, To> {}
+///////////////////////////
 
-impl<'a, Fro: ?Sized, To: ?Sized> Clone for AssertTP<'a, Fro, To> {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
+
+// AssertTransparentWrapperProof
+#[repr(transparent)]
+pub struct AssertTWPOuter<'a, Outer: ?Sized, Inner: ?Sized>(
+    pub &'a Outer,
+    pub crate::TransparentWrapperProof<Outer, Inner>,
+    pub PhantomRef<'a, Outer>,
+);
+
+///////////////////////////
+
+// AssertTransparentWrapperProof
+#[repr(transparent)]
+pub struct AssertTWPInner<'a, Outer: ?Sized, Inner: ?Sized>(
+    pub &'a Inner,
+    pub crate::TransparentWrapperProof<Outer, Inner>,
+    pub PhantomRef<'a, Inner>,
+);
 
 ///////////////////////////
 

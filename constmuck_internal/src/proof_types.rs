@@ -1,16 +1,18 @@
 use core::marker::PhantomData;
 
 pub struct TransparentWrapperProof<Outer: ?Sized, Inner: ?Sized>{
-    _priv: PhantomData<(
-        // Makes this invariant over the lifetimes in `Outer` and `Inner`
-        // so that it's not possible to change lifetime parameters.
-        fn(PhantomData<Outer>) -> PhantomData<Outer>,
-        fn(PhantomData<Inner>) -> PhantomData<Inner>,
-    )>
+    pub from_inner: TransmutableProof<Inner, Outer>,
+    pub into_inner: TransmutableProof<Outer, Inner>,
 }
 
 impl<Outer: ?Sized, Inner: ?Sized> TransparentWrapperProof<Outer, Inner> {
-    const __NEW: Self = Self{_priv: PhantomData};
+    const __NEW: Self = unsafe {
+        Self{
+            from_inner: TransmutableProof::new_unchecked(),
+            into_inner: TransmutableProof::new_unchecked(),
+        }
+    };
+
     pub const unsafe fn new_unchecked() -> Self {
         Self::__NEW
     }
