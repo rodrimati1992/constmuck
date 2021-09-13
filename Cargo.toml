@@ -1,6 +1,6 @@
 [package]
 name = "constmuck"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
 license = "Zlib"
@@ -17,8 +17,15 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
+[features]
+derive = ["bytemuck/derive"]
+
 [dev-dependencies]
 static_assertions = "1.1"
+
+[dependencies.constmuck_internal]
+version = "=0.1.0"
+path = "./constmuck_internal"
 
 [dependencies.bytemuck]
 version = "1.7.2"

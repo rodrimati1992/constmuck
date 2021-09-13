@@ -233,20 +233,20 @@ pub(crate) mod impls_tw {
     /// }
     ///
     /// ```
-    pub struct ImplsTransparentWrapper<Outer, Inner> {
+    pub struct ImplsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
         pub from_inner: TransmutableInto<Inner, Outer>,
         pub into_inner: TransmutableInto<Outer, Inner>,
     }
 
-    impl<Outer, Inner> Copy for ImplsTransparentWrapper<Outer, Inner> {}
+    impl<Outer: ?Sized, Inner: ?Sized> Copy for ImplsTransparentWrapper<Outer, Inner> {}
 
-    impl<Outer, Inner> Clone for ImplsTransparentWrapper<Outer, Inner> {
+    impl<Outer: ?Sized, Inner: ?Sized> Clone for ImplsTransparentWrapper<Outer, Inner> {
         fn clone(&self) -> Self {
             *self
         }
     }
 
-    impl<Outer, Inner> ImplsTransparentWrapper<Outer, Inner>
+    impl<Outer: ?Sized, Inner: ?Sized> ImplsTransparentWrapper<Outer, Inner>
     where
         Outer: TransparentWrapper<Inner>,
     {
@@ -261,7 +261,7 @@ pub(crate) mod impls_tw {
         };
     }
 
-    impl<Outer, Inner> ImplsTransparentWrapper<Outer, Inner> {
+    impl<Outer: ?Sized, Inner: ?Sized> ImplsTransparentWrapper<Outer, Inner> {
         const __NEW_UNCHECKED__: Self = unsafe {
             Self {
                 from_inner: TransmutableInto::new_unchecked(),
@@ -281,7 +281,9 @@ pub(crate) mod impls_tw {
         pub const unsafe fn new_unchecked() -> Self {
             Self::__NEW_UNCHECKED__
         }
+    }
 
+    impl<Outer, Inner> ImplsTransparentWrapper<Outer, Inner> {
         /// Turns a `ImplsTransparentWrapper<Outer, Inner>` into a
         /// `ImplsTransparentWrapper<[Outer; LEN], [Inner; LEN]>`.
         ///
@@ -328,7 +330,7 @@ pub(crate) mod impls_tw {
     }
 }
 
-impl<Outer, Inner> Infer for ImplsTransparentWrapper<Outer, Inner>
+impl<Outer: ?Sized, Inner: ?Sized> Infer for ImplsTransparentWrapper<Outer, Inner>
 where
     Outer: TransparentWrapper<Inner>,
 {

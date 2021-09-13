@@ -4,7 +4,7 @@
 
 use core::{marker::PhantomData, mem};
 
-use crate::{ImplsPod, __priv_utils::MakePhantom};
+use crate::ImplsPod;
 
 #[doc(no_inline)]
 pub use crate::TransmutableInto;
@@ -35,23 +35,32 @@ pub(crate) mod transmutable_into {
     ///
     ///
     /// ```
-    pub struct TransmutableInto<Fro, To> {
+    pub struct TransmutableInto<Fro: ?Sized, To: ?Sized> {
         _private: PhantomData<(
             // Makes this invariant over the lifetimes in `Fro` and `To`
             // so that it's not possible to change lifetime parameters.
             fn(PhantomData<Fro>) -> PhantomData<Fro>,
             fn(PhantomData<To>) -> PhantomData<To>,
         )>,
+        #[doc(hidden)]
+        pub _transmutable_into_proof: constmuck_internal::TransmutableProof<Fro, To>,
     }
 
-    impl<Fro, To> Copy for TransmutableInto<Fro, To> {}
-    impl<Fro, To> Clone for TransmutableInto<Fro, To> {
+    impl<Fro: ?Sized, To: ?Sized> Copy for TransmutableInto<Fro, To> {}
+    impl<Fro: ?Sized, To: ?Sized> Clone for TransmutableInto<Fro, To> {
         fn clone(&self) -> Self {
             *self
         }
     }
 
-    impl<Fro, To> TransmutableInto<Fro, To> {
+    impl<Fro: ?Sized, To: ?Sized> TransmutableInto<Fro, To> {
+        const __NEW_UNCHECKED: Self = unsafe {
+            Self {
+                _private: PhantomData,
+                _transmutable_into_proof: constmuck_internal::TransmutableProof::new_unchecked(),
+            }
+        };
+
         /// Constructs a `TransmutableInto`
         ///
         /// # Safety
@@ -63,11 +72,11 @@ pub(crate) mod transmutable_into {
         ///
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
-            Self {
-                _private: MakePhantom::MAKE,
-            }
+            Self::__NEW_UNCHECKED
         }
+    }
 
+    impl<Fro, To> TransmutableInto<Fro, To> {
         /// Constructs a `TransmutableInto`
         ///
         /// # Panics
@@ -105,9 +114,7 @@ pub(crate) mod transmutable_into {
                 let align_of_Foo = mem::align_of::<Fro>();
                 [/* alingment of Foo != Bar */][align_of_Foo]
             } else {
-                Self {
-                    _private: MakePhantom::MAKE,
-                }
+                Self::__NEW_UNCHECKED
             }
         }
 
@@ -142,9 +149,7 @@ pub(crate) mod transmutable_into {
         /// ```
         #[inline(always)]
         pub const fn array<const LEN: usize>(self) -> TransmutableInto<[Fro; LEN], [To; LEN]> {
-            TransmutableInto {
-                _private: MakePhantom::MAKE,
-            }
+            TransmutableInto::__NEW_UNCHECKED
         }
     }
 }
@@ -229,6 +234,35 @@ pub const fn transmute_into<T, U>(value: T, _bounds: TransmutableInto<T, U>) -> 
 pub const fn transmute_ref<T, U>(value: &T, _bounds: TransmutableInto<T, U>) -> &U {
     unsafe { __priv_transmute_ref_unchecked!(T, U, value) }
 }
+
+/// Transmutes `&T` into `&U`, given a [`TransmutableInto`],
+/// allows transmuting between `?Sized` types.
+///
+/// # Example
+///
+/// ```
+/// use constmuck::{
+///     transmutable::transmute_ref,
+///     infer_tw,
+/// };
+///
+/// #[derive(Debug, PartialEq)]
+/// #[repr(transparent)]
+/// pub struct Wrapper<T: ?Sized>(pub T);
+///
+/// unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Wrapper<T> {}
+///
+/// // Transmuting from `&[u8]` to `&Wrapper<[u8]>`
+/// const BYTES: &Wrapper<[u8]> = transmute_ref!(
+///     b"hello" as &[u8],
+///     infer_tw!().from_inner,
+/// );
+///
+/// assert_eq!(&BYTES.0, b"hello");
+///
+/// ```
+#[doc(inline)]
+pub use constmuck_internal::transmute_ref;
 
 /// Transmutes `&[T]` into `&[U]`, given a [`TransmutableInto`].
 ///

@@ -1,0 +1,25 @@
+[package]
+name = "constmuck_internal"
+version = "0.1.0"
+authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
+edition = "2021"
+license = "Zlib"
+description = "internal implementation detail of constmuck, all of this is unstable"
+documentation = "https://docs.rs/constmuck/"
+keywords = []
+categories = []
+repository = "https://github.com/rodrimati1992/constmuck/"
+include = [
+    "Cargo.toml", 
+    "src/**/*.rs", 
+    "LICENSE-ZLIB.md", 
+]
+
+[dependencies.bytemuck]
+version = "1.7.2"
+features = ["min_const_generics"]
+
+
+
+
+
