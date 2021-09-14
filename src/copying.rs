@@ -51,7 +51,9 @@ pub(crate) mod impls_copy {
         }
     }
 }
-use impls_copy::ImplsCopy;
+
+#[doc(no_inline)]
+pub use crate::ImplsCopy;
 
 impl<T: Copy> crate::Infer for ImplsCopy<T> {
     const INFER: Self = Self::NEW;
