@@ -23,6 +23,11 @@ derive = ["bytemuck/derive"]
 [dev-dependencies]
 static_assertions = "1.1"
 
+[dev-dependencies.konst]
+version = "0.2.12"
+features = ["rust_1_56"]
+default_features = false
+
 [dependencies.constmuck_internal]
 version = "=0.1.0"
 path = "./constmuck_internal"

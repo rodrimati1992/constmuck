@@ -3,4 +3,140 @@
 [![api-docs](https://docs.rs/constmuck/badge.svg)](https://docs.rs/constmuck/*)
 
 
-WORK IN PROGRESS
+Const equivalents of many [`bytemuck`] functions,
+and a few additional const functions.
+
+`constmuck` uses `bytemuck`'s traits,
+so any type that implements those traits can be used with the 
+relevant functions from this crate.
+
+The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
+each one describes how it's different.
+
+# Examples
+
+These examples use bytemuck's derives to show how users don't need to
+write `unsafe` to use this crate,
+and the [`konst`] crate to make writing the const functions easier.
+
+### Contiguous
+
+This example demonstrates constructing an enum from its representation.
+
+```rust
+
+use constmuck::{Contiguous, infer};
+
+use konst::{array, try_opt};
+
+fn main() {
+    const COLORS: Option<[Color; 5]> = Color::from_array([3, 4, 1, 0, 2]);
+    assert_eq!(
+        COLORS,
+        Some([Color::White, Color::Black, Color::Blue, Color::Red, Color::Green]),
+    );
+
+    const NONE_COLORS: Option<[Color; 4]> = Color::from_array([1, 2, 3, 5]);
+    assert_eq!(NONE_COLORS, None);
+}
+
+#[repr(u8)]
+#[derive(Debug, PartialEq, Eq, Contiguous, Copy, Clone)]
+pub enum Color {
+    Red = 0,
+    Blue,
+    Green,
+    White,
+    Black,
+}
+
+impl Color {
+    pub const fn from_int(n: u8) -> Option<Self> {
+        constmuck::contiguous::from_u8(n, infer!())
+    }
+    pub const fn from_array<const N: usize>(input: [u8; N]) -> Option<[Self; N]> {
+        // `try_opt` returns from `from_array` on `None`,
+        // because `konst::array::map` allows the passed-in expression
+        // to return from the surrounding named function.
+        Some(array::map!(input, |n| try_opt!(Self::from_int(n))))
+    }
+}
+
+
+```
+
+### Wrapper
+
+This example demonstrates a type that wraps a `[T]`, constructed by reference.
+
+```rust
+
+use constmuck::TransparentWrapper;
+use constmuck::infer_tw;
+
+fn main() {
+    const SLICE: &[u32] = &[3, 5, 8, 13, 21];
+    const WRAPPER: &SliceWrapper<u32> = SliceWrapper::new(SLICE);
+
+    const SUM: u64 = WRAPPER.sum();
+    assert_eq!(SUM, 50);
+
+    const FIRST_EVEN: Option<(usize, u32)> = WRAPPER.find_first_even();
+    assert_eq!(FIRST_EVEN, Some((2, 8)));
+}
+
+#[repr(transparent)]
+#[derive(Debug, PartialEq, Eq, TransparentWrapper)]
+pub struct SliceWrapper<T>(pub [T]);
+
+impl<T> SliceWrapper<T> {
+    // Using `constmuck` allows safely defining this function as a `const fn`
+    pub const fn new(reff: &[T]) -> &Self {
+        constmuck::wrapper::wrap_ref!(reff, infer_tw!())
+    }
+}
+
+impl SliceWrapper<u32> {
+    pub const fn sum(&self) -> u64 {
+        let mut sum = 0;
+        konst::for_range!{i in 0..self.0.len() =>
+            sum += self.0[i] as u64;
+        }
+        sum
+    }
+    pub const fn find_first_even(&self) -> Option<(usize, u32)> {
+        konst::for_range!{i in 0..self.0.len() =>
+            if self.0[i] % 2 == 0 {
+                return Some((i, self.0[i]));
+            }
+        }
+        None
+    }
+    
+}
+
+
+```
+
+
+# Features
+
+These are the features of this crate:
+
+- `"derive"`(disabled by default):
+enables `bytemuck`'s `"derive"` feature and reexports its derives.
+
+
+# No-std support
+
+`constmuck` is `#![no_std]`, it can be used anywhere Rust can be used.
+
+# Minimum Supported Rust Version
+
+`constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
+
+
+
+[`konst`]: https://docs.rs/konst/*/konst/index.html
+
+[`bytemuck`]: https://docs.rs/bytemuck/1.*/bytemuck/
