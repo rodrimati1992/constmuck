@@ -124,7 +124,14 @@ impl<T: Pod> crate::Infer for ImplsPod<T> {
 ///
 /// ```
 pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
-    unsafe { __priv_transmute!(T, U, from) }
+    unsafe {
+        if mem::size_of::<T>() != mem::size_of::<U>() {
+            let x = mem::size_of::<T>();
+            let _: () = [/* the size of T and U is not the same */][x];
+        }
+
+        __priv_transmute!(T, U, from)
+    }
 }
 
 /// For casting `T` into `U`

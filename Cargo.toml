@@ -18,7 +18,7 @@ include = [
 ]
 
 [features]
-derive = ["bytemuck/derive"]
+derive = ["bytemuck/derive", "syn"]
 debug_checks = ["constmuck_internal/debug_checks"]
 
 [dev-dependencies]
@@ -36,3 +36,8 @@ path = "./constmuck_internal"
 [dependencies.bytemuck]
 version = "1.7.2"
 features = ["min_const_generics"]
+
+# for making minimum version testing pass
+[dependencies.syn]
+version = "1.0.76"
+optional = true

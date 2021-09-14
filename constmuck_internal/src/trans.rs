@@ -21,7 +21,7 @@ macro_rules! __check_size {
 #[cfg(not(feature = "debug_checks"))]
 #[macro_export]
 macro_rules! __check_size {
-    ($from:ty, $to:ty) => ()
+    ($transmutable_into:expr) => ()
 }
 
 
