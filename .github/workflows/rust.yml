@@ -22,7 +22,7 @@ jobs:
         rustup override set ${{ matrix.rust }}
         cargo update
           
-        cd "${{github.workspace}}/constmuck/"
+        cd "${{github.workspace}}/"
         cargo build --features "derive"
         cargo test 
         cargo test --features "debug_checks"
@@ -35,7 +35,7 @@ jobs:
 
         cargo update -Z minimal-versions
         
-        cd "${{github.workspace}}/constmuck/"
+        cd "${{github.workspace}}/"
         cargo build --features "derive"
         cargo test 
         cargo test --features "debug_checks"        
