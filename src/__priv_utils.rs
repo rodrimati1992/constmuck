@@ -1,4 +1,4 @@
-use core::{marker::PhantomData, mem::ManuallyDrop};
+use core::mem::ManuallyDrop;
 
 #[repr(C)]
 pub(crate) union Transmuter<F, T> {
@@ -22,10 +22,4 @@ pub(crate) union PtrToRef<'a, P: ?Sized> {
 pub union BytesAndVal<T, const N: usize> {
     pub(crate) bytes: [u8; N],
     pub(crate) value: ManuallyDrop<T>,
-}
-
-pub struct MakePhantom<T>(T);
-
-impl<T> MakePhantom<T> {
-    pub const MAKE: PhantomData<T> = PhantomData;
 }

@@ -1,3 +1,5 @@
+use super::test_utils::must_panic;
+
 use constmuck::{
     contiguous::{self, FromInteger},
     infer, Contiguous, ImplsContiguous,
@@ -17,6 +19,23 @@ unsafe impl Contiguous for Tiny {
 
     const MIN_VALUE: i8 = -1;
     const MAX_VALUE: i8 = 2;
+}
+
+#[cfg(feature = "debug_checks")]
+#[repr(i8)]
+#[derive(Debug, PartialEq, Copy, Clone)]
+enum Wrong {
+    N1 = -1,
+    Z = 0,
+    P1 = 1,
+}
+
+#[cfg(feature = "debug_checks")]
+unsafe impl Contiguous for Wrong {
+    type Int = i16;
+
+    const MIN_VALUE: i16 = -1;
+    const MAX_VALUE: i16 = 1;
 }
 
 #[test]
@@ -43,6 +62,12 @@ fn custom_type_tests() {
     for variant in [Tiny::N1, Tiny::Z, Tiny::P1, Tiny::P2] {
         assert_eq!(contiguous::from_i8(variant as i8, infer!()), Some(variant));
         assert_eq!(FromInteger(variant as i8, infer!()).call(), Some(variant));
+    }
+
+    #[cfg(feature = "debug_checks")]
+    {
+        must_panic(|| drop(contiguous::from_i16::<Wrong>(0, infer!()))).unwrap();
+        must_panic(|| drop(contiguous::into_integer(Wrong::Z, infer!()))).unwrap();
     }
 }
 

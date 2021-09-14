@@ -31,13 +31,13 @@ where
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(transparent)]
-pub struct Wrap<T>(pub T);
+pub struct Wrap<T: ?Sized>(pub T);
 
 unsafe impl<T: Pod> Pod for Wrap<T> {}
 
 unsafe impl<T: Zeroable> Zeroable for Wrap<T> {}
 
-unsafe impl<T> TransparentWrapper<T> for Wrap<T> {}
+unsafe impl<T: ?Sized> TransparentWrapper<T> for Wrap<T> {}
 
 ////////////////////////////////////////////////////////
 

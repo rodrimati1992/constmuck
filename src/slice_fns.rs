@@ -23,14 +23,14 @@ pub const fn bytes_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<ImplsPod<T>, T, SIZE>,
 ) -> &[u8; SIZE] {
-    unsafe { __priv_transmute_ref_unchecked!(T, [u8; SIZE], bytes) }
+    unsafe { __priv_transmute_ref!(T, [u8; SIZE], bytes) }
 }
 
 pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<ImplsCopy<T>, T, SIZE>,
 ) -> &MaybeUninit<[u8; SIZE]> {
-    unsafe { __priv_transmute_ref_unchecked!(T, MaybeUninit<[u8; SIZE]>, bytes) }
+    unsafe { __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes) }
 }
 
 /// Casts `&[T]` to `&[U]`
@@ -121,7 +121,7 @@ pub const fn try_cast_slice_alt<T, U>(
         } else if mem::size_of::<T>() != mem::size_of::<U>() {
             Err(PodCastError::SizeMismatch)
         } else {
-            Ok(__priv_transmute_ref_unchecked!([T], [U], from))
+            Ok(__priv_transmute_slice!(T, U, from))
         }
     }
 }

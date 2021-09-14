@@ -73,7 +73,7 @@ impl<T: Zeroable> crate::Infer for ImplsZeroable<T> {
 ///
 /// ```
 pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<ImplsZeroable<T>, T, SIZE>) -> T {
-    unsafe { __priv_transmute_unchecked!([u8; SIZE], T, [0; SIZE]) }
+    unsafe { __priv_transmute!([u8; SIZE], T, [0; SIZE]) }
 }
 
 /// For safely getting a [`std::mem::zeroed`](core::mem::zeroed) `[T; N]`.
@@ -108,5 +108,5 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<ImplsZeroable<T>, T,
 pub const fn zeroed_array<T, const SIZE: usize, const LEN: usize>(
     _bounds: TypeSize<ImplsZeroable<T>, T, SIZE>,
 ) -> [T; LEN] {
-    unsafe { __priv_transmute_unchecked!([[u8; SIZE]; LEN], [T; LEN], [[0u8; SIZE]; LEN]) }
+    unsafe { __priv_transmute!([[u8; SIZE]; LEN], [T; LEN], [[0u8; SIZE]; LEN]) }
 }

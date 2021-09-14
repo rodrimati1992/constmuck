@@ -2,6 +2,49 @@
 
 use core::marker::PhantomData;
 
+
+#[cfg(feature = "debug_checks")]
+#[macro_export]
+macro_rules! __check_size {
+    ($transmutable_into:expr) => (
+        if let $crate::NotSameSize{not_same_size: true, proof, ..} =
+            $crate::NotSameSize::NEW 
+        {
+            [proof, $transmutable_into];
+            let x = 0;
+            let _: () = [/* expected transmute not to change the pointer size */][x];
+            loop{}
+        }
+    )
+}
+
+#[cfg(not(feature = "debug_checks"))]
+#[macro_export]
+macro_rules! __check_size {
+    ($from:ty, $to:ty) => ()
+}
+
+
+#[cfg(feature = "debug_checks")]
+#[repr(transparent)]
+#[non_exhaustive]
+pub struct NotSameSize<L: ?Sized, R: ?Sized>{
+    pub not_same_size: bool,
+
+    pub proof: crate::TransmutableProof<L, R>,
+}
+
+#[cfg(feature = "debug_checks")]
+impl<L: ?Sized, R: ?Sized> NotSameSize<L, R> {
+    pub const NEW: Self = Self {
+        not_same_size: core::mem::size_of::<*const L>() != core::mem::size_of::<*const R>(),
+        proof: unsafe{ crate::TransmutableProof::new_unchecked() },
+    };
+}
+
+///////////////////////////////////////////////////////
+
+
 #[macro_export]
 macro_rules! transmute_ref {
     ($reference:expr, $transmutable_into:expr $(,)*) => {
@@ -12,6 +55,8 @@ macro_rules! transmute_ref {
                     transmutable_into._transmutable_into_proof,
                     $crate::PhantomRef::NEW,
                 );
+
+                $crate::__check_size!{ass.1}
 
                 unsafe{
                     $crate::TPPtrToRef{
@@ -34,6 +79,8 @@ macro_rules! wrapper_inner {
                     impls_wrapper._transparent_wrapper_proof,
                     $crate::PhantomRef::NEW,
                 );
+
+                $crate::__check_size!{ass.1.$tw_field}
 
                 unsafe{
                     $crate::TPPtrToRef{

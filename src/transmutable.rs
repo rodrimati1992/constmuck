@@ -207,7 +207,7 @@ pub(crate) mod transmutable_into {
 ///
 /// ```
 pub const fn transmute_into<T, U>(value: T, _bounds: TransmutableInto<T, U>) -> U {
-    unsafe { __priv_transmute_unchecked!(T, U, value) }
+    unsafe { __priv_transmute!(T, U, value) }
 }
 
 /// Transmutes `&T` into `&U`, given a [`TransmutableInto`].
@@ -232,7 +232,7 @@ pub const fn transmute_into<T, U>(value: T, _bounds: TransmutableInto<T, U>) -> 
 ///
 /// ```
 pub const fn transmute_ref<T, U>(value: &T, _bounds: TransmutableInto<T, U>) -> &U {
-    unsafe { __priv_transmute_ref_unchecked!(T, U, value) }
+    unsafe { __priv_transmute_ref!(T, U, value) }
 }
 
 /// Transmutes `&T` into `&U`, given a [`TransmutableInto`],
@@ -298,5 +298,5 @@ pub use constmuck_internal::transmute_ref;
 ///
 /// ```
 pub const fn transmute_slice<T, U>(value: &[T], _bounds: TransmutableInto<T, U>) -> &[U] {
-    unsafe { __priv_transmute_ref_unchecked!([T], [U], value) }
+    unsafe { __priv_transmute_slice!(T, U, value) }
 }

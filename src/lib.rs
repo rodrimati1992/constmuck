@@ -135,6 +135,27 @@
 //! - `"derive"`(disabled by default):
 //! enables `bytemuck`'s `"derive"` feature and reexports its derives.
 //!
+//! - `"debug_checks"`(disabled by default):
+//! Enables [`additional checks`](#additional-checks)
+//!
+//! # Additional checks
+//!
+//! The `"debug_checks"` feature enables additional checks,
+//! all of which cause panics when it'd have otherwise been Undefined Behavior
+//! (caused by unsound `unsafe impl`s or calling `unsafe` constructor functions).
+//!
+//! ##### Size checks
+//!
+//! Functions that transmute values check that the value doesn't change size when transmuted.
+//!
+//! Functions that transmute references check that referent (the `T` in `&T`)
+//! doesn't change size when transmuted.
+//!
+//! Macros that transmute references check that reference doesn't change size when transmuted
+//! (ie: transmuting `&[u8]` to `&u8`).
+//! Macros have weaker checking than functions because they allow references to `!Sized` types
+//! (eg: `str`, `[u8]`, `dyn Trait`),
+//! if you're only casting references to `Sized` types it's better to use the function equivalents.
 //!
 //! # No-std support
 //!

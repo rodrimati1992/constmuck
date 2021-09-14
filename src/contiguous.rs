@@ -155,7 +155,7 @@ impl<T: Contiguous> crate::Infer for ImplsContiguous<T, T::Int> {
 pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntRepr>) -> IntRepr {
     core::mem::forget(_bounds);
 
-    unsafe { __priv_transmute_unchecked!(T, IntRepr, value) }
+    unsafe { __priv_transmute!(T, IntRepr, value) }
 }
 
 /// Converts `integer: u8` to `T` if it's between the minimum and maximum values for `T`,
@@ -229,7 +229,7 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntR
 /// ```
 pub const fn from_u8<T>(integer: u8, bounds: ImplsContiguous<T, u8>) -> Option<T> {
     if bounds.min_value <= integer && integer <= bounds.max_value {
-        unsafe { Some(__priv_transmute_from_copy_unchecked!(u8, T, integer)) }
+        unsafe { Some(__priv_transmute_from_copy!(u8, T, integer)) }
     } else {
         None
     }
@@ -276,7 +276,7 @@ macro_rules! declare_from_integer_fns {
         ///
         pub const fn $fn_name<T>(integer: $Int, bounds: ImplsContiguous<T, $Int>) -> Option<T> {
             if bounds.min_value <= integer && integer <= bounds.max_value {
-                unsafe { Some(__priv_transmute_from_copy_unchecked!($Int, T, integer)) }
+                unsafe { Some(__priv_transmute_from_copy!($Int, T, integer)) }
             } else {
                 None
             }

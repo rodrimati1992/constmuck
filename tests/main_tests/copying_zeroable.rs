@@ -1,7 +1,20 @@
-use constmuck::{copying, type_size, zeroed, zeroed_array};
+use super::test_utils::must_panic;
+
+use constmuck::{copying, infer, type_size, zeroed, zeroed_array, TypeSize};
 
 #[test]
 fn test_copy() {
+    #[cfg(feature = "debug_checks")]
+    {
+        must_panic(|| unsafe {
+            let _ = copying::copy(
+                &"hello",
+                TypeSize::<_, &str, 1>::new_unchecked().with_bound(infer!()),
+            );
+        })
+        .unwrap();
+    }
+
     assert_eq!(copying::copy(&"hello", type_size!(&str)), "hello");
 
     assert_eq!(copying::copy(&10, type_size!(u32)), 10);
@@ -13,6 +26,17 @@ fn test_copy() {
 
 #[test]
 fn test_repeat() {
+    #[cfg(feature = "debug_checks")]
+    {
+        must_panic(|| unsafe {
+            let _: [_; 2] = copying::repeat(
+                &"hello",
+                TypeSize::<_, &str, 1>::new_unchecked().with_bound(infer!()),
+            );
+        })
+        .unwrap();
+    }
+
     macro_rules! case {
         ($size:expr) => {{
             let x: [_; $size] = copying::repeat(&"hello", type_size!(&str));
@@ -51,4 +75,14 @@ fn zeroable_test() {
 
     case! {u32, 0u32, [0, 1, 2, 3]}
     case! {*const u32, 0 as *const u32, [0, 1, 2, 3]}
+
+    #[cfg(feature = "debug_checks")]
+    {
+        must_panic(|| unsafe {
+            let _ = zeroed(TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()));
+            let _: [u64; 2] =
+                zeroed_array(TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()));
+        })
+        .unwrap();
+    }
 }

@@ -86,7 +86,7 @@ impl<T: Copy> crate::Infer for ImplsCopy<T> {
 /// ```
 pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>, T, SIZE>) -> T {
     unsafe {
-        __priv_transmute_from_copy_unchecked!(
+        __priv_transmute_from_copy!(
             MaybeUninit<[u8; SIZE]>,
             T,
             *crate::slice_fns::maybe_uninit_bytes_of(reff, bounds)
@@ -124,7 +124,7 @@ pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
     bounds: TypeSize<ImplsCopy<T>, T, SIZE>,
 ) -> [T; ARR_LEN] {
     unsafe {
-        __priv_transmute_from_copy_unchecked!(
+        __priv_transmute_from_copy!(
             [MaybeUninit<[u8; SIZE]>; ARR_LEN],
             [T; ARR_LEN],
             [*crate::slice_fns::maybe_uninit_bytes_of(reff, bounds); ARR_LEN]

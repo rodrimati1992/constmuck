@@ -145,7 +145,7 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 /// use std::num::Wrapping;
 ///
 /// {
-///     // Transmuting `&Wrapping<u8>` to `&u8`,
+///     // Casting `&Wrapping<u8>` to `&u8`,
 ///     //
 ///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
 ///     // whose `into_inner` field allows casting from a wrapper into the value in it.
@@ -154,7 +154,7 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 /// }
 ///
 /// {
-///     // Transmuting `&u8` to `&Wrapping<u8>`
+///     // Casting `&u8` to `&Wrapping<u8>`
 ///     //
 ///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
 ///     // whose `from_inner` field allows casting from a value into a wrapper around it.
@@ -200,7 +200,7 @@ pub(crate) mod impls_tw {
     /// unsafe impl<T> constmuck::TransparentWrapper<T> for This<T> {}
     ///
     /// {
-    ///     // Transmuting from `&&str` to `&This<&str>`
+    ///     // Casting from `&&str` to `&This<&str>`
     ///     //
     ///     // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
     ///     const WRAPPED: &This<&str> = wrapper::wrap_ref(&"hi", infer_tw!());
@@ -208,13 +208,13 @@ pub(crate) mod impls_tw {
     /// }
     ///
     /// {
-    ///     // Transmuting from `&This<&str>` to `&&str`
+    ///     // Casting from `&This<&str>` to `&&str`
     ///     const UNWRAPPED: &&str = wrapper::peel_ref(&This("hello"), infer_tw!());
     ///     assert_eq!(*UNWRAPPED, "hello");
     /// }
     ///
     /// {
-    ///     // Transmuting from `[u64; 2]` to `[This<u64>; 2]`
+    ///     // Casting from `[u64; 2]` to `[This<u64>; 2]`
     ///     //
     ///     // The `.array()` is required to cast arrays of values into arrays of
     ///     // wrappers around those values.
@@ -223,7 +223,7 @@ pub(crate) mod impls_tw {
     /// }
     ///
     /// {
-    ///     // Transmuting from `[This<i8>; 2]` to `[i8; 2]`
+    ///     // Casting from `[This<i8>; 2]` to `[i8; 2]`
     ///     //
     ///     // `.array()` also allows casting arrays of wrappers into
     ///     // arrays of the values inside those wrappers, using the `peel*` functions.
@@ -305,7 +305,7 @@ pub(crate) mod impls_tw {
         /// unsafe impl<T> constmuck::TransparentWrapper<T> for Xyz<T> {}
         ///
         /// {
-        ///     // Transmuting from `[u32; 5]` to `[Xyz<u32>; 5]`
+        ///     // Casting from `[u32; 5]` to `[Xyz<u32>; 5]`
         ///     const ARR: [Xyz<u32>; 5] = wrapper::wrap(
         ///         [3, 5, 13, 34, 89],
         ///         infer_tw!().array(),
@@ -315,7 +315,7 @@ pub(crate) mod impls_tw {
         /// }
         ///
         /// {
-        ///     // Transmuting from `[Xyz<u32>; 5]` to `[u32; 5]`
+        ///     // Casting from `[Xyz<u32>; 5]` to `[u32; 5]`
         ///     const ARR: [u32; 5] = wrapper::peel(
         ///         [Xyz(3), Xyz(5), Xyz(13), Xyz(34), Xyz(89)],
         ///         infer_tw!().array::<5>(),
@@ -365,7 +365,7 @@ where
 /// unsafe impl<T> constmuck::TransparentWrapper<T> for Qux<T> {}
 ///
 ///
-/// // Transmuting `&u32` to `Qux<u32>`
+/// // Casting `&u32` to `Qux<u32>`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const VALUE: Qux<u32> = wrapper::wrap(3, infer_tw!());
@@ -376,7 +376,7 @@ where
 /// assert_eq!(wrapper::wrap(3, infer_tw!(Qux<_>)), Qux(3));
 ///
 ///
-/// // Transmuting `[u32; 3]` to `[Qux<u32>; 3]`
+/// // Casting `[u32; 3]` to `[Qux<u32>; 3]`
 /// //
 /// // The `.array()` is required to cast arrays of values into arrays of
 /// // wrappers around those values.
@@ -391,7 +391,7 @@ where
 ///
 /// ```
 pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, Inner>) -> Outer {
-    unsafe { __priv_transmute_unchecked!(Inner, Outer, val) }
+    unsafe { __priv_transmute!(Inner, Outer, val) }
 }
 
 /// Casts `&Inner` to `&Outer`
@@ -413,7 +413,7 @@ pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, In
 ///
 /// unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
-/// // Transmuting `&u32` to `&Foo<u32>`
+/// // Casting `&u32` to `&Foo<u32>`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const X: &Foo<u32> = wrapper::wrap_ref(&100, infer_tw!());
@@ -429,7 +429,7 @@ pub const fn wrap_ref<Inner, Outer>(
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &Outer {
     unsafe {
-        __priv_transmute_ref_unchecked! {Inner, Outer, reff}
+        __priv_transmute_ref! {Inner, Outer, reff}
     }
 }
 
@@ -440,13 +440,18 @@ pub const fn wrap_ref<Inner, Outer>(
 /// ```rust
 /// pub const fn wrap_ref<Inner: ?Sized, Outer: ?Sized>(
 ///     reff: &Inner,
-///     _: constmuck::ImplsTransparentWrapper<Outer, Inner>
+///     impls_tw: constmuck::ImplsTransparentWrapper<Outer, Inner>
 /// ) -> &Outer
 /// # { loop{} }
 /// ```
 ///
 /// Requires that `Outer` implements
 /// [`TransparentWrapper<Inner>`](bytemuck::TransparentWrapper)
+///
+/// Note that, because of how this macro is implemented,
+/// [`infer`] cannot be passed as the `impls_tw` argument.
+/// You must pass a type that's known to be an [`ImplsTransparentWrapper`] beforehand,
+/// eg: [`infer_tw!()`](crate::infer_tw), [`ImplsTransparentWrapper::NEW`].
 ///
 /// # Example
 ///
@@ -459,7 +464,7 @@ pub const fn wrap_ref<Inner, Outer>(
 ///
 /// unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
-/// // Transmuting `&str` to `&Foo<str>`
+/// // Casting `&str` to `&Foo<str>`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const X: &Foo<str> = wrapper::wrap_ref!("world", infer_tw!());
@@ -488,7 +493,7 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 ///
 /// unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
 ///
-/// // Transmuting `&[&str]` to `&[Bar<&str>]`
+/// // Casting `&[&str]` to `&[Bar<&str>]`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const X: &[Bar<&str>] = wrapper::wrap_slice(&["hello", "world"], infer_tw!());
@@ -507,7 +512,7 @@ pub const fn wrap_slice<Inner, Outer>(
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &[Outer] {
     unsafe {
-        __priv_transmute_ref_unchecked! {[Inner], [Outer], reff}
+        __priv_transmute_slice! {Inner, Outer, reff}
     }
 }
 
@@ -527,7 +532,7 @@ pub const fn wrap_slice<Inner, Outer>(
 /// const VALUE: u32 = wrapper::peel(Wrapping(3), infer_tw!());
 ///
 ///
-/// // Transmuting `[Wrapping<u32>; 3]` to `[u32; 3]`
+/// // Casting `[Wrapping<u32>; 3]` to `[u32; 3]`
 /// //
 /// // The `.array()` is required to cast arrays of wrappers into
 /// // arrays of the values inside those wrappers.
@@ -541,7 +546,7 @@ pub const fn wrap_slice<Inner, Outer>(
 ///
 /// ```
 pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, Inner>) -> Inner {
-    unsafe { __priv_transmute_unchecked!(Outer, Inner, val) }
+    unsafe { __priv_transmute!(Outer, Inner, val) }
 }
 
 /// Casts `&Outer` to `&Inner`
@@ -563,7 +568,7 @@ pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, In
 ///
 /// unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
-/// // Transmuting `&Foo<char>` to `&char`
+/// // Casting `&Foo<char>` to `&char`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const X: &char = wrapper::peel_ref(&Foo('@'), infer_tw!());
@@ -576,7 +581,7 @@ pub const fn peel_ref<Inner, Outer>(
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &Inner {
     unsafe {
-        __priv_transmute_ref_unchecked! {Outer, Inner, reff}
+        __priv_transmute_ref! {Outer, Inner, reff}
     }
 }
 
@@ -587,13 +592,18 @@ pub const fn peel_ref<Inner, Outer>(
 /// ```rust
 /// pub const fn peel_ref<Inner: ?Sized, Outer: ?Sized>(
 ///     reff: &Outer,
-///     _: constmuck::ImplsTransparentWrapper<Outer, Inner>
+///     impls_tw: constmuck::ImplsTransparentWrapper<Outer, Inner>
 /// ) -> &Inner
 /// # { loop{} }
 /// ```
 ///
 /// Requires that `Outer` implements
 /// [`TransparentWrapper<Inner>`](bytemuck::TransparentWrapper)
+///
+/// Note that, because of how this macro is implemented,
+/// [`infer`] cannot be passed as the `impls_tw` argument.
+/// You must pass a type that's known to be an [`ImplsTransparentWrapper`] beforehand,
+/// eg: [`infer_tw!()`](crate::infer_tw), [`ImplsTransparentWrapper::NEW`].
 ///
 /// # Example
 ///
@@ -609,7 +619,7 @@ pub const fn peel_ref<Inner, Outer>(
 /// const X: &[u8] = {
 ///     let x: &'static Foo<[u8]> = &Foo([3, 5, 8, 13]);
 ///
-///     // Transmuting `&Foo<[u8]>` to `&[u8]`
+///     // Casting `&Foo<[u8]>` to `&[u8]`
 ///     //
 ///     // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 ///     wrapper::peel_ref!(x, infer_tw!())
@@ -636,7 +646,7 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 ///
 /// unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
 ///
-/// // Transmuting `&[Bar<&str>]` to `&[&str]`
+/// // Casting `&[Bar<&str>]` to `&[&str]`
 /// //
 /// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
 /// const X: &[&str] = wrapper::peel_slice(&[Bar("hello"), Bar("world")], infer_tw!());
@@ -649,6 +659,6 @@ pub const fn peel_slice<Inner, Outer>(
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &[Inner] {
     unsafe {
-        __priv_transmute_ref_unchecked! {[Outer], [Inner], reff}
+        __priv_transmute_slice! {Outer, Inner, reff}
     }
 }

@@ -124,12 +124,7 @@ impl<T: Pod> crate::Infer for ImplsPod<T> {
 ///
 /// ```
 pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
-    unsafe {
-        let same_size = mem::size_of::<T>() == mem::size_of::<U>();
-        [(/* expected T and U of the same size */)][(!same_size) as usize];
-
-        __priv_transmute_unchecked!(T, U, from)
-    }
+    unsafe { __priv_transmute!(T, U, from) }
 }
 
 /// For casting `T` into `U`
@@ -160,7 +155,7 @@ pub const fn try_cast<T, U>(
 ) -> Result<U, crate::PodCastError> {
     unsafe {
         if mem::size_of::<T>() == mem::size_of::<U>() {
-            Ok(__priv_transmute_unchecked!(T, U, from))
+            Ok(__priv_transmute!(T, U, from))
         } else {
             // Pod requires types to be Copy, so this never causes a leak
             mem::forget(from);
@@ -254,7 +249,7 @@ pub const fn try_cast_ref_alt<T, U>(
         } else if mem::size_of::<T>() != mem::size_of::<U>() {
             Err(PodCastError::SizeMismatch)
         } else {
-            Ok(__priv_transmute_ref_unchecked!(T, U, from))
+            Ok(__priv_transmute_ref!(T, U, from))
         }
     }
 }

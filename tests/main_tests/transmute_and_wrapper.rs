@@ -72,39 +72,60 @@ fn transmute_into_test() {
         ),
         [u8::MAX, 0, 1, 2],
     );
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(fun(128u8, TI::<u8, u64>::new_unchecked()))).unwrap();
+    }
 }
 
 #[test]
 fn transmute_ref_test() {
     use self::transmute_ref as fun;
 
-    assert_eq!(fun(&usize::MAX, TI::<usize, isize>::pod(infer!())), &-1);
-    assert_eq!(fun(&0, TI::<usize, isize>::pod(infer!())), &0);
-    assert_eq!(fun(&2, TI::<usize, isize>::pod(infer!())), &2);
+    macro_rules! test_fn_or_macro {($($b:tt)?) => (
 
-    assert_eq!(fun(&9, infer_tw!(Wrap<_>).from_inner), &Wrap(9));
-    assert_eq!(fun(&Wrap(9), infer_tw!(Wrap<_>).into_inner), &9);
+        assert_eq!(fun $($b)? (&usize::MAX, TI::<usize, isize>::pod(infer!())), &-1);
+        assert_eq!(fun $($b)? (&0, TI::<usize, isize>::pod(infer!())), &0);
+        assert_eq!(fun $($b)? (&2, TI::<usize, isize>::pod(infer!())), &2);
 
-    assert_eq!(
-        fun(&[u8::MAX, 0, 1, 2], TI::<[u8; 4], [i8; 4]>::pod(infer!())),
-        &[-1i8, 0, 1, 2]
-    );
-    assert_eq!(
-        fun(&[u8::MAX, 0, 1, 2], TI::<u8, i8>::pod(infer!()).array()),
-        &[-1i8, 0, 1, 2]
-    );
+        assert_eq!(fun $($b)? (&9, infer_tw!(Wrap<_>).from_inner), &Wrap(9));
+        assert_eq!(fun $($b)? (&Wrap(9), infer_tw!(Wrap<_>).into_inner), &9);
 
-    assert_eq!(
-        fun(&[u8::MAX, 0, 1, 2], infer_tw!(Wrap<_>).from_inner.array()),
-        &[u8::MAX, 0, 1, 2].map(Wrap),
-    );
-    assert_eq!(
-        fun(
+        assert_eq!(
+            fun $($b)? (&[u8::MAX, 0, 1, 2], TI::<[u8; 4], [i8; 4]>::pod(infer!())),
+            &[-1i8, 0, 1, 2]
+        );
+        assert_eq!(
+            fun $($b)? (&[u8::MAX, 0, 1, 2], TI::<u8, i8>::pod(infer!()).array()),
+            &[-1i8, 0, 1, 2]
+        );
+
+        assert_eq!(
+            fun $($b)? (&[u8::MAX, 0, 1, 2], infer_tw!(Wrap<_>).from_inner.array()),
             &[u8::MAX, 0, 1, 2].map(Wrap),
-            infer_tw!(Wrap<_>).into_inner.array()
-        ),
-        &[u8::MAX, 0, 1, 2],
-    );
+        );
+        assert_eq!(
+            fun $($b)? (
+                &[u8::MAX, 0, 1, 2].map(Wrap),
+                infer_tw!(Wrap<_>).into_inner.array()
+            ),
+            &[u8::MAX, 0, 1, 2],
+        );
+    )}
+
+    test_fn_or_macro! {/*fn*/}
+    test_fn_or_macro! {/*macro*/ !}
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(fun(&128u8, TI::<u8, u64>::new_unchecked()))).unwrap();
+        must_panic(|| {
+            // different pointer sizes
+            drop(transmute_ref!("hello", TI::<str, ()>::new_unchecked()))
+        })
+        .unwrap();
+    }
 }
 
 #[test]
@@ -127,6 +148,11 @@ fn transmute_slice_test() {
         ),
         &[u8::MAX, 0, 1, 2]
     );
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(fun(&[128u8], TI::<u8, u64>::new_unchecked()))).unwrap();
+    }
 }
 
 #[test]
@@ -147,18 +173,39 @@ fn peel_test() {
         peel(["hello", "world"].map(Wrap), infer_tw!().array()),
         ["hello", "world"]
     );
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(peel(Wrap("baz"), ITW::<_, u8>::new_unchecked()))).unwrap();
+    }
 }
 
 #[test]
 fn peel_ref_test() {
-    assert_eq!(peel_ref(&Wrap(true), infer!()), &true);
-    assert_eq!(peel_ref(&Wrap(100), infer!()), &100);
+    macro_rules! test_fn_or_macro {($($b:tt)?) => (
+        assert_eq!(peel_ref $($b)? (&Wrap(true), infer_tw!()), &true);
+        assert_eq!(peel_ref $($b)? (&Wrap(100), infer_tw!()), &100);
 
-    assert_eq!(peel_ref(&Wrap([100, 200]), infer_tw!()), &[100, 200]);
-    assert_eq!(
-        peel_ref(&[100, 200].map(Wrap), infer_tw!().array()),
-        &[100, 200]
-    );
+        assert_eq!(peel_ref $($b)? (&Wrap([100, 200]), infer_tw!()), &[100, 200]);
+        assert_eq!(
+            peel_ref $($b)? (&[100, 200].map(Wrap), infer_tw!().array()),
+            &[100, 200]
+        );
+    )}
+
+    test_fn_or_macro! {/*fn*/}
+    test_fn_or_macro! {/*macro*/ !}
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(peel_ref(&Wrap("baz"), ITW::<_, u8>::new_unchecked()))).unwrap();
+        must_panic(|| {
+            // different pointer sizes
+            let x: &Wrap<[u8]> = &Wrap([0]);
+            drop(peel_ref!(x, ITW::<Wrap<[u8]>, ()>::new_unchecked()))
+        })
+        .unwrap();
+    }
 }
 
 #[test]
@@ -168,6 +215,11 @@ fn peel_slice_test() {
         &[true, false]
     );
     assert_eq!(peel_slice(&[123, 456].map(Wrap), infer!()), &[123, 456]);
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(peel_slice(&[Wrap("baz")], ITW::<_, u8>::new_unchecked()))).unwrap();
+    }
 }
 
 #[test]
@@ -181,18 +233,40 @@ fn wrap_test() {
         wrap(["hello", "world"], infer_tw!(Wrap<_>).array()),
         ["hello", "world"].map(Wrap)
     );
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(wrap(10, ITW::<Wrap<u8>, u16>::new_unchecked()))).unwrap();
+    }
 }
 
 #[test]
 fn wrap_ref_test() {
-    assert_eq!(wrap_ref(&true, infer_tw!(Wrap<_>)), &Wrap(true));
-    assert_eq!(wrap_ref(&100, infer_tw!(Wrap<_>)), &Wrap(100));
+    macro_rules! test_fn_or_macro {($($b:tt)?) => (
+        assert_eq!(wrap_ref $($b)? (&true, infer_tw!(Wrap<_>)), &Wrap(true));
+        assert_eq!(wrap_ref $($b)? (&100, infer_tw!(Wrap<_>)), &Wrap(100));
 
-    assert_eq!(wrap_ref(&[100, 200], infer_tw!(Wrap<_>)), &Wrap([100, 200]));
-    assert_eq!(
-        wrap_ref(&[100, 200], infer_tw!(Wrap<_>).array()),
-        &[100, 200].map(Wrap)
-    );
+        assert_eq!(wrap_ref $($b)? (&[100, 200], infer_tw!(Wrap<_>)), &Wrap([100, 200]));
+        assert_eq!(
+            wrap_ref $($b)? (&[100, 200], infer_tw!(Wrap<_>).array()),
+            &[100, 200].map(Wrap)
+        );
+    )}
+
+    test_fn_or_macro! {/*fn*/}
+    test_fn_or_macro! {/*macro*/ !}
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(wrap_ref(&10, ITW::<Wrap<u8>, u16>::new_unchecked()))).unwrap();
+
+        must_panic(|| {
+            // different pointer sizes
+            let x: &[u8] = &[0];
+            drop(wrap_ref!(x, ITW::<Wrap<u8>, [u8]>::new_unchecked()))
+        })
+        .unwrap();
+    }
 }
 
 #[test]
@@ -205,4 +279,9 @@ fn wrap_slice_test() {
         wrap_slice(&[123, 456], infer_tw!(Wrap<_>)),
         &[123, 456].map(Wrap)
     );
+
+    #[cfg(feature = "debug_checks")]
+    unsafe {
+        must_panic(|| drop(wrap_slice(&[10], ITW::<Wrap<u8>, u16>::new_unchecked()))).unwrap();
+    }
 }

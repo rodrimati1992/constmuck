@@ -15,6 +15,9 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
+[features]
+debug_checks = []
+
 [dependencies.bytemuck]
 version = "1.7.2"
 features = ["min_const_generics"]
