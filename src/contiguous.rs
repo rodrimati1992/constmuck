@@ -300,6 +300,13 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntR
 ///
 /// ```
 pub const fn from_u8<T>(integer: u8, bounds: ImplsContiguous<T, u8>) -> Option<T> {
+    #[cfg(feature = "debug_checks")]
+    #[allow(unconditional_panic)]
+    if bounds.min_value > bounds.max_value {
+        let x = 0;
+        let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
+    }
+
     if bounds.min_value <= integer && integer <= bounds.max_value {
         unsafe { Some(__priv_transmute_from_copy!(u8, T, integer)) }
     } else {
@@ -347,6 +354,13 @@ macro_rules! declare_from_integer_fns {
         /// [at the ones for `from_u8`](self::from_u8#examples).
         ///
         pub const fn $fn_name<T>(integer: $Int, bounds: ImplsContiguous<T, $Int>) -> Option<T> {
+            #[cfg(feature = "debug_checks")]
+            #[allow(unconditional_panic)]
+            if bounds.min_value > bounds.max_value {
+                let x = 0;
+                let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
+            }
+
             if bounds.min_value <= integer && integer <= bounds.max_value {
                 unsafe { Some(__priv_transmute_from_copy!($Int, T, integer)) }
             } else {

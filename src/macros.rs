@@ -1,4 +1,20 @@
 #[cfg(feature = "debug_checks")]
+macro_rules! __check_same_alignment {
+    ($from:ty, $to:ty) => (
+        if core::mem::align_of::<$from>() != core::mem::align_of::<$to>() {
+            let align_of_from = core::mem::align_of::<$from>();
+            [(/* expected transmute not to change the size */)][align_of_from];
+            loop{}
+        }
+    )
+}
+
+#[cfg(not(feature = "debug_checks"))]
+macro_rules! __check_same_alignment {
+    ($from:ty, $to:ty) => {};
+}
+
+#[cfg(feature = "debug_checks")]
 macro_rules! __check_size {
     ($from:ty, $to:ty) => (
         if core::mem::size_of::<$from>() != core::mem::size_of::<$to>() {

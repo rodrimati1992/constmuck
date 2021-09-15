@@ -109,10 +109,10 @@ pub(crate) mod transmutable_into {
                 #[allow(non_snake_case)]
                 let size_of_Foo = mem::size_of::<Fro>();
                 [/* size of Foo != Bar */][size_of_Foo]
-            } else if mem::align_of::<Fro>() != mem::align_of::<To>() {
+            } else if mem::align_of::<Fro>() < mem::align_of::<To>() {
                 #[allow(non_snake_case)]
                 let align_of_Foo = mem::align_of::<Fro>();
-                [/* alingment of Foo != Bar */][align_of_Foo]
+                [/* alignment of Foo < Bar */][align_of_Foo]
             } else {
                 Self::__NEW_UNCHECKED
             }

@@ -80,6 +80,10 @@ fn zeroable_test() {
     {
         must_panic(|| unsafe {
             let _ = zeroed(TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()));
+        })
+        .unwrap();
+
+        must_panic(|| unsafe {
             let _: [u64; 2] =
                 zeroed_array(TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()));
         })

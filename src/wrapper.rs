@@ -20,6 +20,7 @@
 //!     const ARR: [Foo<u8>; 3] = wrapper::wrap([3, 5, 8], infer_tw!().array());
 //!
 //!     assert_eq!(ARR, [Foo(3), Foo(5), Foo(8)]);
+//!     // How to use `wrap` without relying on return type inference:
 //!     // `infer_tw!(Foo<_>)` is required because any type can implement comparison with `Foo`.
 //!     assert_eq!(
 //!         wrapper::wrap([13, 21, 34], infer_tw!(Foo<_>).array()),
@@ -391,6 +392,8 @@ where
 ///
 /// ```
 pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, Inner>) -> Outer {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe { __priv_transmute!(Inner, Outer, val) }
 }
 
@@ -428,6 +431,8 @@ pub const fn wrap_ref<Inner, Outer>(
     reff: &Inner,
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &Outer {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_ref! {Inner, Outer, reff}
     }
@@ -511,6 +516,8 @@ pub const fn wrap_slice<Inner, Outer>(
     reff: &[Inner],
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &[Outer] {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_slice! {Inner, Outer, reff}
     }
@@ -546,6 +553,8 @@ pub const fn wrap_slice<Inner, Outer>(
 ///
 /// ```
 pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, Inner>) -> Inner {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe { __priv_transmute!(Outer, Inner, val) }
 }
 
@@ -580,6 +589,8 @@ pub const fn peel_ref<Inner, Outer>(
     reff: &Outer,
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &Inner {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_ref! {Outer, Inner, reff}
     }
@@ -658,6 +669,8 @@ pub const fn peel_slice<Inner, Outer>(
     reff: &[Outer],
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &[Inner] {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_slice! {Outer, Inner, reff}
     }

@@ -8,16 +8,22 @@ use constmuck::{
 };
 
 #[test]
-fn transmute_into_pod_test() {
-    // different alignment
+fn transmuteinto_pod_test() {
+    // broadening alignment
     must_panic(|| TI::<Pack<u32>, u32>::pod(infer!())).unwrap();
+
+    // equal alignment
+    drop(TI::<u32, i32>::pod(infer!()));
+
+    // narrowing alignment
+    drop(TI::<u32, Pack<u32>>::pod(infer!()));
 
     // different size
     must_panic(|| TI::<u32, u64>::pod(infer!())).unwrap();
 }
 
 #[test]
-fn transmute_into_new_unchecked_test() {
+fn transmuteinto_new_unchecked_test() {
     use self::transmute_into as fun;
 
     unsafe {
@@ -44,6 +50,16 @@ fn transparent_wrapper_new_unchecked_test() {
 #[test]
 fn transmute_into_test() {
     use self::transmute_into as fun;
+
+    assert_eq!(fun(0u16, TI::<u16, Pack<u16>>::pod(infer!())), Pack(0));
+    assert_eq!(
+        fun(12345u16, TI::<u16, Pack<u16>>::pod(infer!())),
+        Pack(12345)
+    );
+    assert_eq!(
+        fun(u16::MAX, TI::<u16, Pack<u16>>::pod(infer!())),
+        Pack(u16::MAX)
+    );
 
     assert_eq!(fun(usize::MAX, TI::<usize, isize>::pod(infer!())), -1);
     assert_eq!(fun(0, TI::<usize, isize>::pod(infer!())), 0);
@@ -84,6 +100,10 @@ fn transmute_ref_test() {
     use self::transmute_ref as fun;
 
     macro_rules! test_fn_or_macro {($($b:tt)?) => (
+
+        assert_eq!(fun $($b)? (&u16::MAX, TI::<u16, Pack<u16>>::pod(infer!())), &Pack(u16::MAX));
+        assert_eq!(fun $($b)? (&0, TI::<u16, Pack<u16>>::pod(infer!())), &Pack(0));
+        assert_eq!(fun $($b)? (&2, TI::<u16, Pack<u16>>::pod(infer!())), &Pack(2));
 
         assert_eq!(fun $($b)? (&usize::MAX, TI::<usize, isize>::pod(infer!())), &-1);
         assert_eq!(fun $($b)? (&0, TI::<usize, isize>::pod(infer!())), &0);
@@ -135,6 +155,14 @@ fn transmute_slice_test() {
     assert_eq!(
         fun(&[u8::MAX, 0, 1, 2], TI::<u8, i8>::pod(infer!())),
         &[-1i8, 0, 1, 2]
+    );
+
+    assert_eq!(
+        fun::<_, Pack<_>>(
+            &[u16::MAX, 0, 1, 2, 12345],
+            TI::<u16, Pack<u16>>::pod(infer!())
+        ),
+        &[Pack(u16::MAX), Pack(0), Pack(1), Pack(2), Pack(12345)]
     );
 
     assert_eq!(

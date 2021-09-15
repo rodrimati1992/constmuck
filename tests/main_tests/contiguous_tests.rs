@@ -52,6 +52,42 @@ fn contiguous_accessors() {
     }
 }
 
+#[cfg(feature = "debug_checks")]
+#[repr(transparent)]
+#[derive(Debug, PartialEq, Copy, Clone)]
+struct SwappedLimits(u8);
+
+#[cfg(feature = "debug_checks")]
+unsafe impl Contiguous for SwappedLimits {
+    type Int = i8;
+
+    const MIN_VALUE: i8 = 2;
+    const MAX_VALUE: i8 = 0;
+}
+
+#[cfg(feature = "debug_checks")]
+#[test]
+fn swapped_limits() {
+    macro_rules! make_ic {
+        ($ty:ty) => {
+            ImplsContiguous::<SwappedLimits, $ty>::new_unchecked(
+                SwappedLimits::MIN_VALUE as _,
+                SwappedLimits::MAX_VALUE as _,
+            )
+        };
+    }
+    let ic = ImplsContiguous::<SwappedLimits, _>::NEW;
+    assert_eq!(ic.min_value(), &2);
+    assert_eq!(ic.max_value(), &0);
+
+    unsafe {
+        must_panic(|| drop(contiguous::from_i8(0, make_ic!(i8)))).unwrap();
+        must_panic(|| drop(contiguous::from_u8(0, make_ic!(u8)))).unwrap();
+        must_panic(|| drop(contiguous::from_i16(0, make_ic!(i16)))).unwrap();
+        must_panic(|| drop(contiguous::from_u16(0, make_ic!(u16)))).unwrap();
+    }
+}
+
 #[test]
 fn custom_type_tests() {
     for outside in (i8::MIN..=-2).chain(3..=i8::MAX) {
