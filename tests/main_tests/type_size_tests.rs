@@ -48,7 +48,9 @@ fn construction_test() {
 
     let _: TypeSize<(), u32, 4> = TypeSize::new_panicking();
 
+    let _: TypeSize<(), u32, 5> = unsafe { TypeSize::new_unchecked() };
     let _: TypeSize<(), u32, 4> = unsafe { TypeSize::new_unchecked() };
+    let _: TypeSize<(), u32, 3> = unsafe { TypeSize::new_unchecked() };
 }
 
 #[test]

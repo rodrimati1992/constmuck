@@ -13,9 +13,15 @@ pub(crate) mod transmutable_into {
     use super::*;
 
     /// Marker type which guarantees that `Fro` is safely transmutable into `To`,
-    /// both by value and by reference (and other pointer types).
+    /// both by value and by (mutable) reference.
     ///
     /// Related: [`transmutable`](crate::transmutable) module.
+    ///
+    /// Functions for transmuting that require `align_of::<Fro>() == align_of::<To>()`
+    /// (eg: a function that transmutes from `Arc<Fro>` to `Arc<To>`)
+    /// have to contain that equality check as an assertion,
+    /// because `TransmutableInto`'s constructors
+    /// only require `align_of::<Fro>() >= align_of::<To>()`.
     ///
     /// # Example
     ///
@@ -65,10 +71,11 @@ pub(crate) mod transmutable_into {
         ///
         /// # Safety
         ///
-        /// `Fro` must be soundly convertible to `To`.
+        /// `Fro` must be soundly transmutable to `To`.
         ///
-        /// Pointers to `Fro` must be soundly convertible to point to `To`,
-        /// eg: transmuting `&Fro` to `&To`.
+        /// References (`&` and `&mut`) to `Fro` must be soundly transmutable to point to `To`.
+        ///
+        /// `align_of::<Fro>()` must be greater than or equal to `align_of::<To>()`.
         ///
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
@@ -83,7 +90,8 @@ pub(crate) mod transmutable_into {
         ///
         /// Panics if either:
         /// - The size of `Fro` isn't the same as `To`.
-        /// - The alignment of `Fro` is less than `To`.
+        /// - The alignment of `Fro` is less than `To`
+        /// (`Foo` is allowed to be more aligned than `To`).
         ///
         /// # Example
         ///

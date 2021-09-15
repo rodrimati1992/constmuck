@@ -184,6 +184,18 @@ fn transmute_slice_test() {
 }
 
 #[test]
+fn wrapper_from_ti_test() {
+    const ITW: ITW<u8, i8> = ITW::from_ti(TI::pod(infer!()), TI::pod(infer!()));
+
+    assert_eq!(wrap(-1, ITW), 255);
+    assert_eq!(wrap_ref(&-2, ITW), &254);
+    assert_eq!(wrap_slice(&[-3, 3], ITW), &[253, 3]);
+    assert_eq!(peel(128, ITW), -128);
+    assert_eq!(peel_ref(&129, ITW), &-127);
+    assert_eq!(peel_slice(&[254, 1], ITW), &[-2, 1]);
+}
+
+#[test]
 fn peel_test() {
     assert_eq!(peel(Wrap("hello"), infer!()), "hello");
     assert_eq!(peel(Wrap("hello"), Infer::INFER), "hello");
