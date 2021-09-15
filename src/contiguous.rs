@@ -93,13 +93,85 @@ pub(crate) mod impls_contiguous {
     }
 
     impl<T, IntRepr> ImplsContiguous<T, IntRepr> {
+        const __PHANTOM__: PhantomData<fn() -> (T, IntRepr)> = PhantomData;
+
+        /// Constructs an `ImplsContiguous` without checking that `T` implements
+        /// [`Contiguous<Int = IntRepr>`](bytemuck::Contiguous)
+        ///
+        /// # Safety
+        ///
+        /// You must ensure that `T` follows the
+        /// [safety requirements of `Contiguous`](bytemuck::Contiguous#safety)
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::{ImplsContiguous, contiguous};
+        ///
+        /// use std::num::Wrapping;
+        ///
+        /// let ic = unsafe { ImplsContiguous::<Wrapping<u8>, u8>::new_unchecked(10, 20) };
+        ///
+        /// assert_eq!(contiguous::from_u8(9, ic), None);
+        /// assert_eq!(contiguous::from_u8(10, ic), Some(Wrapping(10)));
+        /// assert_eq!(contiguous::from_u8(20, ic), Some(Wrapping(20)));
+        /// assert_eq!(contiguous::from_u8(21, ic), None);
+        ///
+        /// assert_eq!(contiguous::into_integer(Wrapping(11), ic), 11);
+        /// assert_eq!(contiguous::into_integer(Wrapping(15), ic), 15);
+        ///
+        ///
+        /// ```
+        pub const unsafe fn new_unchecked(min_value: IntRepr, max_value: IntRepr) -> Self {
+            Self {
+                min_value,
+                max_value,
+                _private: Self::__PHANTOM__,
+            }
+        }
+    }
+    impl<T, IntRepr> ImplsContiguous<T, IntRepr> {
         /// Gets the minimum value of `T`'s integer representation
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::ImplsContiguous;
+        ///
+        /// use std::num::NonZeroU8;
+        ///
+        /// {
+        ///     let ic = ImplsContiguous::<NonZeroU8, _>::NEW;
+        ///     assert_eq!(ic.min_value(), &1);
+        /// }
+        /// {
+        ///     let ic = ImplsContiguous::<u16, _>::NEW;
+        ///     assert_eq!(ic.min_value(), &0);
+        /// }
+        /// ```
         #[inline(always)]
         pub const fn min_value(&self) -> &IntRepr {
             &self.min_value
         }
 
         /// Gets the maximum value of `T`'s integer representation
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::ImplsContiguous;
+        ///
+        /// use std::num::NonZeroU16;
+        ///
+        /// {
+        ///     let ic = ImplsContiguous::<NonZeroU16, _>::NEW;
+        ///     assert_eq!(ic.max_value(), &u16::MAX);
+        /// }
+        /// {
+        ///     let ic = ImplsContiguous::<u8, _>::NEW;
+        ///     assert_eq!(ic.max_value(), &u8::MAX);
+        /// }
+        /// ```
         #[inline(always)]
         pub const fn max_value(&self) -> &IntRepr {
             &self.max_value

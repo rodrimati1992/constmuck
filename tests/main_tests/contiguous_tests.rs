@@ -22,7 +22,7 @@ unsafe impl Contiguous for Tiny {
 }
 
 #[cfg(feature = "debug_checks")]
-#[repr(i8)]
+#[repr(i32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Wrong {
     N1 = -1,
@@ -65,9 +65,18 @@ fn custom_type_tests() {
     }
 
     #[cfg(feature = "debug_checks")]
-    {
-        must_panic(|| drop(contiguous::from_i16::<Wrong>(0, infer!()))).unwrap();
-        must_panic(|| drop(contiguous::into_integer(Wrong::Z, infer!()))).unwrap();
+    unsafe {
+        macro_rules! make_ic {
+            ($ty:ty) => {
+                ImplsContiguous::<Wrong, $ty>::new_unchecked((Wrong::N1 as $ty).min(0), 1)
+            };
+        }
+        // making sure to test u8 since `from_u8` is manually written,
+        // while the rest are macro generated
+        must_panic(|| drop(contiguous::from_u8::<Wrong>(0, make_ic!(u8)))).unwrap();
+        must_panic(|| drop(contiguous::from_i8::<Wrong>(0, make_ic!(i8)))).unwrap();
+        must_panic(|| drop(contiguous::from_i16::<Wrong>(0, make_ic!(i16)))).unwrap();
+        must_panic(|| drop(contiguous::into_integer(Wrong::Z, make_ic!(i16)))).unwrap();
     }
 }
 
