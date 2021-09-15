@@ -10,6 +10,7 @@ fn map_bound_test() {
     let bound: TypeSize<ImplsPod<u32>, u32, 4> = type_size!(u32);
 
     assert_eq!(cast::<u32, i32>(100, (bound.into_bounds(), infer!())), 100);
+    assert_eq!(cast::<u32, i32>(100, (*bound.bounds(), infer!())), 100);
 
     assert_eq!(
         copying::copy(&12345u32, map_bound!(bound, |x| x.impls_copy)),

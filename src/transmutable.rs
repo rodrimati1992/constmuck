@@ -75,6 +75,8 @@ pub(crate) mod transmutable_into {
         ///
         /// References (`&` and `&mut`) to `Fro` must be soundly transmutable to point to `To`.
         ///
+        /// `size_of::<Fro>()` must be equal to `size_of::<To>()`.
+        ///
         /// `align_of::<Fro>()` must be greater than or equal to `align_of::<To>()`.
         ///
         #[inline(always)]

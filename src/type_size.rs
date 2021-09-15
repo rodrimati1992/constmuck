@@ -105,8 +105,8 @@ macro_rules! map_bound {
 ///         [u8::MAX; SIZE],
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` here returns an `ImplsPod<T>`.
-///         (infer!(), bound.into_bounds())
+///         // `bound.bounds()` here returns a `&ImplsPod<T>`.
+///         (infer!(), *bound.bounds())
 ///     )
 /// }
 ///
@@ -263,7 +263,12 @@ impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
         }
     }
 
-    /// Turns this TypeSize into its bounds field.
+    /// Gets a reference to the bounds field.
+    pub const fn bounds(&self) -> &B {
+        crate::__priv_utils::manuallydrop_as_inner(&self.bounds)
+    }
+
+    /// Turns this `TypeSize` into its bounds field.
     pub const fn into_bounds(self) -> B {
         ManuallyDrop::into_inner(self.bounds)
     }
