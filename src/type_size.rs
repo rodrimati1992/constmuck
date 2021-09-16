@@ -105,8 +105,8 @@ macro_rules! map_bound {
 ///         [u8::MAX; SIZE],
 ///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` here returns an `ImplsPod<T>`.
-///         (infer!(), bound.into_bounds())
+///         // `bound.bounds()` here returns a `&ImplsPod<T>`.
+///         (infer!(), *bound.bounds())
 ///     )
 /// }
 ///
@@ -187,11 +187,70 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
     ///
     /// Note that `B` is expected not to own memory,
     /// dropping a `TypeSize<B, _, _>` will leak any resources it owns.
+    ///
+    /// # Example
+    ///
+    /// This example demonstrates how `with_bounds` can be used to
+    /// compose `TypeSize` with `Impls*::new_unchecked`.
+    ///
+    /// ```rust
+    /// use constmuck::{ImplsZeroable, type_size, zeroed};
+    ///
+    /// fn main() {
+    ///     const NEW: Foo = Foo::new();
+    ///     
+    ///     assert_eq!(NEW, Foo(0, 0, 0));
+    /// }
+    ///
+    /// #[derive(Debug, PartialEq)]
+    /// pub struct Foo(u8, u16, u32);
+    ///
+    /// impl Foo {
+    ///     pub const fn new() -> Self {
+    ///         // safety: this type knows that all its fields are zeroable right now,
+    ///         // but it doesn't impl Zeroable to be able to add nonzeroable fields.
+    ///         let iz = unsafe{ ImplsZeroable::<Self>::new_unchecked() };
+    ///         zeroed(type_size!(Self).with_bound(iz))
+    ///     }
+    /// }
+    ///
+    /// ```
     pub const fn with_bound<B>(self, bounds: B) -> TypeSize<B, T, SIZE> {
         TypeSize {
             bounds: ManuallyDrop::new(bounds),
             _private: PhantomData,
         }
+    }
+}
+
+impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
+    /// Replaces the bounds field with `bounds`.
+    ///
+    /// # Leaking
+    ///
+    /// Note that `V` is expected not to own memory,
+    /// dropping a `TypeSize<V, _, _>` will leak any resources it owns.
+    pub const fn set_bound<V>(self, bounds: V) -> TypeSize<V, T, SIZE> {
+        TypeSize {
+            bounds: ManuallyDrop::new(bounds),
+            _private: PhantomData,
+        }
+    }
+
+    /// Gets a reference to the bounds field.
+    pub const fn bounds(&self) -> &B {
+        crate::__priv_utils::manuallydrop_as_inner(&self.bounds)
+    }
+
+    /// Turns this `TypeSize` into its bounds field.
+    pub const fn into_bounds(self) -> B {
+        ManuallyDrop::into_inner(self.bounds)
+    }
+
+    /// Splits this `TypeSize` into its bounds field, and a bound-less `TypeSize`.
+    pub const fn split(self) -> (B, TypeSize<(), T, SIZE>) {
+        let bounds = ManuallyDrop::into_inner(self.bounds);
+        (bounds, TypeSize::__13878307735224946849NEW__)
     }
 }
 
@@ -246,31 +305,5 @@ impl<T, const SIZE: usize> TypeSize<ImplsZeroable<T>, T, SIZE> {
     #[inline(always)]
     pub const fn zeroed_array<const LEN: usize>(self) -> [T; LEN] {
         crate::zeroed_array(self)
-    }
-}
-
-impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
-    /// Replaces the bounds field with `bounds`.
-    ///
-    /// # Leaking
-    ///
-    /// Note that `V` is expected not to own memory,
-    /// dropping a `TypeSize<V, _, _>` will leak any resources it owns.
-    pub const fn set_bound<V>(self, bounds: V) -> TypeSize<V, T, SIZE> {
-        TypeSize {
-            bounds: ManuallyDrop::new(bounds),
-            _private: PhantomData,
-        }
-    }
-
-    /// Turns this TypeSize into its bounds field.
-    pub const fn into_bounds(self) -> B {
-        ManuallyDrop::into_inner(self.bounds)
-    }
-
-    /// Splits this `TypeSize` into its bounds field, and a bound-less `TypeSize`.
-    pub const fn split(self) -> (B, TypeSize<(), T, SIZE>) {
-        let bounds = ManuallyDrop::into_inner(self.bounds);
-        (bounds, TypeSize::__13878307735224946849NEW__)
     }
 }

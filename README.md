@@ -17,7 +17,7 @@ each one describes how it's different.
 
 These examples use bytemuck's derives to show how users don't need to
 write `unsafe` to use this crate,
-and the [`konst`] crate to make writing the const functions easier.
+and use the [`konst`] crate to make writing the const functions easier.
 
 ### Contiguous
 
@@ -148,6 +148,19 @@ Macros have weaker checking than functions because they allow references to `!Si
 (eg: `str`, `[u8]`, `dyn Trait`),
 if you're only casting references to `Sized` types it's better to use the function equivalents.
 
+
+### Alignment checks
+
+All the *functions* in the [`wrapper`] module check that the alignment of the 
+`Inner` type parameter is the same as the `Outer` type parameter,
+in addition to the size checks described in the previous section.
+
+### Contiguous checks
+
+The `from_*` functions in the [`contiguous`] module check that the 
+`min_value` of the passed-in `ImplsContiguous` is less than its `max_value` .
+
+
 # No-std support
 
 `constmuck` is `#![no_std]`, it can be used anywhere Rust can be used.
@@ -157,7 +170,8 @@ if you're only casting references to `Sized` types it's better to use the functi
 `constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
 
 
-
-[`konst`]: https://docs.rs/konst/*/konst/index.html
-
 [`bytemuck`]: https://docs.rs/bytemuck/1.*/bytemuck/
+[`konst`]: https://docs.rs/konst/*/konst/index.html
+[`contiguous`]: https://docs.rs/constmuck/*/constmuck/contiguous/index.html
+[`wrapper`]: https://docs.rs/constmuck/*/constmuck/wrapper/index.html
+

@@ -20,6 +20,7 @@
 //!     const ARR: [Foo<u8>; 3] = wrapper::wrap([3, 5, 8], infer_tw!().array());
 //!
 //!     assert_eq!(ARR, [Foo(3), Foo(5), Foo(8)]);
+//!     // How to use `wrap` without relying on return type inference:
 //!     // `infer_tw!(Foo<_>)` is required because any type can implement comparison with `Foo`.
 //!     assert_eq!(
 //!         wrapper::wrap([13, 21, 34], infer_tw!(Foo<_>).array()),
@@ -275,17 +276,68 @@ pub(crate) mod impls_tw {
             }
         };
 
-        /// Constructs an `ImplsTransparentWrapper` without checking that `T` implements
-        /// [`TransparentWrapper`].
+        /// Constructs an `ImplsTransparentWrapper` without checking that
+        /// `Outer` implements
+        /// [`TransparentWrapper<Inner>`](bytemuck::TransparentWrapper).
         ///
         /// # Safety
         ///
-        /// You must ensure that `T` follows the
-        /// [safety requirements of `TransparentWrapper`](bytemuck::TransparentWrapper#safety)
+        /// You must ensure that `Outer` follows the
+        /// [safety requirements of `TransparentWrapper<Inner>`
+        /// ](bytemuck::TransparentWrapper#safety)
         ///
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
             Self::__NEW_UNCHECKED__
+        }
+
+        /// Constructs an `ImplsTransparentWrapper` from a pair
+        /// of [`TransmutableInto`] that allow transmuting between `Outer` and `Inner`
+        /// in both directions.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::{ImplsTransparentWrapper, TransmutableInto, infer, wrapper};
+        ///
+        /// const ITW: ImplsTransparentWrapper<u8, i8> =
+        ///     ImplsTransparentWrapper::from_ti(
+        ///         TransmutableInto::pod(infer!()),
+        ///         TransmutableInto::pod(infer!()),
+        ///     );
+        ///
+        /// const U8_VAL: u8 = wrapper::wrap(-1, ITW);
+        /// assert_eq!(U8_VAL, 255);
+        ///
+        /// const U8_REF: &u8 = wrapper::wrap_ref(&-2, ITW);
+        /// assert_eq!(U8_REF, &254);
+        ///
+        /// const U8_SLICE: &[u8] = wrapper::wrap_slice(&[-3, 3], ITW);
+        /// assert_eq!(U8_SLICE, &[253, 3]);
+        ///
+        /// const I8_VAL: i8 = wrapper::peel(128, ITW);
+        /// assert_eq!(I8_VAL, -128);
+        ///
+        /// const I8_REF: &i8 = wrapper::peel_ref(&129, ITW);
+        /// assert_eq!(I8_REF, &-127);
+        ///
+        /// const I8_SLICE: &[i8] = wrapper::peel_slice(&[254, 1], ITW);
+        /// assert_eq!(I8_SLICE, &[-2, 1]);
+        ///
+        ///
+        ///
+        /// ```
+        pub const fn from_ti(
+            from_inner: TransmutableInto<Inner, Outer>,
+            into_inner: TransmutableInto<Outer, Inner>,
+        ) -> Self {
+            Self {
+                from_inner,
+                into_inner,
+                _transparent_wrapper_proof: unsafe {
+                    constmuck_internal::TransparentWrapperProof::new_unchecked()
+                },
+            }
         }
     }
 
@@ -391,6 +443,8 @@ where
 ///
 /// ```
 pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, Inner>) -> Outer {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe { __priv_transmute!(Inner, Outer, val) }
 }
 
@@ -428,6 +482,8 @@ pub const fn wrap_ref<Inner, Outer>(
     reff: &Inner,
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &Outer {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_ref! {Inner, Outer, reff}
     }
@@ -511,6 +567,8 @@ pub const fn wrap_slice<Inner, Outer>(
     reff: &[Inner],
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &[Outer] {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_slice! {Inner, Outer, reff}
     }
@@ -546,6 +604,8 @@ pub const fn wrap_slice<Inner, Outer>(
 ///
 /// ```
 pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, Inner>) -> Inner {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe { __priv_transmute!(Outer, Inner, val) }
 }
 
@@ -580,6 +640,8 @@ pub const fn peel_ref<Inner, Outer>(
     reff: &Outer,
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &Inner {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_ref! {Outer, Inner, reff}
     }
@@ -658,6 +720,8 @@ pub const fn peel_slice<Inner, Outer>(
     reff: &[Outer],
     _: ImplsTransparentWrapper<Outer, Inner>,
 ) -> &[Inner] {
+    __check_same_alignment! {Outer, Inner}
+
     unsafe {
         __priv_transmute_slice! {Outer, Inner, reff}
     }

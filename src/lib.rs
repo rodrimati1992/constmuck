@@ -12,7 +12,7 @@
 //!
 //! These examples use bytemuck's derives to show how users don't need to
 //! write `unsafe` to use this crate,
-//! and the [`konst`] crate to make writing the const functions easier.
+//! and use the [`konst`] crate to make writing the const functions easier.
 //!
 //! ### Contiguous
 //!
@@ -157,6 +157,18 @@
 //! (eg: `str`, `[u8]`, `dyn Trait`),
 //! if you're only casting references to `Sized` types it's better to use the function equivalents.
 //!
+//! ### Alignment checks
+//!
+//! All the *functions* in the [`wrapper`] module check that the alignment of the
+//! `Inner` type parameter is the same as the `Outer` type parameter,
+//! in addition to the size checks described in the previous section.
+//!
+//! ### Contiguous checks
+//!
+//! The `from_*` functions in the [`contiguous`] module check that the
+//! `min_value` of the passed-in `ImplsContiguous` is less than its `max_value`.
+//!
+//!
 //! # No-std support
 //!
 //! `constmuck` is `#![no_std]`, it can be used anywhere Rust can be used.
@@ -166,8 +178,10 @@
 //! `constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
 //!
 //!
-//!
+//! [`bytemuck`]: bytemuck
 //! [`konst`]: https://docs.rs/konst/*/konst/index.html
+//! [`contiguous`]: ./contiguous/index.html
+//! [`wrapper`]: ./wrapper/index.html
 
 #![no_std]
 

@@ -23,3 +23,32 @@ pub union BytesAndVal<T, const N: usize> {
     pub(crate) bytes: [u8; N],
     pub(crate) value: ManuallyDrop<T>,
 }
+
+#[repr(C)]
+pub union ManuallyDropAsInner<'a, T> {
+    pub(crate) outer: &'a ManuallyDrop<T>,
+    pub(crate) inner: &'a T,
+}
+
+pub(crate) const fn manuallydrop_as_inner<T>(outer: &ManuallyDrop<T>) -> &T {
+    unsafe { ManuallyDropAsInner { outer }.inner }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn manuallydrop_as_inner_test() {
+        macro_rules! case {
+            ($value:expr) => {
+                assert_eq!(manuallydrop_as_inner(&ManuallyDrop::new($value)), &$value);
+            };
+        }
+
+        case!("hello");
+        case!(100);
+        case!(true);
+        case!(false);
+    }
+}

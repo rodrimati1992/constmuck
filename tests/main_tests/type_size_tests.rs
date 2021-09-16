@@ -10,6 +10,7 @@ fn map_bound_test() {
     let bound: TypeSize<ImplsPod<u32>, u32, 4> = type_size!(u32);
 
     assert_eq!(cast::<u32, i32>(100, (bound.into_bounds(), infer!())), 100);
+    assert_eq!(cast::<u32, i32>(100, (*bound.bounds(), infer!())), 100);
 
     assert_eq!(
         copying::copy(&12345u32, map_bound!(bound, |x| x.impls_copy)),
@@ -48,7 +49,9 @@ fn construction_test() {
 
     let _: TypeSize<(), u32, 4> = TypeSize::new_panicking();
 
+    let _: TypeSize<(), u32, 5> = unsafe { TypeSize::new_unchecked() };
     let _: TypeSize<(), u32, 4> = unsafe { TypeSize::new_unchecked() };
+    let _: TypeSize<(), u32, 3> = unsafe { TypeSize::new_unchecked() };
 }
 
 #[test]

@@ -56,13 +56,13 @@ Defined these macros:
 - `type_size`
 
 Defined these marker types:
-- `ImplsContiguous`
+- `ImplsContiguous`(not zero-sized)
 - `ImplsCopy`
 - `ImplsPod`
 - `ImplsTransparentWrapper`
 - `ImplsZeroable`
 - `TransmutableInto`
-- `TypeSize`
+- `TypeSize`(only zero-sized if it's `bounds` field is)
 
 Defined the `Infer` trait
 

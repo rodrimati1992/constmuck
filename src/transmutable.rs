@@ -13,9 +13,15 @@ pub(crate) mod transmutable_into {
     use super::*;
 
     /// Marker type which guarantees that `Fro` is safely transmutable into `To`,
-    /// both by value and by reference (and other pointer types).
+    /// both by value and by (mutable) reference.
     ///
     /// Related: [`transmutable`](crate::transmutable) module.
+    ///
+    /// Functions for transmuting that require `align_of::<Fro>() == align_of::<To>()`
+    /// (eg: a function that transmutes from `Arc<Fro>` to `Arc<To>`)
+    /// have to contain that equality check as an assertion,
+    /// because `TransmutableInto`'s constructors
+    /// only require `align_of::<Fro>() >= align_of::<To>()`.
     ///
     /// # Example
     ///
@@ -65,10 +71,13 @@ pub(crate) mod transmutable_into {
         ///
         /// # Safety
         ///
-        /// `Fro` must be soundly convertible to `To`.
+        /// `Fro` must be soundly transmutable to `To`.
         ///
-        /// Pointers to `Fro` must be soundly convertible to point to `To`,
-        /// eg: transmuting `&Fro` to `&To`.
+        /// References (`&` and `&mut`) to `Fro` must be soundly transmutable to point to `To`.
+        ///
+        /// `size_of::<Fro>()` must be equal to `size_of::<To>()`.
+        ///
+        /// `align_of::<Fro>()` must be greater than or equal to `align_of::<To>()`.
         ///
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
@@ -83,7 +92,8 @@ pub(crate) mod transmutable_into {
         ///
         /// Panics if either:
         /// - The size of `Fro` isn't the same as `To`.
-        /// - The alignment of `Fro` is less than `To`.
+        /// - The alignment of `Fro` is less than `To`
+        /// (`Foo` is allowed to be more aligned than `To`).
         ///
         /// # Example
         ///
@@ -109,10 +119,10 @@ pub(crate) mod transmutable_into {
                 #[allow(non_snake_case)]
                 let size_of_Foo = mem::size_of::<Fro>();
                 [/* size of Foo != Bar */][size_of_Foo]
-            } else if mem::align_of::<Fro>() != mem::align_of::<To>() {
+            } else if mem::align_of::<Fro>() < mem::align_of::<To>() {
                 #[allow(non_snake_case)]
                 let align_of_Foo = mem::align_of::<Fro>();
-                [/* alingment of Foo != Bar */][align_of_Foo]
+                [/* alignment of Foo < Bar */][align_of_Foo]
             } else {
                 Self::__NEW_UNCHECKED
             }
