@@ -30,7 +30,7 @@ features = ["rust_1_56"]
 default_features = false
 
 [dependencies.constmuck_internal]
-version = "=0.1.0"
+version = "=0.1.1"
 path = "./constmuck_internal"
 
 [dependencies.bytemuck]
