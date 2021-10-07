@@ -1,6 +1,8 @@
 //! For copying values in generic contexts.
 //!
+//!
 //! Related: [`ImplsCopy`] type, [`type_size`] macro.
+#![allow(deprecated)]
 
 use core::{marker::PhantomData, mem::MaybeUninit};
 
@@ -13,6 +15,19 @@ pub(crate) mod impls_copy {
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     ///
     /// Related: the [`copying`](crate::copying) module
+    ///
+    /// # Deprecation
+    ///
+    /// Copying `&T` with the approach constmuck uses
+    /// (an intermediate `MaybeUninit<[u8; N]>`)
+    /// isn't settled as being sound,
+    /// so [`ImplsCopy`] will require [`Pod`] in the 0.2.0 version.
+    ///
+    /// If there's a more permissive bound that allows more non-pointer-containing
+    /// `Copy` types, `ImplsCopy` will be changed to use that.
+    ///
+    /// [`Pod`]: bytemuck::Pod
+    #[deprecated(since = "0.1.1", note = "too permissive in what it allows copying")]
     pub struct ImplsCopy<T> {
         _private: PhantomData<fn() -> T>,
     }
