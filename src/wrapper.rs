@@ -181,7 +181,7 @@ macro_rules! infer_tw {
 pub(crate) mod impls_tw {
     use super::*;
 
-    /// Encodes a `T:`[`TransparentWrapper`] bound as a value,
+    /// Encodes a `Outer:`[`TransparentWrapper`]`<Inner>` bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     ///
     /// Constructible with [`NEW`](Self::NEW) associated constant,
@@ -338,6 +338,49 @@ pub(crate) mod impls_tw {
                     constmuck_internal::TransparentWrapperProof::new_unchecked()
                 },
             }
+        }
+    }
+
+    impl<Outer: ?Sized, Inner: ?Sized> ImplsTransparentWrapper<Outer, Inner> {
+        /// Combines an `ImplsTransparentWrapper` with another to allow
+        /// casting between `Outer` and `Nested`.
+        ///
+        /// Without this you'd have to do `Outer -> Inner -> Nested` casts.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::{ImplsTransparentWrapper as ITW, infer_tw, wrapper};
+        ///
+        /// use std::num::Wrapping;
+        ///
+        /// const FOO: ITW<Bar<u32>, u32> = infer_tw!().join(infer_tw!());
+        ///
+        /// // Equivalent to FOO, but passing the types to `infer_tw`.
+        /// // Only the innermost joined ImplsTransparentWrapper requires you
+        /// // to pass both arguments to `infer_tw`.
+        /// let foo = infer_tw!(Bar<u32>).join(infer_tw!(Wrapping<u32>, u32));
+        ///
+        /// assert_eq!(wrapper::wrap_ref(&5, FOO), &Bar(Wrapping(5)));
+        /// assert_eq!(wrapper::wrap_ref(&8, foo), &Bar(Wrapping(8)));
+        ///
+        /// assert_eq!(
+        ///     wrapper::wrap_slice(&[13, 21], FOO),
+        ///     &[Bar(Wrapping(13)), Bar(Wrapping(21))]
+        /// );
+        ///
+        ///
+        /// #[derive(Debug, PartialEq)]
+        /// struct Bar<T>(Wrapping<T>);
+        ///
+        /// unsafe impl<T> constmuck::TransparentWrapper<Wrapping<T>> for Bar<T> {}
+        ///
+        /// ```
+        pub const fn join<Nested: ?Sized>(
+            self,
+            _other: ImplsTransparentWrapper<Inner, Nested>,
+        ) -> ImplsTransparentWrapper<Outer, Nested> {
+            ImplsTransparentWrapper::__NEW_UNCHECKED__
         }
     }
 

@@ -117,12 +117,12 @@ pub(crate) mod transmutable_into {
         pub const fn pod(_bounds: (ImplsPod<Fro>, ImplsPod<To>)) -> Self {
             if mem::size_of::<Fro>() != mem::size_of::<To>() {
                 #[allow(non_snake_case)]
-                let size_of_Foo = mem::size_of::<Fro>();
-                [/* size of Foo != Bar */][size_of_Foo]
+                let size_of_Fro = mem::size_of::<Fro>();
+                [/* size of Fro != To */][size_of_Fro]
             } else if mem::align_of::<Fro>() < mem::align_of::<To>() {
                 #[allow(non_snake_case)]
-                let align_of_Foo = mem::align_of::<Fro>();
-                [/* alignment of Foo < Bar */][align_of_Foo]
+                let align_of_Fro = mem::align_of::<Fro>();
+                [/* alignment of Fro < To */][align_of_Fro]
             } else {
                 Self::__NEW_UNCHECKED
             }
@@ -159,6 +159,42 @@ pub(crate) mod transmutable_into {
         /// ```
         #[inline(always)]
         pub const fn array<const LEN: usize>(self) -> TransmutableInto<[Fro; LEN], [To; LEN]> {
+            TransmutableInto::__NEW_UNCHECKED
+        }
+    }
+
+    impl<Fro: ?Sized, To: ?Sized> TransmutableInto<Fro, To> {
+        /// Combines an `TransmutableInto` with another to allow
+        /// casting from `Fro` to `To2`.
+        ///
+        /// Without this you'd have to do `Fro -> To -> To2` casts.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::{TransmutableInto, infer, infer_tw};
+        /// use constmuck::transmutable::{transmute_ref, transmute_slice};
+        ///
+        /// use std::num::Wrapping;
+        ///
+        /// const FOO: TransmutableInto<Wrapping<u8>, i8> = {
+        ///     infer_tw!(Wrapping<u8>, u8)
+        ///         .into_inner
+        ///         .join(TransmutableInto::<_, i8>::pod(infer!()))
+        /// };
+        ///
+        /// assert_eq!(transmute_ref(&Wrapping(255u8), FOO), &-1);
+        ///
+        /// assert_eq!(
+        ///     transmute_slice(&[Wrapping(255u8), Wrapping(0), Wrapping(1)], FOO),
+        ///     &[-1, 0, 1],
+        /// );
+        ///
+        /// ```
+        pub const fn join<To2: ?Sized>(
+            self,
+            _other: TransmutableInto<To, To2>,
+        ) -> TransmutableInto<Fro, To2> {
             TransmutableInto::__NEW_UNCHECKED
         }
     }

@@ -8,20 +8,22 @@ fn test_copy() {
     {
         must_panic(|| unsafe {
             let _ = copying::copy(
-                &"hello",
-                TypeSize::<_, &str, 1>::new_unchecked().with_bound(infer!()),
+                &100u64,
+                TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()),
             );
         })
         .unwrap();
     }
 
-    assert_eq!(copying::copy(&"hello", type_size!(&str)), "hello");
+    // reenable if it's sound to copy references like in 0.1.1
+    // assert_eq!(copying::copy(&"hello", type_size!(&str)), "hello");
 
     assert_eq!(copying::copy(&10, type_size!(u32)), 10);
 
-    let local = 13;
-    let reff = &local;
-    assert_eq!(copying::copy(&reff, type_size!(&u32)), &13);
+    // reenable if it's sound to copy references like in 0.1.1
+    // let local = 13;
+    // let reff = &local;
+    // assert_eq!(copying::copy(&reff, type_size!(&u32)), &13);
 }
 
 #[test]
@@ -30,28 +32,32 @@ fn test_repeat() {
     {
         must_panic(|| unsafe {
             let _: [_; 2] = copying::repeat(
-                &"hello",
-                TypeSize::<_, &str, 1>::new_unchecked().with_bound(infer!()),
+                &0u64,
+                TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()),
             );
         })
         .unwrap();
     }
 
     macro_rules! case {
-        ($size:expr) => {{
-            let x: [_; $size] = copying::repeat(&"hello", type_size!(&str));
-            assert_eq!(x, ["hello"; $size]);
-        }
-        {
-            let x: [_; $size] = copying::repeat(&10, type_size!(u32));
-            assert_eq!(x, [10; $size]);
-        }
-        {
-            let local = 13;
-            let reff = &local;
-            let x: [_; $size] = copying::repeat(&reff, type_size!(&u32));
-            assert_eq!(x, [&13; $size]);
-        }};
+        ($size:expr) => {
+            // reenable if it's sound to copy references like in 0.1.1
+            // {
+            //     let x: [_; $size] = copying::repeat(&"hello", type_size!(&str));
+            //     assert_eq!(x, ["hello"; $size]);
+            // }
+            {
+                let x: [_; $size] = copying::repeat(&10, type_size!(u32));
+                assert_eq!(x, [10; $size]);
+            }
+            // reenable if it's sound to copy references like in 0.1.1
+            // {
+            //     let local = 13;
+            //     let reff = &local;
+            //     let x: [_; $size] = copying::repeat(&reff, type_size!(&u32));
+            //     assert_eq!(x, [&13; $size]);
+            // }
+        };
     }
     case!(0);
     case!(1);

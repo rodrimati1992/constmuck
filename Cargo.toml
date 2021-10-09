@@ -1,6 +1,6 @@
 [package]
 name = "constmuck"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
 license = "Zlib"
@@ -30,7 +30,7 @@ features = ["rust_1_56"]
 default_features = false
 
 [dependencies.constmuck_internal]
-version = "=0.1.1"
+version = "=0.2.0"
 path = "./constmuck_internal"
 
 [dependencies.bytemuck]

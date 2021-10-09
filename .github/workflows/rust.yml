@@ -53,3 +53,6 @@ jobs:
 
         cargo miri test  
         cargo miri test --features "debug_checks"
+
+        env MIRIFLAGS="-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
+            cargo miri test  --features "debug_checks"

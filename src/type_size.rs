@@ -260,19 +260,17 @@ impl<T, const SIZE: usize> TypeSize<ImplsCopy<T>, T, SIZE> {
     ///
     /// Creates a `[T; ARR_LEN]` by copying from a `&T`
     ///
-    /// Requires that `T` implements `Copy`
+    /// Requires that `T` implements `Copy + Pod`
+    /// (see [`ImplsCopy`] docs for why it requires `Pod`)
     ///
     /// # Example
     ///
     /// ```rust
     /// use constmuck::type_size;
     ///
-    /// const PAIR: &[Option<u8>] = &type_size!(Option<u8>).repeat::<2>(&None);
-    /// const TEN: &[&str] = &type_size!(&str).repeat::<10>(&"world");
+    /// const PAIR: &[u128] = &type_size!(u128).repeat::<2>(&300);
     ///
-    /// assert_eq!(PAIR, &[None, None]);
-    ///
-    /// assert_eq!(TEN, &["world"; 10]);
+    /// assert_eq!(PAIR, &[300, 300]);
     ///
     /// ```
     #[inline(always)]
