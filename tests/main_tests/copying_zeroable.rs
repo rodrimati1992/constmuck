@@ -32,7 +32,7 @@ fn test_repeat() {
     {
         must_panic(|| unsafe {
             let _: [_; 2] = copying::repeat(
-                &"hello",
+                &0u64,
                 TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()),
             );
         })
