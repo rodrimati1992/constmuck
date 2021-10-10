@@ -2,7 +2,7 @@ use super::test_utils::must_panic;
 
 use constmuck::{
     contiguous::{self, FromInteger},
-    infer, Contiguous, ImplsContiguous,
+    infer, Contiguous, IsContiguous,
 };
 
 #[repr(i8)]
@@ -41,12 +41,12 @@ unsafe impl Contiguous for Wrong {
 #[test]
 fn contiguous_accessors() {
     {
-        let ic = ImplsContiguous::<Tiny, i8>::NEW;
+        let ic = IsContiguous::<Tiny, i8>::NEW;
         assert_eq!(ic.min_value(), &-1);
         assert_eq!(ic.max_value(), &2);
     }
     {
-        let ic = ImplsContiguous::<u32, u32>::NEW;
+        let ic = IsContiguous::<u32, u32>::NEW;
         assert_eq!(ic.min_value(), &0);
         assert_eq!(ic.max_value(), &u32::MAX);
     }
@@ -70,13 +70,13 @@ unsafe impl Contiguous for SwappedLimits {
 fn swapped_limits() {
     macro_rules! make_ic {
         ($ty:ty) => {
-            ImplsContiguous::<SwappedLimits, $ty>::new_unchecked(
+            IsContiguous::<SwappedLimits, $ty>::new_unchecked(
                 SwappedLimits::MIN_VALUE as _,
                 SwappedLimits::MAX_VALUE as _,
             )
         };
     }
-    let ic = ImplsContiguous::<SwappedLimits, _>::NEW;
+    let ic = IsContiguous::<SwappedLimits, _>::NEW;
     assert_eq!(ic.min_value(), &2);
     assert_eq!(ic.max_value(), &0);
 
@@ -104,7 +104,7 @@ fn custom_type_tests() {
     unsafe {
         macro_rules! make_ic {
             ($ty:ty) => {
-                ImplsContiguous::<Wrong, $ty>::new_unchecked((Wrong::N1 as $ty).min(0), 1)
+                IsContiguous::<Wrong, $ty>::new_unchecked((Wrong::N1 as $ty).min(0), 1)
             };
         }
         // making sure to test u8 since `from_u8` is manually written,

@@ -2,7 +2,7 @@ use core::{marker::PhantomData, mem};
 
 use bytemuck::{Pod, PodCastError};
 
-use crate::{ImplsCopy, ImplsZeroable};
+use crate::{IsCopy, IsZeroable};
 
 mod __ {
     use super::*;
@@ -13,11 +13,11 @@ mod __ {
     /// # Example
     ///
     /// ```rust
-    /// use constmuck::{ImplsPod, cast, cast_ref_alt, cast_slice_alt, infer};
+    /// use constmuck::{IsPod, cast, cast_ref_alt, cast_slice_alt, infer};
     ///
     /// {
     ///     // transmuting `i16` to `u16`
-    ///     const FOO1: u16 = cast(-1i16, (ImplsPod::NEW, ImplsPod::NEW));
+    ///     const FOO1: u16 = cast(-1i16, (IsPod::NEW, IsPod::NEW));
     ///    
     ///     // The same as the above constant
     ///     const FOO2: u16 = cast(-1i16, infer!());
@@ -41,41 +41,41 @@ mod __ {
     /// }
     ///
     /// ```
-    pub struct ImplsPod<T> {
-        pub impls_copy: ImplsCopy<T>,
-        pub impls_zeroable: ImplsZeroable<T>,
+    pub struct IsPod<T> {
+        pub impls_copy: IsCopy<T>,
+        pub impls_zeroable: IsZeroable<T>,
         _private: PhantomData<fn() -> T>,
     }
 
-    impl<T> Copy for ImplsPod<T> {}
+    impl<T> Copy for IsPod<T> {}
 
-    impl<T> Clone for ImplsPod<T> {
+    impl<T> Clone for IsPod<T> {
         fn clone(&self) -> Self {
             *self
         }
     }
 
-    impl<T: Pod> ImplsPod<T> {
-        /// Constructs an `ImplsPod`
+    impl<T: Pod> IsPod<T> {
+        /// Constructs an `IsPod`
         ///
-        /// You can also use the [`infer`] macro to construct `ImplsPod` arguments.
+        /// You can also use the [`infer`] macro to construct `IsPod` arguments.
         pub const NEW: Self = Self {
-            impls_copy: ImplsCopy::NEW,
-            impls_zeroable: ImplsZeroable::NEW,
+            impls_copy: IsCopy::NEW,
+            impls_zeroable: IsZeroable::NEW,
             _private: PhantomData,
         };
     }
 
-    impl<T> ImplsPod<T> {
+    impl<T> IsPod<T> {
         const __NEW_UNCHECKED__: Self = unsafe {
             Self {
-                impls_copy: ImplsCopy::new_unchecked(),
-                impls_zeroable: ImplsZeroable::new_unchecked(),
+                impls_copy: IsCopy::new_unchecked(),
+                impls_zeroable: IsZeroable::new_unchecked(),
                 _private: PhantomData,
             }
         };
 
-        /// Constructs an `ImplsPod<T>` without checking that `T` implements [`Pod`].
+        /// Constructs an `IsPod<T>` without checking that `T` implements [`Pod`].
         ///
         /// # Safety
         ///
@@ -83,13 +83,13 @@ mod __ {
         /// [safety requirements of `Pod`](bytemuck::Pod#safety)
         ///
         /// ```rust
-        /// use constmuck::{ImplsPod, cast, infer};
+        /// use constmuck::{IsPod, cast, infer};
         ///
         /// #[repr(transparent)]
         /// struct Foo([u8; 4]);
         ///
         /// unsafe{
-        ///     let bounds = (ImplsPod::new_unchecked(), ImplsPod::new_unchecked());
+        ///     let bounds = (IsPod::new_unchecked(), IsPod::new_unchecked());
         ///     assert_eq!(cast::<u32, Foo>(12345678, bounds).0, 12345678u32.to_ne_bytes());
         /// }
         /// ```
@@ -99,9 +99,9 @@ mod __ {
         }
     }
 }
-pub use __::ImplsPod;
+pub use __::IsPod;
 
-impl<T: Pod> crate::Infer for ImplsPod<T> {
+impl<T: Pod> crate::Infer for IsPod<T> {
     const INFER: Self = Self::NEW;
 }
 
@@ -123,7 +123,7 @@ impl<T: Pod> crate::Infer for ImplsPod<T> {
 /// assert_eq!(LE_BYTES, 0xAB1E_BEEF_u32.to_le_bytes());
 ///
 /// ```
-pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
+pub const fn cast<T, U>(from: T, _bounds: (IsPod<T>, IsPod<U>)) -> U {
     unsafe {
         if mem::size_of::<T>() != mem::size_of::<U>() {
             let x = mem::size_of::<T>();
@@ -158,7 +158,7 @@ pub const fn cast<T, U>(from: T, _bounds: (ImplsPod<T>, ImplsPod<U>)) -> U {
 /// ```
 pub const fn try_cast<T, U>(
     from: T,
-    _bounds: (ImplsPod<T>, ImplsPod<U>),
+    _bounds: (IsPod<T>, IsPod<U>),
 ) -> Result<U, crate::PodCastError> {
     unsafe {
         if mem::size_of::<T>() == mem::size_of::<U>() {
@@ -198,7 +198,7 @@ pub const fn try_cast<T, U>(
 /// assert_eq!(U8[1], 0);
 ///
 /// ```
-pub const fn cast_ref_alt<T, U>(from: &T, bounds: (ImplsPod<T>, ImplsPod<U>)) -> &U {
+pub const fn cast_ref_alt<T, U>(from: &T, bounds: (IsPod<T>, IsPod<U>)) -> &U {
     match try_cast_ref_alt(from, bounds) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
@@ -248,7 +248,7 @@ pub const fn cast_ref_alt<T, U>(from: &T, bounds: (ImplsPod<T>, ImplsPod<U>)) ->
 /// ```
 pub const fn try_cast_ref_alt<T, U>(
     from: &T,
-    _bounds: (ImplsPod<T>, ImplsPod<U>),
+    _bounds: (IsPod<T>, IsPod<U>),
 ) -> Result<&U, crate::PodCastError> {
     unsafe {
         if mem::align_of::<T>() < mem::align_of::<U>() {

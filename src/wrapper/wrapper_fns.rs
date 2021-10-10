@@ -1,1 +1,1 @@
-use crate::{ImplsTransparentWrapper, TransmutableInto};
+use crate::{IsTransparentWrapper, TransmutableInto};

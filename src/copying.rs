@@ -1,7 +1,7 @@
 //! For copying values in generic contexts.
 //!
 //!
-//! Related: [`ImplsCopy`] type, [`type_size`] macro.
+//! Related: [`IsCopy`] type, [`type_size`] macro.
 #![allow(deprecated)]
 
 use core::{marker::PhantomData, mem::MaybeUninit};
@@ -25,36 +25,36 @@ pub(crate) mod impls_copy {
     /// but is guaranteed sound for [`Pod`] types.
     ///
     /// If there's a more permissive bound that allows more non-pointer-containing
-    /// `Copy` types, `ImplsCopy` will be changed to use that.
+    /// `Copy` types, `IsCopy` will be changed to use that.
     ///
     /// [`Pod`]: bytemuck::Pod
-    pub struct ImplsCopy<T> {
+    pub struct IsCopy<T> {
         _private: PhantomData<fn() -> T>,
     }
 
-    impl<T> Copy for ImplsCopy<T> {}
+    impl<T> Copy for IsCopy<T> {}
 
-    impl<T> Clone for ImplsCopy<T> {
+    impl<T> Clone for IsCopy<T> {
         fn clone(&self) -> Self {
             *self
         }
     }
 
-    impl<T: crate::Pod> ImplsCopy<T> {
-        /// Constructs an `ImplsCopy`
+    impl<T: crate::Pod> IsCopy<T> {
+        /// Constructs an `IsCopy`
         ///
-        /// You can also use the [`infer`] macro to construct `ImplsCopy` arguments.
+        /// You can also use the [`infer`] macro to construct `IsCopy` arguments.
         pub const NEW: Self = Self {
             _private: PhantomData,
         };
     }
 
-    impl<T> ImplsCopy<T> {
+    impl<T> IsCopy<T> {
         const __NEW_UNCHECKED__: Self = Self {
             _private: PhantomData,
         };
 
-        /// Constructs an `ImplsCopy<T>` without checking that `T`
+        /// Constructs an `IsCopy<T>` without checking that `T`
         /// implements [`Copy`] + [`Pod`].
         ///
         /// # Safety
@@ -71,16 +71,16 @@ pub(crate) mod impls_copy {
 }
 
 #[doc(no_inline)]
-pub use crate::ImplsCopy;
+pub use crate::IsCopy;
 
-impl<T: crate::Pod> crate::Infer for ImplsCopy<T> {
+impl<T: crate::Pod> crate::Infer for IsCopy<T> {
     const INFER: Self = Self::NEW;
 }
 
 /// Copies a `T` from a `&T`
 ///
 /// Requires that `T` implements `Copy + Pod`
-/// (see [`ImplsCopy`] docs for why it requires `Pod`)
+/// (see [`IsCopy`] docs for why it requires `Pod`)
 ///
 /// # Example
 ///
@@ -88,11 +88,11 @@ impl<T: crate::Pod> crate::Infer for ImplsCopy<T> {
 ///
 /// ```rust
 /// use constmuck::{copying, type_size};
-/// use constmuck::{ImplsCopy, TypeSize};
+/// use constmuck::{IsCopy, TypeSize};
 ///
 /// const fn pair<T, const SIZE: usize>(
 ///     reff: &T,
-///     bounds: TypeSize<ImplsCopy<T>, T, SIZE>
+///     bounds: TypeSize<IsCopy<T>, T, SIZE>
 /// ) -> [T; 2] {
 ///     [copying::copy(reff, bounds), copying::copy(reff, bounds)]
 /// }
@@ -102,7 +102,7 @@ impl<T: crate::Pod> crate::Infer for ImplsCopy<T> {
 /// assert_eq!(PAIR_U8, [128, 128]);
 ///
 /// ```
-pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>, T, SIZE>) -> T {
+pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<IsCopy<T>, T, SIZE>) -> T {
     unsafe {
         __priv_transmute_from_copy!(
             MaybeUninit<[u8; SIZE]>,
@@ -115,7 +115,7 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>,
 /// Creates a `[T; ARR_LEN]` by copying from a `&T`
 ///
 /// Requires that `T` implements `Copy + Pod`
-/// (see [`ImplsCopy`] docs for why it requires `Pod`)
+/// (see [`IsCopy`] docs for why it requires `Pod`)
 ///
 /// To specify the length of the returned array,
 /// [`TypeSize::repeat`] can be used instead.
@@ -135,7 +135,7 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<ImplsCopy<T>,
 /// ```
 pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
     reff: &T,
-    bounds: TypeSize<ImplsCopy<T>, T, SIZE>,
+    bounds: TypeSize<IsCopy<T>, T, SIZE>,
 ) -> [T; ARR_LEN] {
     unsafe {
         __priv_transmute_from_copy!(

@@ -1,6 +1,6 @@
 //! Functions for wrapping/peeling types that implement [`TransparentWrapper`]
 //!
-//! Related: [`ImplsTransparentWrapper`] type and [`infer_tw`] macro.
+//! Related: [`IsTransparentWrapper`] type and [`infer_tw`] macro.
 //!
 //! # Example
 //!
@@ -69,14 +69,14 @@ use bytemuck::TransparentWrapper;
 use crate::{Infer, TransmutableInto};
 
 #[doc(no_inline)]
-pub use crate::{infer_tw, ImplsTransparentWrapper};
+pub use crate::{infer_tw, IsTransparentWrapper};
 
-/// Constructs an [`ImplsTransparentWrapper`],
+/// Constructs an [`IsTransparentWrapper`],
 ///
 /// Most useful over [`infer`] to:
-/// - Call methods on the [`ImplsTransparentWrapper`].
-/// - Access the [`from_inner`](ImplsTransparentWrapper::from_inner) field
-/// - Access the [`into_inner`](ImplsTransparentWrapper::into_inner) field.
+/// - Call methods on the [`IsTransparentWrapper`].
+/// - Access the [`from_inner`](IsTransparentWrapper::from_inner) field
+/// - Access the [`into_inner`](IsTransparentWrapper::into_inner) field.
 ///
 /// Related: [`wrapper`](crate::wrapper) module
 ///
@@ -148,7 +148,7 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 /// {
 ///     // Casting `&Wrapping<u8>` to `&u8`,
 ///     //
-///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+///     // `infer_tw!()` constructs an `IsTransparentWrapper`,
 ///     // whose `into_inner` field allows casting from a wrapper into the value in it.
 ///     const UNWRAPPED: &u8 = transmute_ref(&Wrapping(5), infer_tw!().into_inner);
 ///     assert_eq!(*UNWRAPPED, 5);
@@ -157,7 +157,7 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 /// {
 ///     // Casting `&u8` to `&Wrapping<u8>`
 ///     //
-///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+///     // `infer_tw!()` constructs an `IsTransparentWrapper`,
 ///     // whose `from_inner` field allows casting from a value into a wrapper around it.
 ///     const WRAPPED: &Wrapping<u8> = transmute_ref(&7, infer_tw!().from_inner);
 ///    
@@ -168,13 +168,13 @@ pub use crate::{infer_tw, ImplsTransparentWrapper};
 #[macro_export]
 macro_rules! infer_tw {
     () => {
-        <$crate::ImplsTransparentWrapper<_, _> as $crate::Infer>::INFER
+        <$crate::IsTransparentWrapper<_, _> as $crate::Infer>::INFER
     };
     ($outer:ty $(,)*) => {
-        <$crate::ImplsTransparentWrapper<$outer, _> as $crate::Infer>::INFER
+        <$crate::IsTransparentWrapper<$outer, _> as $crate::Infer>::INFER
     };
     ($outer:ty, $inner:ty $(,)*) => {
-        <$crate::ImplsTransparentWrapper<$outer, $inner> as $crate::Infer>::INFER
+        <$crate::IsTransparentWrapper<$outer, $inner> as $crate::Infer>::INFER
     };
 }
 
@@ -203,7 +203,7 @@ pub(crate) mod impls_tw {
     /// {
     ///     // Casting from `&&str` to `&This<&str>`
     ///     //
-    ///     // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+    ///     // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
     ///     const WRAPPED: &This<&str> = wrapper::wrap_ref(&"hi", infer_tw!());
     ///     assert_eq!(*WRAPPED, This("hi"));
     /// }
@@ -234,28 +234,28 @@ pub(crate) mod impls_tw {
     /// }
     ///
     /// ```
-    pub struct ImplsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
+    pub struct IsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
         pub from_inner: TransmutableInto<Inner, Outer>,
         pub into_inner: TransmutableInto<Outer, Inner>,
         #[doc(hidden)]
         pub _transparent_wrapper_proof: constmuck_internal::TransparentWrapperProof<Outer, Inner>,
     }
 
-    impl<Outer: ?Sized, Inner: ?Sized> Copy for ImplsTransparentWrapper<Outer, Inner> {}
+    impl<Outer: ?Sized, Inner: ?Sized> Copy for IsTransparentWrapper<Outer, Inner> {}
 
-    impl<Outer: ?Sized, Inner: ?Sized> Clone for ImplsTransparentWrapper<Outer, Inner> {
+    impl<Outer: ?Sized, Inner: ?Sized> Clone for IsTransparentWrapper<Outer, Inner> {
         fn clone(&self) -> Self {
             *self
         }
     }
 
-    impl<Outer: ?Sized, Inner: ?Sized> ImplsTransparentWrapper<Outer, Inner>
+    impl<Outer: ?Sized, Inner: ?Sized> IsTransparentWrapper<Outer, Inner>
     where
         Outer: TransparentWrapper<Inner>,
     {
-        /// Constructs an `ImplsTransparentWrapper`
+        /// Constructs an `IsTransparentWrapper`
         ///
-        /// You can also use the [`infer_tw`] macro to construct `ImplsTransparentWrapper` arguments.
+        /// You can also use the [`infer_tw`] macro to construct `IsTransparentWrapper` arguments.
         pub const NEW: Self = unsafe {
             Self {
                 from_inner: TransmutableInto::new_unchecked(),
@@ -266,7 +266,7 @@ pub(crate) mod impls_tw {
         };
     }
 
-    impl<Outer: ?Sized, Inner: ?Sized> ImplsTransparentWrapper<Outer, Inner> {
+    impl<Outer: ?Sized, Inner: ?Sized> IsTransparentWrapper<Outer, Inner> {
         const __NEW_UNCHECKED__: Self = unsafe {
             Self {
                 from_inner: TransmutableInto::new_unchecked(),
@@ -276,7 +276,7 @@ pub(crate) mod impls_tw {
             }
         };
 
-        /// Constructs an `ImplsTransparentWrapper` without checking that
+        /// Constructs an `IsTransparentWrapper` without checking that
         /// `Outer` implements
         /// [`TransparentWrapper<Inner>`](bytemuck::TransparentWrapper).
         ///
@@ -291,17 +291,17 @@ pub(crate) mod impls_tw {
             Self::__NEW_UNCHECKED__
         }
 
-        /// Constructs an `ImplsTransparentWrapper` from a pair
+        /// Constructs an `IsTransparentWrapper` from a pair
         /// of [`TransmutableInto`] that allow transmuting between `Outer` and `Inner`
         /// in both directions.
         ///
         /// # Example
         ///
         /// ```rust
-        /// use constmuck::{ImplsTransparentWrapper, TransmutableInto, infer, wrapper};
+        /// use constmuck::{IsTransparentWrapper, TransmutableInto, infer, wrapper};
         ///
-        /// const ITW: ImplsTransparentWrapper<u8, i8> =
-        ///     ImplsTransparentWrapper::from_ti(
+        /// const ITW: IsTransparentWrapper<u8, i8> =
+        ///     IsTransparentWrapper::from_ti(
         ///         TransmutableInto::pod(infer!()),
         ///         TransmutableInto::pod(infer!()),
         ///     );
@@ -341,8 +341,8 @@ pub(crate) mod impls_tw {
         }
     }
 
-    impl<Outer: ?Sized, Inner: ?Sized> ImplsTransparentWrapper<Outer, Inner> {
-        /// Combines an `ImplsTransparentWrapper` with another to allow
+    impl<Outer: ?Sized, Inner: ?Sized> IsTransparentWrapper<Outer, Inner> {
+        /// Combines an `IsTransparentWrapper` with another to allow
         /// casting between `Outer` and `Nested`.
         ///
         /// Without this you'd have to do `Outer -> Inner -> Nested` casts.
@@ -350,14 +350,14 @@ pub(crate) mod impls_tw {
         /// # Example
         ///
         /// ```rust
-        /// use constmuck::{ImplsTransparentWrapper as ITW, infer_tw, wrapper};
+        /// use constmuck::{IsTransparentWrapper as ITW, infer_tw, wrapper};
         ///
         /// use std::num::Wrapping;
         ///
         /// const FOO: ITW<Bar<u32>, u32> = infer_tw!().join(infer_tw!());
         ///
         /// // Equivalent to FOO, but passing the types to `infer_tw`.
-        /// // Only the innermost joined ImplsTransparentWrapper requires you
+        /// // Only the innermost joined IsTransparentWrapper requires you
         /// // to pass both arguments to `infer_tw`.
         /// let foo = infer_tw!(Bar<u32>).join(infer_tw!(Wrapping<u32>, u32));
         ///
@@ -378,15 +378,15 @@ pub(crate) mod impls_tw {
         /// ```
         pub const fn join<Nested: ?Sized>(
             self,
-            _other: ImplsTransparentWrapper<Inner, Nested>,
-        ) -> ImplsTransparentWrapper<Outer, Nested> {
-            ImplsTransparentWrapper::__NEW_UNCHECKED__
+            _other: IsTransparentWrapper<Inner, Nested>,
+        ) -> IsTransparentWrapper<Outer, Nested> {
+            IsTransparentWrapper::__NEW_UNCHECKED__
         }
     }
 
-    impl<Outer, Inner> ImplsTransparentWrapper<Outer, Inner> {
-        /// Turns a `ImplsTransparentWrapper<Outer, Inner>` into a
-        /// `ImplsTransparentWrapper<[Outer; LEN], [Inner; LEN]>`.
+    impl<Outer, Inner> IsTransparentWrapper<Outer, Inner> {
+        /// Turns a `IsTransparentWrapper<Outer, Inner>` into a
+        /// `IsTransparentWrapper<[Outer; LEN], [Inner; LEN]>`.
         ///
         /// # Example
         ///
@@ -422,8 +422,8 @@ pub(crate) mod impls_tw {
         #[inline(always)]
         pub const fn array<const LEN: usize>(
             self,
-        ) -> ImplsTransparentWrapper<[Outer; LEN], [Inner; LEN]> {
-            ImplsTransparentWrapper {
+        ) -> IsTransparentWrapper<[Outer; LEN], [Inner; LEN]> {
+            IsTransparentWrapper {
                 from_inner: self.from_inner.array(),
                 into_inner: self.into_inner.array(),
                 _transparent_wrapper_proof: unsafe {
@@ -434,7 +434,7 @@ pub(crate) mod impls_tw {
     }
 }
 
-impl<Outer: ?Sized, Inner: ?Sized> Infer for ImplsTransparentWrapper<Outer, Inner>
+impl<Outer: ?Sized, Inner: ?Sized> Infer for IsTransparentWrapper<Outer, Inner>
 where
     Outer: TransparentWrapper<Inner>,
 {
@@ -462,7 +462,7 @@ where
 ///
 /// // Casting `&u32` to `Qux<u32>`
 /// //
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const VALUE: Qux<u32> = wrapper::wrap(3, infer_tw!());
 ///
 /// assert_eq!(VALUE, Qux(3));
@@ -485,7 +485,7 @@ where
 /// );
 ///
 /// ```
-pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, Inner>) -> Outer {
+pub const fn wrap<Inner, Outer>(val: Inner, _: IsTransparentWrapper<Outer, Inner>) -> Outer {
     __check_same_alignment! {Outer, Inner}
 
     unsafe { __priv_transmute!(Inner, Outer, val) }
@@ -512,7 +512,7 @@ pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, In
 ///
 /// // Casting `&u32` to `&Foo<u32>`
 /// //
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const X: &Foo<u32> = wrapper::wrap_ref(&100, infer_tw!());
 ///
 /// assert_eq!(X, &Foo(100));
@@ -521,10 +521,7 @@ pub const fn wrap<Inner, Outer>(val: Inner, _: ImplsTransparentWrapper<Outer, In
 /// assert_eq!(wrapper::wrap_ref(&100, infer_tw!(Foo<_>)), &Foo(100));
 ///
 /// ```
-pub const fn wrap_ref<Inner, Outer>(
-    reff: &Inner,
-    _: ImplsTransparentWrapper<Outer, Inner>,
-) -> &Outer {
+pub const fn wrap_ref<Inner, Outer>(reff: &Inner, _: IsTransparentWrapper<Outer, Inner>) -> &Outer {
     __check_same_alignment! {Outer, Inner}
 
     unsafe {
@@ -539,7 +536,7 @@ pub const fn wrap_ref<Inner, Outer>(
 /// ```rust
 /// pub const fn wrap_ref<Inner: ?Sized, Outer: ?Sized>(
 ///     reff: &Inner,
-///     impls_tw: constmuck::ImplsTransparentWrapper<Outer, Inner>
+///     impls_tw: constmuck::IsTransparentWrapper<Outer, Inner>
 /// ) -> &Outer
 /// # { loop{} }
 /// ```
@@ -549,8 +546,8 @@ pub const fn wrap_ref<Inner, Outer>(
 ///
 /// Note that, because of how this macro is implemented,
 /// [`infer`] cannot be passed as the `impls_tw` argument.
-/// You must pass a type that's known to be an [`ImplsTransparentWrapper`] beforehand,
-/// eg: [`infer_tw!()`](crate::infer_tw), [`ImplsTransparentWrapper::NEW`].
+/// You must pass a type that's known to be an [`IsTransparentWrapper`] beforehand,
+/// eg: [`infer_tw!()`](crate::infer_tw), [`IsTransparentWrapper::NEW`].
 ///
 /// # Example
 ///
@@ -565,7 +562,7 @@ pub const fn wrap_ref<Inner, Outer>(
 ///
 /// // Casting `&str` to `&Foo<str>`
 /// //
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const X: &Foo<str> = wrapper::wrap_ref!("world", infer_tw!());
 ///
 /// assert_eq!(X.0, *"world");
@@ -594,7 +591,7 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 ///
 /// // Casting `&[&str]` to `&[Bar<&str>]`
 /// //
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const X: &[Bar<&str>] = wrapper::wrap_slice(&["hello", "world"], infer_tw!());
 ///
 /// assert_eq!(X, [Bar("hello"), Bar("world")]);
@@ -608,7 +605,7 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 /// ```
 pub const fn wrap_slice<Inner, Outer>(
     reff: &[Inner],
-    _: ImplsTransparentWrapper<Outer, Inner>,
+    _: IsTransparentWrapper<Outer, Inner>,
 ) -> &[Outer] {
     __check_same_alignment! {Outer, Inner}
 
@@ -629,7 +626,7 @@ pub const fn wrap_slice<Inner, Outer>(
 ///
 /// use std::num::Wrapping;
 ///
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const VALUE: u32 = wrapper::peel(Wrapping(3), infer_tw!());
 ///
 ///
@@ -646,7 +643,7 @@ pub const fn wrap_slice<Inner, Outer>(
 /// assert_eq!(ARR, [5, 8, 13]);
 ///
 /// ```
-pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, Inner>) -> Inner {
+pub const fn peel<Inner, Outer>(val: Outer, _: IsTransparentWrapper<Outer, Inner>) -> Inner {
     __check_same_alignment! {Outer, Inner}
 
     unsafe { __priv_transmute!(Outer, Inner, val) }
@@ -673,16 +670,13 @@ pub const fn peel<Inner, Outer>(val: Outer, _: ImplsTransparentWrapper<Outer, In
 ///
 /// // Casting `&Foo<char>` to `&char`
 /// //
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const X: &char = wrapper::peel_ref(&Foo('@'), infer_tw!());
 ///
 /// assert_eq!(X, &'@');
 ///
 /// ```
-pub const fn peel_ref<Inner, Outer>(
-    reff: &Outer,
-    _: ImplsTransparentWrapper<Outer, Inner>,
-) -> &Inner {
+pub const fn peel_ref<Inner, Outer>(reff: &Outer, _: IsTransparentWrapper<Outer, Inner>) -> &Inner {
     __check_same_alignment! {Outer, Inner}
 
     unsafe {
@@ -697,7 +691,7 @@ pub const fn peel_ref<Inner, Outer>(
 /// ```rust
 /// pub const fn peel_ref<Inner: ?Sized, Outer: ?Sized>(
 ///     reff: &Outer,
-///     impls_tw: constmuck::ImplsTransparentWrapper<Outer, Inner>
+///     impls_tw: constmuck::IsTransparentWrapper<Outer, Inner>
 /// ) -> &Inner
 /// # { loop{} }
 /// ```
@@ -707,8 +701,8 @@ pub const fn peel_ref<Inner, Outer>(
 ///
 /// Note that, because of how this macro is implemented,
 /// [`infer`] cannot be passed as the `impls_tw` argument.
-/// You must pass a type that's known to be an [`ImplsTransparentWrapper`] beforehand,
-/// eg: [`infer_tw!()`](crate::infer_tw), [`ImplsTransparentWrapper::NEW`].
+/// You must pass a type that's known to be an [`IsTransparentWrapper`] beforehand,
+/// eg: [`infer_tw!()`](crate::infer_tw), [`IsTransparentWrapper::NEW`].
 ///
 /// # Example
 ///
@@ -726,7 +720,7 @@ pub const fn peel_ref<Inner, Outer>(
 ///
 ///     // Casting `&Foo<[u8]>` to `&[u8]`
 ///     //
-///     // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+///     // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 ///     wrapper::peel_ref!(x, infer_tw!())
 /// };
 ///
@@ -753,7 +747,7 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 ///
 /// // Casting `&[Bar<&str>]` to `&[&str]`
 /// //
-/// // `infer_tw!()` is a more concise way to write `ImplsTransparentWrapper::NEW`
+/// // `infer_tw!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const X: &[&str] = wrapper::peel_slice(&[Bar("hello"), Bar("world")], infer_tw!());
 ///
 /// assert_eq!(X, ["hello", "world"]);
@@ -761,7 +755,7 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 /// ```
 pub const fn peel_slice<Inner, Outer>(
     reff: &[Outer],
-    _: ImplsTransparentWrapper<Outer, Inner>,
+    _: IsTransparentWrapper<Outer, Inner>,
 ) -> &[Inner] {
     __check_same_alignment! {Outer, Inner}
 

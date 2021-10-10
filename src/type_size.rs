@@ -3,7 +3,7 @@ use core::{
     mem::{self, ManuallyDrop},
 };
 
-use crate::{ImplsCopy, ImplsZeroable, Infer};
+use crate::{Infer, IsCopy, IsZeroable};
 
 /// Constructs a [`TypeSize`].
 ///
@@ -14,15 +14,15 @@ use crate::{ImplsCopy, ImplsZeroable, Infer};
 /// Making a `oned` function
 ///
 /// ```rust
-/// use constmuck::{ImplsPod, TypeSize};
+/// use constmuck::{IsPod, TypeSize};
 /// use constmuck::{infer, type_size};
 ///
-/// pub const fn oned<T, const SIZE: usize>(bound: TypeSize<ImplsPod<T>, T, SIZE>) -> T {
+/// pub const fn oned<T, const SIZE: usize>(bound: TypeSize<IsPod<T>, T, SIZE>) -> T {
 ///     constmuck::cast::<[u8; SIZE], T>(
 ///         [1; SIZE],
-///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
+///         // `infer!()` here constructs an `IsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` extracts the `bounds` field, which is `ImplsPod<T>` here.
+///         // `bound.into_bounds()` extracts the `bounds` field, which is `IsPod<T>` here.
 ///         (infer!(), bound.into_bounds())
 ///     )
 /// }
@@ -49,15 +49,15 @@ macro_rules! type_size {
 ///
 /// ```rust
 /// use constmuck::{map_bound, type_size};
-/// use constmuck::{ImplsPod, ImplsZeroable, TypeSize, zeroed, zeroed_array};
+/// use constmuck::{IsPod, IsZeroable, TypeSize, zeroed, zeroed_array};
 ///
 /// use std::num::NonZeroU8;
 ///
 /// pub const fn zeroed_pair<T, const SIZE: usize, const LEN: usize>(
-///     bound: TypeSize<ImplsPod<T>, T, SIZE>,
+///     bound: TypeSize<IsPod<T>, T, SIZE>,
 /// ) -> (T, [T; LEN]) {
 ///     // The type annotation is just for the reader
-///     let bound: TypeSize<ImplsZeroable<T>, T, SIZE> =
+///     let bound: TypeSize<IsZeroable<T>, T, SIZE> =
 ///         map_bound!(bound, |x| x.impls_zeroable);
 ///     (zeroed(bound), zeroed_array(bound))
 /// }
@@ -97,15 +97,15 @@ macro_rules! map_bound {
 /// Making a `max_bit_pattern` function
 ///
 /// ```rust
-/// use constmuck::{ImplsPod, TypeSize};
+/// use constmuck::{IsPod, TypeSize};
 /// use constmuck::{infer, type_size};
 ///
-/// pub const fn max_bit_pattern<T, const SIZE: usize>(bound: TypeSize<ImplsPod<T>, T, SIZE>) -> T {
+/// pub const fn max_bit_pattern<T, const SIZE: usize>(bound: TypeSize<IsPod<T>, T, SIZE>) -> T {
 ///     constmuck::cast::<[u8; SIZE], T>(
 ///         [u8::MAX; SIZE],
-///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
+///         // `infer!()` here constructs an `IsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.bounds()` here returns a `&ImplsPod<T>`.
+///         // `bound.bounds()` here returns a `&IsPod<T>`.
 ///         (infer!(), *bound.bounds())
 ///     )
 /// }
@@ -191,10 +191,10 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
     /// # Example
     ///
     /// This example demonstrates how `with_bounds` can be used to
-    /// compose `TypeSize` with `Impls*::new_unchecked`.
+    /// compose `TypeSize` with `Is*::new_unchecked`.
     ///
     /// ```rust
-    /// use constmuck::{ImplsZeroable, type_size, zeroed};
+    /// use constmuck::{IsZeroable, type_size, zeroed};
     ///
     /// fn main() {
     ///     const NEW: Foo = Foo::new();
@@ -209,7 +209,7 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
     ///     pub const fn new() -> Self {
     ///         // safety: this type knows that all its fields are zeroable right now,
     ///         // but it doesn't impl Zeroable to be able to add nonzeroable fields.
-    ///         let iz = unsafe{ ImplsZeroable::<Self>::new_unchecked() };
+    ///         let iz = unsafe{ IsZeroable::<Self>::new_unchecked() };
     ///         zeroed(type_size!(Self).with_bound(iz))
     ///     }
     /// }
@@ -254,14 +254,14 @@ impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     }
 }
 
-impl<T, const SIZE: usize> TypeSize<ImplsCopy<T>, T, SIZE> {
+impl<T, const SIZE: usize> TypeSize<IsCopy<T>, T, SIZE> {
     /// Equivalent to [`copying::repeat`](crate::copying::repeat)
     /// but allows passing the length of the retuned array.
     ///
     /// Creates a `[T; ARR_LEN]` by copying from a `&T`
     ///
     /// Requires that `T` implements `Copy + Pod`
-    /// (see [`ImplsCopy`] docs for why it requires `Pod`)
+    /// (see [`IsCopy`] docs for why it requires `Pod`)
     ///
     /// # Example
     ///
@@ -279,7 +279,7 @@ impl<T, const SIZE: usize> TypeSize<ImplsCopy<T>, T, SIZE> {
     }
 }
 
-impl<T, const SIZE: usize> TypeSize<ImplsZeroable<T>, T, SIZE> {
+impl<T, const SIZE: usize> TypeSize<IsZeroable<T>, T, SIZE> {
     /// Equivalent to [`constmuck::zeroed_array`](crate::zeroed_array)
     /// but allows passing the length of the retuned array.
     ///

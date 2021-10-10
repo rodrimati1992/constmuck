@@ -11,33 +11,33 @@ mod __ {
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     ///
     /// Related: the [`zeroed`] and [`zeroed_array`] functions.
-    pub struct ImplsZeroable<T> {
+    pub struct IsZeroable<T> {
         _private: PhantomData<fn() -> T>,
     }
 
-    impl<T> Copy for ImplsZeroable<T> {}
+    impl<T> Copy for IsZeroable<T> {}
 
-    impl<T> Clone for ImplsZeroable<T> {
+    impl<T> Clone for IsZeroable<T> {
         fn clone(&self) -> Self {
             *self
         }
     }
 
-    impl<T: Zeroable> ImplsZeroable<T> {
-        /// Constructs an `ImplsZeroable`
+    impl<T: Zeroable> IsZeroable<T> {
+        /// Constructs an `IsZeroable`
         ///
-        /// You can also use the [`infer`] macro to construct `ImplsZeroable` arguments.
+        /// You can also use the [`infer`] macro to construct `IsZeroable` arguments.
         pub const NEW: Self = Self {
             _private: PhantomData,
         };
     }
 
-    impl<T> ImplsZeroable<T> {
+    impl<T> IsZeroable<T> {
         const __NEW_UNCHECKED__: Self = Self {
             _private: PhantomData,
         };
 
-        /// Constructs an `ImplsZeroable<T>` without checking that `T` implements [`Zeroable`].
+        /// Constructs an `IsZeroable<T>` without checking that `T` implements [`Zeroable`].
         ///
         /// # Safety
         ///
@@ -49,9 +49,9 @@ mod __ {
         }
     }
 }
-pub use __::ImplsZeroable;
+pub use __::IsZeroable;
 
-impl<T: Zeroable> crate::Infer for ImplsZeroable<T> {
+impl<T: Zeroable> crate::Infer for IsZeroable<T> {
     const INFER: Self = Self::NEW;
 }
 
@@ -72,7 +72,7 @@ impl<T: Zeroable> crate::Infer for ImplsZeroable<T> {
 ///
 ///
 /// ```
-pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<ImplsZeroable<T>, T, SIZE>) -> T {
+pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<IsZeroable<T>, T, SIZE>) -> T {
     unsafe { __priv_transmute!([u8; SIZE], T, [0; SIZE]) }
 }
 
@@ -106,7 +106,7 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<ImplsZeroable<T>, T,
 ///
 /// ```
 pub const fn zeroed_array<T, const SIZE: usize, const LEN: usize>(
-    _bounds: TypeSize<ImplsZeroable<T>, T, SIZE>,
+    _bounds: TypeSize<IsZeroable<T>, T, SIZE>,
 ) -> [T; LEN] {
     unsafe { __priv_transmute!([[u8; SIZE]; LEN], [T; LEN], [[0u8; SIZE]; LEN]) }
 }

@@ -4,7 +4,7 @@
 
 use core::{marker::PhantomData, mem};
 
-use crate::ImplsPod;
+use crate::IsPod;
 
 #[doc(no_inline)]
 pub use crate::TransmutableInto;
@@ -114,7 +114,7 @@ pub(crate) mod transmutable_into {
         /// }
         /// ```
         #[inline(always)]
-        pub const fn pod(_bounds: (ImplsPod<Fro>, ImplsPod<To>)) -> Self {
+        pub const fn pod(_bounds: (IsPod<Fro>, IsPod<To>)) -> Self {
             if mem::size_of::<Fro>() != mem::size_of::<To>() {
                 #[allow(non_snake_case)]
                 let size_of_Fro = mem::size_of::<Fro>();
@@ -231,7 +231,7 @@ pub(crate) mod transmutable_into {
 /// {
 ///     // Transmuting from `[char; 4]` to `That<[char; 4]>`
 ///     //
-///     // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+///     // `infer_tw!()` constructs an `IsTransparentWrapper`,
 ///     // whose `from_inner` field allows transmuting from a value into a wrapper around it.
 ///     const THAT_ARRAY: That<[char; 4]> =
 ///         transmute_into(['A', 'E', 'I', 'O'], infer_tw!().from_inner);
@@ -328,7 +328,7 @@ pub use constmuck_internal::transmute_ref;
 ///
 /// // Transmuting from `&[Wrapping<u8>]` to `&[i8]`
 /// //
-/// // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+/// // `infer_tw!()` constructs an `IsTransparentWrapper`,
 /// // whose `into_inner` field allows transmuting from a wrapper into the value in it.
 /// const UNWRAPPED: &[u8] =
 ///     transmute_slice(&[Wrapping(5), Wrapping(250)], infer_tw!().into_inner);
@@ -336,7 +336,7 @@ pub use constmuck_internal::transmute_ref;
 ///
 /// // Transmuting from `&[u8]` to `&[Wrapping<u8>]`
 /// //
-/// // `infer_tw!()` constructs an `ImplsTransparentWrapper`,
+/// // `infer_tw!()` constructs an `IsTransparentWrapper`,
 /// // whose `from_inner` field allows transmuting from a value into a wrapper around it.
 /// const WRAPPED: &[Wrapping<u8>] = transmute_slice(&[7, 78], infer_tw!().from_inner);
 /// assert_eq!(*WRAPPED, [Wrapping(7), Wrapping(78)]);

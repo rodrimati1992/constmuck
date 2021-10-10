@@ -158,7 +158,7 @@ in addition to the size checks described in the previous section.
 ### Contiguous checks
 
 The `from_*` functions in the [`contiguous`] module check that the 
-`min_value` of the passed-in `ImplsContiguous` is less than its `max_value` .
+`min_value` of the passed-in `IsContiguous` is less than its `max_value` .
 
 
 # No-std support

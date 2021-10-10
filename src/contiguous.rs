@@ -1,7 +1,7 @@
 //! Functions for converting types that implement [`Contiguous`]
 //! into and from their integer representation.
 //!
-//! Related: the [`ImplsContiguous`] type.
+//! Related: the [`IsContiguous`] type.
 //!
 //! # Example
 //!
@@ -54,7 +54,7 @@ use bytemuck::Contiguous;
 use core::marker::PhantomData;
 
 #[doc(no_inline)]
-pub use crate::ImplsContiguous;
+pub use crate::IsContiguous;
 
 pub(crate) mod impls_contiguous {
     use super::*;
@@ -62,16 +62,19 @@ pub(crate) mod impls_contiguous {
     /// Encodes a `T:`[`Contiguous`] bound as a value,
     /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
     ///
+    /// This also stores the [minimum](Self::min_value) and [maximum](Self::max_value)
+    /// values of the integer represetantion.
+    ///
     /// Related: the [`contiguous`](crate::contiguous) module.
-    pub struct ImplsContiguous<T, IntRepr> {
+    pub struct IsContiguous<T, IntRepr> {
         pub(super) min_value: IntRepr,
         pub(super) max_value: IntRepr,
         _private: PhantomData<fn() -> (T, IntRepr)>,
     }
 
-    impl<T, IntRepr: Copy> Copy for ImplsContiguous<T, IntRepr> {}
+    impl<T, IntRepr: Copy> Copy for IsContiguous<T, IntRepr> {}
 
-    impl<T, IntRepr: Clone> Clone for ImplsContiguous<T, IntRepr> {
+    impl<T, IntRepr: Clone> Clone for IsContiguous<T, IntRepr> {
         fn clone(&self) -> Self {
             Self {
                 min_value: self.min_value.clone(),
@@ -81,10 +84,10 @@ pub(crate) mod impls_contiguous {
         }
     }
 
-    impl<T: Contiguous> ImplsContiguous<T, T::Int> {
-        /// Constructs an `ImplsContiguous`
+    impl<T: Contiguous> IsContiguous<T, T::Int> {
+        /// Constructs an `IsContiguous`
         ///
-        /// You can also use the [`infer`] macro to construct `ImplsContiguous` arguments.
+        /// You can also use the [`infer`] macro to construct `IsContiguous` arguments.
         pub const NEW: Self = Self {
             min_value: T::MIN_VALUE,
             max_value: T::MAX_VALUE,
@@ -92,10 +95,10 @@ pub(crate) mod impls_contiguous {
         };
     }
 
-    impl<T, IntRepr> ImplsContiguous<T, IntRepr> {
+    impl<T, IntRepr> IsContiguous<T, IntRepr> {
         const __PHANTOM__: PhantomData<fn() -> (T, IntRepr)> = PhantomData;
 
-        /// Constructs an `ImplsContiguous` without checking that `T` implements
+        /// Constructs an `IsContiguous` without checking that `T` implements
         /// [`Contiguous<Int = IntRepr>`](bytemuck::Contiguous)
         ///
         /// # Safety
@@ -106,11 +109,11 @@ pub(crate) mod impls_contiguous {
         /// # Example
         ///
         /// ```rust
-        /// use constmuck::{ImplsContiguous, contiguous};
+        /// use constmuck::{IsContiguous, contiguous};
         ///
         /// use std::num::Wrapping;
         ///
-        /// let ic = unsafe { ImplsContiguous::<Wrapping<u8>, u8>::new_unchecked(10, 20) };
+        /// let ic = unsafe { IsContiguous::<Wrapping<u8>, u8>::new_unchecked(10, 20) };
         ///
         /// assert_eq!(contiguous::from_u8(9, ic), None);
         /// assert_eq!(contiguous::from_u8(10, ic), Some(Wrapping(10)));
@@ -130,22 +133,22 @@ pub(crate) mod impls_contiguous {
             }
         }
     }
-    impl<T, IntRepr> ImplsContiguous<T, IntRepr> {
+    impl<T, IntRepr> IsContiguous<T, IntRepr> {
         /// Gets the minimum value of `T`'s integer representation
         ///
         /// # Example
         ///
         /// ```rust
-        /// use constmuck::ImplsContiguous;
+        /// use constmuck::IsContiguous;
         ///
         /// use std::num::NonZeroU8;
         ///
         /// {
-        ///     let ic = ImplsContiguous::<NonZeroU8, _>::NEW;
+        ///     let ic = IsContiguous::<NonZeroU8, _>::NEW;
         ///     assert_eq!(ic.min_value(), &1);
         /// }
         /// {
-        ///     let ic = ImplsContiguous::<u16, _>::NEW;
+        ///     let ic = IsContiguous::<u16, _>::NEW;
         ///     assert_eq!(ic.min_value(), &0);
         /// }
         /// ```
@@ -159,16 +162,16 @@ pub(crate) mod impls_contiguous {
         /// # Example
         ///
         /// ```rust
-        /// use constmuck::ImplsContiguous;
+        /// use constmuck::IsContiguous;
         ///
         /// use std::num::NonZeroU16;
         ///
         /// {
-        ///     let ic = ImplsContiguous::<NonZeroU16, _>::NEW;
+        ///     let ic = IsContiguous::<NonZeroU16, _>::NEW;
         ///     assert_eq!(ic.max_value(), &u16::MAX);
         /// }
         /// {
-        ///     let ic = ImplsContiguous::<u8, _>::NEW;
+        ///     let ic = IsContiguous::<u8, _>::NEW;
         ///     assert_eq!(ic.max_value(), &u8::MAX);
         /// }
         /// ```
@@ -179,7 +182,7 @@ pub(crate) mod impls_contiguous {
     }
 }
 
-impl<T: Contiguous> crate::Infer for ImplsContiguous<T, T::Int> {
+impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
     const INFER: Self = Self::NEW;
 }
 
@@ -224,7 +227,7 @@ impl<T: Contiguous> crate::Infer for ImplsContiguous<T, T::Int> {
 /// ```
 ///
 #[inline(always)]
-pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntRepr>) -> IntRepr {
+pub const fn into_integer<T, IntRepr>(value: T, _bounds: IsContiguous<T, IntRepr>) -> IntRepr {
     core::mem::forget(_bounds);
 
     unsafe { __priv_transmute!(T, IntRepr, value) }
@@ -299,7 +302,7 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: ImplsContiguous<T, IntR
 /// assert_eq!(NONE14, None);
 ///
 /// ```
-pub const fn from_u8<T>(integer: u8, bounds: ImplsContiguous<T, u8>) -> Option<T> {
+pub const fn from_u8<T>(integer: u8, bounds: IsContiguous<T, u8>) -> Option<T> {
     #[cfg(feature = "debug_checks")]
     #[allow(unconditional_panic)]
     if bounds.min_value > bounds.max_value {
@@ -353,7 +356,7 @@ macro_rules! declare_from_integer_fns {
         /// For examples, you can look
         /// [at the ones for `from_u8`](self::from_u8#examples).
         ///
-        pub const fn $fn_name<T>(integer: $Int, bounds: ImplsContiguous<T, $Int>) -> Option<T> {
+        pub const fn $fn_name<T>(integer: $Int, bounds: IsContiguous<T, $Int>) -> Option<T> {
             #[cfg(feature = "debug_checks")]
             #[allow(unconditional_panic)]
             if bounds.min_value > bounds.max_value {
@@ -420,4 +423,4 @@ declare_from_integer_fns! {
 ///
 /// ```
 ///
-pub struct FromInteger<T, IntRepr>(pub IntRepr, pub ImplsContiguous<T, IntRepr>);
+pub struct FromInteger<T, IntRepr>(pub IntRepr, pub IsContiguous<T, IntRepr>);

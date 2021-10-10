@@ -1,13 +1,12 @@
 use super::test_utils::must_panic;
 
 use constmuck::{
-    cast, copying, infer, map_bound, type_size, zeroed, ImplsCopy, ImplsPod, ImplsZeroable,
-    TypeSize,
+    cast, copying, infer, map_bound, type_size, zeroed, IsCopy, IsPod, IsZeroable, TypeSize,
 };
 
 #[test]
 fn map_bound_test() {
-    let bound: TypeSize<ImplsPod<u32>, u32, 4> = type_size!(u32);
+    let bound: TypeSize<IsPod<u32>, u32, 4> = type_size!(u32);
 
     assert_eq!(cast::<u32, i32>(100, (bound.into_bounds(), infer!())), 100);
     assert_eq!(cast::<u32, i32>(100, (*bound.bounds(), infer!())), 100);
@@ -28,14 +27,14 @@ fn new_unchecked_test() {
 
     unsafe {
         let ts = TypeSize::<_, WrapNI<u32>, 4>::new_unchecked()
-            .with_bound(ImplsZeroable::<WrapNI<u32>>::new_unchecked());
+            .with_bound(IsZeroable::<WrapNI<u32>>::new_unchecked());
 
         assert_eq!(zeroed(ts), WrapNI(0u32));
     }
     unsafe {
         const STR_SIZE: usize = std::mem::size_of::<&str>();
         let ts = TypeSize::<_, WrapNI<&str>, STR_SIZE>::new_unchecked()
-            .with_bound(ImplsCopy::<WrapNI<&str>>::new_unchecked());
+            .with_bound(IsCopy::<WrapNI<&str>>::new_unchecked());
 
         assert_eq!(copying::copy(&WrapNI("hello"), ts), WrapNI("hello"));
     }
@@ -56,7 +55,7 @@ fn construction_test() {
 
 #[test]
 fn bound_manip() {
-    let bound: TypeSize<ImplsPod<u32>, u32, 4> = type_size!(u32);
+    let bound: TypeSize<IsPod<u32>, u32, 4> = type_size!(u32);
 
     assert_eq!(
         cast::<u32, i32>(12345u32, (bound.split().0, infer!())),
@@ -69,9 +68,9 @@ fn bound_manip() {
         12345
     );
     let _: TypeSize<(), u32, 4> = type_size!(u32).with_bound(());
-    let _: TypeSize<ImplsPod<u64>, u32, 4> = type_size!(u32).with_bound(ImplsPod::NEW);
+    let _: TypeSize<IsPod<u64>, u32, 4> = type_size!(u32).with_bound(IsPod::NEW);
 
     assert_eq!(zeroed(map_bound!(bound, |x| x.impls_zeroable)), 0u32);
 
-    assert_eq!(zeroed(bound.set_bound(ImplsZeroable::NEW)), 0u32);
+    assert_eq!(zeroed(bound.set_bound(IsZeroable::NEW)), 0u32);
 }

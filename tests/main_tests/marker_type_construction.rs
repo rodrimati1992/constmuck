@@ -3,8 +3,7 @@ use std::num::Wrapping;
 use static_assertions::{assert_impl_one, assert_not_impl_all};
 
 use constmuck::{
-    type_size, ImplsContiguous, ImplsCopy, ImplsPod, ImplsTransparentWrapper, ImplsZeroable, Infer,
-    TypeSize,
+    type_size, Infer, IsContiguous, IsCopy, IsPod, IsTransparentWrapper, IsZeroable, TypeSize,
 };
 
 struct NoTraits;
@@ -33,49 +32,49 @@ fn assert_type_name<T>(_: T, name: &str) {
 
 #[test]
 fn impls_contiguous_construction() {
-    assert_type_name(ImplsContiguous::<u32, u32>::NEW, "Impls");
-    assert_type_name(ImplsContiguous::<NoTraits, NoTraits>::NEW, "Unit");
+    assert_type_name(IsContiguous::<u32, u32>::NEW, "Is");
+    assert_type_name(IsContiguous::<NoTraits, NoTraits>::NEW, "Unit");
 
-    assert_impl_one! {ImplsContiguous<u32, u32>: Infer}
-    assert_not_impl_all! {ImplsContiguous<u32, u64>: Infer}
+    assert_impl_one! {IsContiguous<u32, u32>: Infer}
+    assert_not_impl_all! {IsContiguous<u32, u64>: Infer}
 }
 
 #[test]
 fn impls_copy_construction() {
-    assert_type_name(ImplsCopy::<u32>::NEW, "Impls");
-    assert_type_name(ImplsCopy::<NoTraits>::NEW, "Unit");
+    assert_type_name(IsCopy::<u32>::NEW, "Is");
+    assert_type_name(IsCopy::<NoTraits>::NEW, "Unit");
 
-    assert_impl_one! {ImplsCopy<u32>: Infer}
-    assert_not_impl_all! {ImplsCopy<NoTraits>: Infer}
+    assert_impl_one! {IsCopy<u32>: Infer}
+    assert_not_impl_all! {IsCopy<NoTraits>: Infer}
 }
 
 #[test]
 fn impls_pod_construction() {
-    assert_type_name(ImplsPod::<u32>::NEW, "Impls");
-    assert_type_name(ImplsPod::<NoTraits>::NEW, "Unit");
+    assert_type_name(IsPod::<u32>::NEW, "Is");
+    assert_type_name(IsPod::<NoTraits>::NEW, "Unit");
 
-    assert_impl_one! {ImplsPod<u32>: Infer}
-    assert_not_impl_all! {ImplsPod<NoTraits>: Infer}
+    assert_impl_one! {IsPod<u32>: Infer}
+    assert_not_impl_all! {IsPod<NoTraits>: Infer}
 }
 
 #[test]
 fn impls_transparent_wrapper_construction() {
-    assert_type_name(ImplsTransparentWrapper::<Wrapping<u32>, u32>::NEW, "Impls");
-    assert_type_name(ImplsTransparentWrapper::<Wrapping<u32>, u64>::NEW, "Unit");
-    assert_type_name(ImplsTransparentWrapper::<NoTraits, NoTraits>::NEW, "Unit");
+    assert_type_name(IsTransparentWrapper::<Wrapping<u32>, u32>::NEW, "Is");
+    assert_type_name(IsTransparentWrapper::<Wrapping<u32>, u64>::NEW, "Unit");
+    assert_type_name(IsTransparentWrapper::<NoTraits, NoTraits>::NEW, "Unit");
 
-    assert_impl_one!(ImplsTransparentWrapper<Wrapping<u32>, u32>: Infer);
-    assert_not_impl_all!(ImplsTransparentWrapper<Wrapping<u32>, u64>: Infer);
-    assert_not_impl_all!(ImplsTransparentWrapper<NoTraits, NoTraits>: Infer);
+    assert_impl_one!(IsTransparentWrapper<Wrapping<u32>, u32>: Infer);
+    assert_not_impl_all!(IsTransparentWrapper<Wrapping<u32>, u64>: Infer);
+    assert_not_impl_all!(IsTransparentWrapper<NoTraits, NoTraits>: Infer);
 }
 
 #[test]
 fn impls_zeroable_construction() {
-    assert_type_name(ImplsZeroable::<u32>::NEW, "Impls");
-    assert_type_name(ImplsZeroable::<NoTraits>::NEW, "Unit");
+    assert_type_name(IsZeroable::<u32>::NEW, "Is");
+    assert_type_name(IsZeroable::<NoTraits>::NEW, "Unit");
 
-    assert_impl_one! {ImplsZeroable<u32>: Infer}
-    assert_not_impl_all! {ImplsZeroable<NoTraits>: Infer}
+    assert_impl_one! {IsZeroable<u32>: Infer}
+    assert_not_impl_all! {IsZeroable<NoTraits>: Infer}
 }
 
 #[test]

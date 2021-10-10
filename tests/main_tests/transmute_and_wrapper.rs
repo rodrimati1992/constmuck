@@ -4,7 +4,7 @@ use constmuck::{
     infer, infer_tw,
     transmutable::{transmute_into, transmute_ref, transmute_slice},
     wrapper::{peel, peel_ref, peel_slice, wrap, wrap_ref, wrap_slice},
-    ImplsTransparentWrapper as ITW, Infer, TransmutableInto as TI,
+    Infer, IsTransparentWrapper as ITW, TransmutableInto as TI,
 };
 
 #[test]

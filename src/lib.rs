@@ -166,7 +166,7 @@
 //! ### Contiguous checks
 //!
 //! The `from_*` functions in the [`contiguous`] module check that the
-//! `min_value` of the passed-in `ImplsContiguous` is less than its `max_value`.
+//! `min_value` of the passed-in `IsContiguous` is less than its `max_value`.
 //!
 //!
 //! # No-std support
@@ -213,15 +213,15 @@ pub mod __priv_utils;
 pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
 
 pub use crate::{
-    contiguous::impls_contiguous::ImplsContiguous,
-    copying::impls_copy::ImplsCopy,
+    contiguous::impls_contiguous::IsContiguous,
+    copying::impls_copy::IsCopy,
     infer::Infer,
-    pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, ImplsPod},
+    pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, IsPod},
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
     transmutable::transmutable_into::TransmutableInto,
     type_size::TypeSize,
-    wrapper::impls_tw::ImplsTransparentWrapper,
-    zeroable::{zeroed, zeroed_array, ImplsZeroable},
+    wrapper::impls_tw::IsTransparentWrapper,
+    zeroable::{zeroed, zeroed_array, IsZeroable},
 };
 
 #[doc(hidden)]

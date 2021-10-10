@@ -2,7 +2,7 @@ use core::mem::{self, MaybeUninit};
 
 use bytemuck::PodCastError;
 
-use crate::{ImplsCopy, ImplsPod, TypeSize};
+use crate::{IsCopy, IsPod, TypeSize};
 
 /// Casts `&T` to `&[u8; SIZE]`
 ///
@@ -21,14 +21,14 @@ use crate::{ImplsCopy, ImplsPod, TypeSize};
 /// ```
 pub const fn bytes_of<T, const SIZE: usize>(
     bytes: &T,
-    _bounds: TypeSize<ImplsPod<T>, T, SIZE>,
+    _bounds: TypeSize<IsPod<T>, T, SIZE>,
 ) -> &[u8; SIZE] {
     unsafe { __priv_transmute_ref!(T, [u8; SIZE], bytes) }
 }
 
 pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
     bytes: &T,
-    _bounds: TypeSize<ImplsCopy<T>, T, SIZE>,
+    _bounds: TypeSize<IsCopy<T>, T, SIZE>,
 ) -> &MaybeUninit<[u8; SIZE]> {
     unsafe { __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes) }
 }
@@ -60,7 +60,7 @@ pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
 /// assert_eq!(*I8S, [100, -2, -1]);
 ///
 /// ```
-pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (ImplsPod<T>, ImplsPod<U>)) -> &[U] {
+pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &[U] {
     match try_cast_slice_alt(from, bounds) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
@@ -113,7 +113,7 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (ImplsPod<T>, ImplsPod<U>)
 /// ```
 pub const fn try_cast_slice_alt<T, U>(
     from: &[T],
-    _bounds: (ImplsPod<T>, ImplsPod<U>),
+    _bounds: (IsPod<T>, IsPod<U>),
 ) -> Result<&[U], PodCastError> {
     unsafe {
         if mem::align_of::<T>() < mem::align_of::<U>() {
