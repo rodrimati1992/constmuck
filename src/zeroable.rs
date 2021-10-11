@@ -62,10 +62,10 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{zeroed, type_size};
+/// use constmuck::{TypeSize, zeroed};
 ///
-/// const BYTES: [u8; 4] = zeroed(type_size!([u8; 4]));
-/// const CHARS: [char; 4] = zeroed(type_size!([char; 4]));
+/// const BYTES: [u8; 4] = zeroed(TypeSize!([u8; 4]));
+/// const CHARS: [char; 4] = zeroed(TypeSize!([char; 4]));
 ///
 /// assert_eq!(BYTES, [0, 0, 0, 0]);
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
@@ -86,19 +86,19 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<IsZeroable<T>, T, SI
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{zeroed_array, type_size};
+/// use constmuck::{TypeSize, zeroed_array};
 ///
-/// const BYTES: [u8; 2] = zeroed_array(type_size!(u8));
-/// const CHARS: [char; 4] = zeroed_array(type_size!(char));
+/// const BYTES: [u8; 2] = zeroed_array(TypeSize!(u8));
+/// const CHARS: [char; 4] = zeroed_array(TypeSize!(char));
 ///
 /// assert_eq!(BYTES, [0, 0]);
 ///
 /// // you can use `TypeSize::zeroed_array` like here to pass the length of the returned array.
-/// assert_eq!(type_size!(u8).zeroed_array::<2>(), [0, 0]);
+/// assert_eq!(TypeSize!(u8).zeroed_array::<2>(), [0, 0]);
 ///
 ///
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
-/// assert_eq!(type_size!(char).zeroed_array::<4>(), ['\0', '\0', '\0', '\0']);
+/// assert_eq!(TypeSize!(char).zeroed_array::<4>(), ['\0', '\0', '\0', '\0']);
 ///
 ///
 ///

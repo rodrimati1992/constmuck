@@ -1,14 +1,14 @@
 //! Functions for converting types that implement [`Contiguous`]
 //! into and from their integer representation.
 //!
-//! Related: the [`IsContiguous`] type.
+//! Related: the [`IsContiguous`](struct@crate::IsContiguous) type.
 //!
 //! # Example
 //!
 //! Converting an enum both from and into an integer.
 //!
 //! ```rust
-//! use constmuck::{Contiguous, contiguous, infer};
+//! use constmuck::{Contiguous, IsContiguous, contiguous, infer};
 //!
 //! #[repr(u32)]
 //! #[derive(Debug, PartialEq, Copy, Clone)]
@@ -32,12 +32,11 @@
 //! ];
 //! assert_eq!(SIDE_INTS, [0, 1, 2]);
 //!
-//!
 //! const SIDE_OPTS: [Option<Side>; 4] = [
 //!     contiguous::from_u32(0, infer!()),
-//!     contiguous::from_u32(1, infer!()),
-//!     contiguous::from_u32(2, infer!()),
-//!     contiguous::from_u32(3, infer!()),
+//!     contiguous::from_u32(1, IsContiguous!()),
+//!     contiguous::from_u32(2, IsContiguous!(Side)),
+//!     contiguous::from_u32(3, IsContiguous!(Side, u32)),
 //! ];
 //!
 //! assert_eq!(
@@ -48,6 +47,46 @@
 //!
 //! ```
 //!
+
+/// Constructs an [`IsContiguous<$T, $IntRepr>`](struct@crate::IsContiguous),
+/// requiring that `$T` implements [`Contiguous`](trait@bytemuck::Contiguous).
+///
+/// This has two optional type arguments (`$T` and `$IntRepr`) that default to
+/// infering the type if not passed.
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::{IsContiguous, contiguous};
+///
+/// use std::num::NonZeroU8;
+///
+/// // The three lines below are equivalent.
+/// const FOO: IsContiguous<NonZeroU8, u8> = IsContiguous!();
+/// const BAR: IsContiguous<NonZeroU8, u8> = IsContiguous!(NonZeroU8);
+/// const BAZ: IsContiguous<NonZeroU8, u8> = IsContiguous!(NonZeroU8, u8);
+///
+/// assert_eq!(contiguous::from_u8(0, FOO), None);
+/// assert_eq!(contiguous::from_u8(0, BAR), None);
+/// assert_eq!(contiguous::from_u8(0, BAZ), None);
+/// assert_eq!(contiguous::from_u8(1, BAZ), Some(NonZeroU8::new(1).unwrap()));
+///
+/// assert_eq!(contiguous::into_integer(NonZeroU8::new(1).unwrap(), FOO), 1u8);
+///
+///
+/// ```
+#[macro_export]
+macro_rules! IsContiguous {
+    () => {
+        <$crate::IsContiguous<_, _> as $crate::Infer>::INFER
+    };
+    ($T:ty $(,)*) => {
+        <$crate::IsContiguous<$T, _> as $crate::Infer>::INFER
+    };
+    ($T:ty, $IntRepr:ty $(,)*) => {
+        <$crate::IsContiguous<$T, $IntRepr> as $crate::Infer>::INFER
+    };
+}
 
 use bytemuck::Contiguous;
 
@@ -144,11 +183,11 @@ pub(crate) mod is_contiguous {
         /// use std::num::NonZeroU8;
         ///
         /// {
-        ///     let ic = IsContiguous::<NonZeroU8, _>::NEW;
+        ///     let ic = IsContiguous!(NonZeroU8);
         ///     assert_eq!(ic.min_value(), &1);
         /// }
         /// {
-        ///     let ic = IsContiguous::<u16, _>::NEW;
+        ///     let ic = IsContiguous!(u16);
         ///     assert_eq!(ic.min_value(), &0);
         /// }
         /// ```
@@ -167,11 +206,11 @@ pub(crate) mod is_contiguous {
         /// use std::num::NonZeroU16;
         ///
         /// {
-        ///     let ic = IsContiguous::<NonZeroU16, _>::NEW;
+        ///     let ic = IsContiguous!(NonZeroU16);
         ///     assert_eq!(ic.max_value(), &u16::MAX);
         /// }
         /// {
-        ///     let ic = IsContiguous::<u8, _>::NEW;
+        ///     let ic = IsContiguous!(u8);
         ///     assert_eq!(ic.max_value(), &u8::MAX);
         /// }
         /// ```
@@ -193,7 +232,7 @@ impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
 /// # Example
 ///
 /// ```
-/// use constmuck::{Contiguous, contiguous, infer};
+/// use constmuck::{Contiguous, IsContiguous, contiguous, infer};
 ///
 /// #[repr(i8)]
 /// #[derive(Debug, PartialEq, Copy, Clone)]
@@ -215,13 +254,13 @@ impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
 /// const FTB: i8 = contiguous::into_integer(Order::FrontToBack, infer!());
 /// assert_eq!(FTB, 10);
 ///
-/// const BTF: i8 = contiguous::into_integer(Order::BackToFront, infer!());
+/// const BTF: i8 = contiguous::into_integer(Order::BackToFront, IsContiguous!());
 /// assert_eq!(BTF, 11);
 ///
-/// const RTL: i8 = contiguous::into_integer(Order::RightToLeft, infer!());
+/// const RTL: i8 = contiguous::into_integer(Order::RightToLeft, IsContiguous!(Order));
 /// assert_eq!(RTL, 12);
 ///
-/// const LTR: i8 = contiguous::into_integer(Order::LeftToRight, infer!());
+/// const LTR: i8 = contiguous::into_integer(Order::LeftToRight, IsContiguous!(Order, i8));
 /// assert_eq!(LTR, 13);
 ///
 /// ```
@@ -243,17 +282,17 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: IsContiguous<T, IntRepr
 /// ### `NonZeroU8`
 ///
 /// ```rust
-/// use constmuck::{contiguous, infer};
+/// use constmuck::{IsContiguous, contiguous, infer};
 ///
 /// use std::num::NonZeroU8;
 ///
 /// const ZERO: Option<NonZeroU8> = contiguous::from_u8(0, infer!());
 /// assert_eq!(ZERO, None);
 ///
-/// const ONE: Option<NonZeroU8> = contiguous::from_u8(1, infer!());
+/// const ONE: Option<NonZeroU8> = contiguous::from_u8(1, IsContiguous!());
 /// assert_eq!(ONE, NonZeroU8::new(1));
 ///
-/// const HUNDRED: Option<NonZeroU8> = contiguous::from_u8(100, infer!());
+/// const HUNDRED: Option<NonZeroU8> = contiguous::from_u8(100, IsContiguous!(NonZeroU8));
 /// assert_eq!(HUNDRED, NonZeroU8::new(100));
 ///
 /// ```
@@ -403,21 +442,25 @@ declare_from_integer_fns! {
 ///
 /// ```rust
 /// use constmuck::contiguous::FromInteger;
-/// use constmuck::infer;
+/// use constmuck::{IsContiguous, infer};
 ///
 /// use std::num::{NonZeroU32, NonZeroUsize};
 ///
-/// const ZERO_USIZE: Option<NonZeroUsize> = FromInteger(0usize, infer!()).call();
+/// const ZERO_USIZE: Option<NonZeroUsize> =
+///     FromInteger(0usize, infer!()).call();
 /// assert_eq!(ZERO_USIZE, None);
 ///
-/// const TWO_USIZE: Option<NonZeroUsize> = FromInteger(2usize, infer!()).call();
+/// const TWO_USIZE: Option<NonZeroUsize> =
+///     FromInteger(2usize, IsContiguous!()).call();
 /// assert_eq!(TWO_USIZE, NonZeroUsize::new(2));
 ///
 ///
-/// const ZERO_U64: Option<NonZeroU32> = FromInteger(0u32, infer!()).call();
+/// const ZERO_U64: Option<NonZeroU32> =
+///     FromInteger(0u32, IsContiguous!(NonZeroU32)).call();
 /// assert_eq!(ZERO_U64, None);
 ///
-/// const ONE_U64: Option<NonZeroU32> = FromInteger(1u32, infer!()).call();
+/// const ONE_U64: Option<NonZeroU32> =
+///     FromInteger(1u32, IsContiguous!(NonZeroU32, u32)).call();
 /// assert_eq!(ONE_U64, NonZeroU32::new(1));
 ///
 ///

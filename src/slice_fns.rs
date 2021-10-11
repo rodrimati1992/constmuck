@@ -11,10 +11,10 @@ use crate::{IsCopy, IsPod, TypeSize};
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{bytes_of, type_size};
+/// use constmuck::{TypeSize, bytes_of};
 ///
-/// const ARRAY: &[u8; 4] = bytes_of(&123456789, type_size!(u32));
-/// const BYTES: &[u8] = bytes_of(&987654321, type_size!(u32));
+/// const ARRAY: &[u8; 4] = bytes_of(&123456789, TypeSize!(u32));
+/// const BYTES: &[u8] = bytes_of(&987654321, TypeSize!(u32));
 ///
 /// assert_eq!(*ARRAY, 123456789u32.to_ne_bytes());
 /// assert_eq!(*BYTES, 987654321u32.to_ne_bytes());

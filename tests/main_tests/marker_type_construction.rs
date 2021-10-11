@@ -2,9 +2,7 @@ use std::num::Wrapping;
 
 use static_assertions::{assert_impl_one, assert_not_impl_all};
 
-use constmuck::{
-    type_size, Infer, IsContiguous, IsCopy, IsPod, IsTransparentWrapper, IsZeroable, TypeSize,
-};
+use constmuck::{Infer, IsContiguous, IsCopy, IsPod, IsTransparentWrapper, IsZeroable, TypeSize};
 
 struct NoTraits;
 
@@ -81,7 +79,7 @@ fn is_zeroable_construction() {
 fn type_size_construction() {
     // <_< not much of a black box test anymore, huh?
 
-    let impls: TypeSize<(), u32, 4> = type_size!(u32);
+    let impls: TypeSize<(), u32, 4> = TypeSize!(u32);
 
     assert_type_name(impls, "TypeSize");
     assert_type_name(

@@ -4,12 +4,12 @@ use bytemuck::{Pod, PodCastError};
 
 use crate::{IsCopy, IsZeroable};
 
-/// Constructs an [`IsPod<T>`](struct@crate::IsPod),
-/// requiring that `T` implements [`Pod`].
+/// Constructs an [`IsPod<$T>`](struct@crate::IsPod),
+/// requiring that `$T` implements [`Pod`].
 ///
-/// When no argument is passed, this infers the `T` type argument.
+/// When no argument is passed, this infers the `$T` type argument.
 ///
-/// When an argument is passed, it is used as the `T` type argument.
+/// When an argument is passed, it is used as the `$T` type argument.
 ///
 /// # Example
 ///
@@ -29,8 +29,8 @@ macro_rules! IsPod {
     () => {
         <$crate::IsPod<_> as $crate::Infer>::INFER
     };
-    ($ty:ty) => {
-        <$crate::IsPod<$ty> as $crate::Infer>::INFER
+    ($T:ty) => {
+        <$crate::IsPod<$T> as $crate::Infer>::INFER
     };
 }
 

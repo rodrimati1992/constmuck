@@ -1,7 +1,7 @@
 //! For copying values in generic contexts.
 //!
 //!
-//! Related: [`IsCopy`] type, [`type_size`] macro.
+//! Related: [`IsCopy`] type, [`TypeSize`](macro@crate::TypeSize) macro.
 #![allow(deprecated)]
 
 use core::{marker::PhantomData, mem::MaybeUninit};
@@ -87,7 +87,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 /// Making a `pair` function.
 ///
 /// ```rust
-/// use constmuck::{copying, type_size};
+/// use constmuck::copying;
 /// use constmuck::{IsCopy, TypeSize};
 ///
 /// const fn pair<T, const SIZE: usize>(
@@ -97,7 +97,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 ///     [copying::copy(reff, bounds), copying::copy(reff, bounds)]
 /// }
 ///
-/// const PAIR_U8: [u8; 2] = pair(&128, type_size!(u8));
+/// const PAIR_U8: [u8; 2] = pair(&128, TypeSize!(u8));
 ///
 /// assert_eq!(PAIR_U8, [128, 128]);
 ///
@@ -123,14 +123,14 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<IsCopy<T>, T,
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{copying, type_size};
+/// use constmuck::{TypeSize, copying};
 ///
-/// const PAIR: [[u8; 2]; 2] = copying::repeat(&[3, 5], type_size!([u8; 2]));
+/// const PAIR: [[u8; 2]; 2] = copying::repeat(&[3, 5], TypeSize!([u8; 2]));
 ///
 /// assert_eq!(PAIR, [[3, 5], [3, 5]]);
 ///
 /// // you can use `TypeSize::repeat` like here to pass the length of the returned array.
-/// assert_eq!(type_size!([u8; 2]).repeat::<2>(&[3, 5]), [[3, 5], [3, 5]]);
+/// assert_eq!(TypeSize!([u8; 2]).repeat::<2>(&[3, 5]), [[3, 5], [3, 5]]);
 ///
 /// ```
 pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(

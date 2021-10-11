@@ -75,9 +75,10 @@ pub use crate::IsTransparentWrapper;
 #[doc(no_inline)]
 pub use crate::IsTW;
 
-/// Constructs an [`IsTransparentWrapper<$outer, $inner>`](crate::IsTransparentWrapper).
+/// Constructs an [`IsTransparentWrapper<$Outer, $Inner>`](crate::IsTransparentWrapper),
+/// requiring that `$Outer` implements [`TransparentWrapper`]`<$Inner>`.
 ///
-/// This has two optional type arguments (`$outer` and `$inner`) that default to
+/// This has two optional type arguments (`$Outer` and `$Inner`) that default to
 /// infering the type if not passed.
 ///
 /// # Example
@@ -171,11 +172,11 @@ macro_rules! IsTW {
     () => {
         <$crate::IsTransparentWrapper<_, _> as $crate::Infer>::INFER
     };
-    ($outer:ty $(,)*) => {
-        <$crate::IsTransparentWrapper<$outer, _> as $crate::Infer>::INFER
+    ($Outer:ty $(,)*) => {
+        <$crate::IsTransparentWrapper<$Outer, _> as $crate::Infer>::INFER
     };
-    ($outer:ty, $inner:ty $(,)*) => {
-        <$crate::IsTransparentWrapper<$outer, $inner> as $crate::Infer>::INFER
+    ($Outer:ty, $Inner:ty $(,)*) => {
+        <$crate::IsTransparentWrapper<$Outer, $Inner> as $crate::Infer>::INFER
     };
 }
 

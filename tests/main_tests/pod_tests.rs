@@ -2,19 +2,20 @@ use super::test_utils::{must_panic, Pack};
 
 use constmuck::{
     bytes_of, cast, cast_ref_alt, cast_slice_alt as csa, infer, try_cast, try_cast_ref_alt,
-    try_cast_slice_alt as tcsa, type_size, Infer, IsPod,
+    try_cast_slice_alt as tcsa, Infer, IsPod,
     PodCastError::{SizeMismatch, TargetAlignmentGreaterAndInputNotAligned},
+    TypeSize,
 };
 
 #[test]
 fn bytes_of_test() {
     assert_eq!(
-        bytes_of(&[-2, -1, 0, 1, 2], type_size!([i8; 5])),
+        bytes_of(&[-2, -1, 0, 1, 2], TypeSize!([i8; 5])),
         &[254, 255, 0, 1, 2]
     );
-    assert_eq!(bytes_of(&[0, 1, 2], type_size!([u8; 3])), &[0, 1, 2]);
+    assert_eq!(bytes_of(&[0, 1, 2], TypeSize!([u8; 3])), &[0, 1, 2]);
     assert_eq!(
-        bytes_of(&123456789u32, type_size!(u32)),
+        bytes_of(&123456789u32, TypeSize!(u32)),
         &123456789u32.to_ne_bytes()
     );
 }
