@@ -44,10 +44,10 @@ macro_rules! TypeSize {
     };
     ($ty:ty, $bounds:ty $(,)*) => {
         $crate::TypeSize::<
-                            $ty,
-                            $bounds,
-                            { $crate::__::size_of::<$ty>() }
-                        >::__13878307735224946849NEW__
+                                            $ty,
+                                            $bounds,
+                                            { $crate::__::size_of::<$ty>() }
+                                        >::__13878307735224946849NEW__
     };
 }
 

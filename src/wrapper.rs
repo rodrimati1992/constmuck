@@ -67,7 +67,7 @@
 
 use bytemuck::TransparentWrapper;
 
-use crate::{Infer, TransmutableInto};
+use crate::Infer;
 
 #[doc(no_inline)]
 pub use crate::IsTransparentWrapper;
@@ -135,37 +135,6 @@ pub use crate::IsTW;
 ///     
 ///     assert_eq!(WRAP_SLICE, &[Foo(21), Foo(34), Foo(55)]);
 /// }
-/// ```
-///
-/// ### `constmuck::transmutable` functions
-///
-/// ```
-/// use constmuck::{
-///     transmutable::transmute_ref,
-///     IsTW,
-/// };
-///
-/// use std::num::Wrapping;
-///
-/// {
-///     // Casting `&Wrapping<u8>` to `&u8`,
-///     //
-///     // `IsTW!()` constructs an `IsTransparentWrapper`,
-///     // whose `into_inner` field allows casting from a wrapper into the value in it.
-///     const UNWRAPPED: &u8 = transmute_ref(&Wrapping(5), IsTW!().into_inner);
-///     assert_eq!(*UNWRAPPED, 5);
-/// }
-///
-/// {
-///     // Casting `&u8` to `&Wrapping<u8>`
-///     //
-///     // `IsTW!()` constructs an `IsTransparentWrapper`,
-///     // whose `from_inner` field allows casting from a value into a wrapper around it.
-///     const WRAPPED: &Wrapping<u8> = transmute_ref(&7, IsTW!().from_inner);
-///    
-///     assert_eq!(*WRAPPED, Wrapping(7));
-/// }
-///
 /// ```
 #[macro_export]
 macro_rules! IsTW {
@@ -236,8 +205,6 @@ pub(crate) mod is_tw {
     ///
     /// ```
     pub struct IsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
-        pub from_inner: TransmutableInto<Inner, Outer>,
-        pub into_inner: TransmutableInto<Outer, Inner>,
         #[doc(hidden)]
         pub _transparent_wrapper_proof: constmuck_internal::TransparentWrapperProof<Outer, Inner>,
     }
@@ -260,8 +227,6 @@ pub(crate) mod is_tw {
         /// construct `IsTransparentWrapper` arguments.
         pub const NEW: Self = unsafe {
             Self {
-                from_inner: TransmutableInto::new_unchecked(),
-                into_inner: TransmutableInto::new_unchecked(),
                 _transparent_wrapper_proof:
                     constmuck_internal::TransparentWrapperProof::new_unchecked(),
             }
@@ -271,8 +236,6 @@ pub(crate) mod is_tw {
     impl<Outer: ?Sized, Inner: ?Sized> IsTransparentWrapper<Outer, Inner> {
         const __NEW_UNCHECKED__: Self = unsafe {
             Self {
-                from_inner: TransmutableInto::new_unchecked(),
-                into_inner: TransmutableInto::new_unchecked(),
                 _transparent_wrapper_proof:
                     constmuck_internal::TransparentWrapperProof::new_unchecked(),
             }
@@ -291,55 +254,6 @@ pub(crate) mod is_tw {
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
             Self::__NEW_UNCHECKED__
-        }
-
-        /// Constructs an `IsTransparentWrapper` from a pair
-        /// of [`TransmutableInto`] that allow transmuting between `Outer` and `Inner`
-        /// in both directions.
-        ///
-        /// # Example
-        ///
-        /// ```rust
-        /// use constmuck::{IsTransparentWrapper, TransmutableInto, infer, wrapper};
-        ///
-        /// const ITW: IsTransparentWrapper<u8, i8> =
-        ///     IsTransparentWrapper::from_ti(
-        ///         TransmutableInto::pod(infer!()),
-        ///         TransmutableInto::pod(infer!()),
-        ///     );
-        ///
-        /// const U8_VAL: u8 = wrapper::wrap(-1, ITW);
-        /// assert_eq!(U8_VAL, 255);
-        ///
-        /// const U8_REF: &u8 = wrapper::wrap_ref(&-2, ITW);
-        /// assert_eq!(U8_REF, &254);
-        ///
-        /// const U8_SLICE: &[u8] = wrapper::wrap_slice(&[-3, 3], ITW);
-        /// assert_eq!(U8_SLICE, &[253, 3]);
-        ///
-        /// const I8_VAL: i8 = wrapper::peel(128, ITW);
-        /// assert_eq!(I8_VAL, -128);
-        ///
-        /// const I8_REF: &i8 = wrapper::peel_ref(&129, ITW);
-        /// assert_eq!(I8_REF, &-127);
-        ///
-        /// const I8_SLICE: &[i8] = wrapper::peel_slice(&[254, 1], ITW);
-        /// assert_eq!(I8_SLICE, &[-2, 1]);
-        ///
-        ///
-        ///
-        /// ```
-        pub const fn from_ti(
-            from_inner: TransmutableInto<Inner, Outer>,
-            into_inner: TransmutableInto<Outer, Inner>,
-        ) -> Self {
-            Self {
-                from_inner,
-                into_inner,
-                _transparent_wrapper_proof: unsafe {
-                    constmuck_internal::TransparentWrapperProof::new_unchecked()
-                },
-            }
         }
     }
 
@@ -426,8 +340,6 @@ pub(crate) mod is_tw {
             self,
         ) -> IsTransparentWrapper<[Outer; LEN], [Inner; LEN]> {
             IsTransparentWrapper {
-                from_inner: self.from_inner.array(),
-                into_inner: self.into_inner.array(),
                 _transparent_wrapper_proof: unsafe {
                     constmuck_internal::TransparentWrapperProof::new_unchecked()
                 },

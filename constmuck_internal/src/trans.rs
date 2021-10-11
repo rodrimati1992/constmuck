@@ -7,8 +7,8 @@ use core::marker::PhantomData;
 #[macro_export]
 macro_rules! __check_size {
     ($transmutable_into:expr) => (
-        if let $crate::NotSameSize{not_same_size: true, proof, ..} =
-            $crate::NotSameSize::NEW 
+        if let $crate::CheckSameSize{same_size: false, proof, ..} =
+            $crate::CheckSameSize::NEW 
         {
             [proof, $transmutable_into];
             let x = 0;
@@ -28,46 +28,21 @@ macro_rules! __check_size {
 #[cfg(feature = "debug_checks")]
 #[repr(transparent)]
 #[non_exhaustive]
-pub struct NotSameSize<L: ?Sized, R: ?Sized>{
-    pub not_same_size: bool,
+pub struct CheckSameSize<L: ?Sized, R: ?Sized>{
+    pub same_size: bool,
 
-    pub proof: crate::TransmutableProof<L, R>,
+    pub proof: crate::SameReprProof<L, R>,
 }
 
 #[cfg(feature = "debug_checks")]
-impl<L: ?Sized, R: ?Sized> NotSameSize<L, R> {
+impl<L: ?Sized, R: ?Sized> CheckSameSize<L, R> {
     pub const NEW: Self = Self {
-        not_same_size: core::mem::size_of::<*const L>() != core::mem::size_of::<*const R>(),
-        proof: unsafe{ crate::TransmutableProof::new_unchecked() },
+        same_size: core::mem::size_of::<*const L>() == core::mem::size_of::<*const R>(),
+        proof: unsafe{ crate::SameReprProof::new_unchecked() },
     };
 }
 
 ///////////////////////////////////////////////////////
-
-
-#[macro_export]
-macro_rules! transmute_ref {
-    ($reference:expr, $transmutable_into:expr $(,)*) => {
-        match ($reference, $transmutable_into) {
-            (reference, transmutable_into) => {
-                let ass = $crate::AssertTP(
-                    reference,
-                    transmutable_into._transmutable_into_proof,
-                    $crate::PhantomRef::NEW,
-                );
-
-                $crate::__check_size!{ass.1}
-
-                unsafe{
-                    $crate::TPPtrToRef{
-                        ptr: $crate::AssertTPCasted(ass.0 as *const _ as *const _, ass.1, ass.2),
-                    }.reff
-                }
-            }
-        }
-    };
-}
-
 
 #[macro_export]
 macro_rules! wrapper_inner {
@@ -133,17 +108,6 @@ impl<'a, T: 'a + ?Sized> Clone for PhantomRef<'a, T> {
 ///////////////////////////
 
 
-// AssertTransmutableProof
-#[repr(transparent)]
-pub struct AssertTP<'a, Fro: ?Sized, To: ?Sized>(
-    pub &'a Fro,
-    pub crate::TransmutableProof<Fro, To>,
-    pub PhantomRef<'a, Fro>,
-);
-
-///////////////////////////
-
-
 // AssertTransparentWrapperProof
 #[repr(transparent)]
 pub struct AssertTWPOuter<'a, Outer: ?Sized, Inner: ?Sized>(
@@ -167,7 +131,7 @@ pub struct AssertTWPInner<'a, Outer: ?Sized, Inner: ?Sized>(
 #[repr(transparent)]
 pub struct AssertTPCasted<'a, Fro: ?Sized, To: ?Sized>(
     pub *const To,
-    pub crate::TransmutableProof<Fro, To>,
+    pub crate::SameReprProof<Fro, To>,
     pub PhantomRef<'a, Fro>,
 );
 
