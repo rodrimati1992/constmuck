@@ -24,14 +24,14 @@ fn new_unchecked_test() {
     struct WrapNI<T>(T);
 
     unsafe {
-        let ts = TypeSize::<_, WrapNI<u32>, 4>::new_unchecked()
+        let ts = TypeSize::<WrapNI<u32>, _, 4>::new_unchecked()
             .with_bounds(IsZeroable::<WrapNI<u32>>::new_unchecked());
 
         assert_eq!(zeroed(ts), WrapNI(0u32));
     }
     unsafe {
         const STR_SIZE: usize = std::mem::size_of::<&str>();
-        let ts = TypeSize::<_, WrapNI<&str>, STR_SIZE>::new_unchecked()
+        let ts = TypeSize::<WrapNI<&str>, _, STR_SIZE>::new_unchecked()
             .with_bounds(IsCopy::<WrapNI<&str>>::new_unchecked());
 
         assert_eq!(copying::copy(&WrapNI("hello"), ts), WrapNI("hello"));

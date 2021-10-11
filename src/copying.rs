@@ -1,12 +1,56 @@
 //! For copying values in generic contexts.
 //!
-//!
-//! Related: [`IsCopy`] type, [`TypeSize`](macro@crate::TypeSize) macro.
+//! Related: `IsCopy` [type](struct@crate::IsCopy), [macro](macro@crate::IsCopy),
+//! and [`TypeSize`](macro@crate::TypeSize) macro.
 #![allow(deprecated)]
 
 use core::{marker::PhantomData, mem::MaybeUninit};
 
 use crate::TypeSize;
+
+/// Constructs an [`IsCopy`](struct@crate::IsCopy),
+/// requires [`$T: Pod`](trait@bytemuck::Pod) for reasons explained in the
+/// [bound](struct@crate::IsCopy#bound) section.
+///
+/// This has an optional type argument (`$T`) that default to
+/// infering the type if not passed.
+///
+/// This macro is defined for completeness' sake,
+/// no function in this crate takes `IsCopy` by itself,
+/// always a [`TypeSize<T, IsCopy<T>, _>`](struct@crate::TypeSize),
+/// which can be constructed with the
+/// [`TypeSize`](macro@crate::TypeSize) macro.
+///
+/// Related: the [`copying`](crate::copying) module
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::{IsCopy, TypeSize, copying};
+///
+/// const FOO: IsCopy<u32> = IsCopy!();
+/// assert_eq!(copying::copy(&100u32, TypeSize!(u32).with_bounds(FOO)), 100);
+/// // alternatively, the typical way to call `copying::copy`.
+/// assert_eq!(copying::copy(&100u32, TypeSize!(u32)), 100);
+///
+///
+/// const BAR: IsCopy<[u8; 4]> = IsCopy!([u8; 4]);
+/// let arr = [3, 5, 8, 13];
+/// assert_eq!(copying::copy(&arr, TypeSize!([u8; 4]).with_bounds(BAR)), arr);
+/// // alternatively, the typical way to call `copying::copy`.
+/// assert_eq!(copying::copy(&arr, TypeSize!([u8; 4])), arr);
+///
+///
+/// ```
+#[macro_export]
+macro_rules! IsCopy {
+    () => {
+        <$crate::IsCopy<_> as $crate::Infer>::INFER
+    };
+    ($T:ty) => {
+        <$crate::IsCopy<$T> as $crate::Infer>::INFER
+    };
+}
 
 pub(crate) mod is_copy {
     use super::*;
@@ -43,7 +87,8 @@ pub(crate) mod is_copy {
     impl<T: crate::Pod> IsCopy<T> {
         /// Constructs an `IsCopy`
         ///
-        /// You can also use the [`infer`] macro to construct `IsCopy` arguments.
+        /// You can also use the [`IsCopy`](macro@crate::IsCopy)
+        /// macro to construct `IsCopy` arguments.
         pub const NEW: Self = Self {
             _private: PhantomData,
         };
@@ -80,7 +125,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 /// Copies a `T` from a `&T`
 ///
 /// Requires that `T` implements `Copy + Pod`
-/// (see [`IsCopy`] docs for why it requires `Pod`)
+/// (see [`IsCopy`](struct@crate::IsCopy) docs for why it requires `Pod`)
 ///
 /// # Example
 ///
@@ -115,7 +160,7 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<T>,
 /// Creates a `[T; ARR_LEN]` by copying from a `&T`
 ///
 /// Requires that `T` implements `Copy + Pod`
-/// (see [`IsCopy`] docs for why it requires `Pod`)
+/// (see [`IsCopy`](struct@crate::IsCopy) docs for why it requires `Pod`)
 ///
 /// To specify the length of the returned array,
 /// [`TypeSize::repeat`] can be used instead.

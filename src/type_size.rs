@@ -44,10 +44,10 @@ macro_rules! TypeSize {
     };
     ($ty:ty, $bounds:ty $(,)*) => {
         $crate::TypeSize::<
-                    $ty,
-                    $bounds,
-                    { $crate::__::size_of::<$ty>() }
-                >::__13878307735224946849NEW__
+                            $ty,
+                            $bounds,
+                            { $crate::__::size_of::<$ty>() }
+                        >::__13878307735224946849NEW__
     };
 }
 
@@ -272,7 +272,7 @@ impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
     /// Creates a `[T; ARR_LEN]` by copying from a `&T`
     ///
     /// Requires that `T` implements `Copy + Pod`
-    /// (see [`IsCopy`] docs for why it requires `Pod`)
+    /// (see [`IsCopy`](struct@crate::IsCopy) docs for why it requires `Pod`)
     ///
     /// # Example
     ///

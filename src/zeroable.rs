@@ -4,6 +4,48 @@ use bytemuck::Zeroable;
 
 use crate::TypeSize;
 
+/// Constructs an [`IsZeroable<$T>`](struct@crate::IsZeroable),
+/// requires [`$T: Zeroable`](trait@bytemuck::Zeroable).
+///
+/// This has an optional type argument (`$T`) that default to
+/// infering the type if not passed.
+///
+/// This macro is defined for completeness' sake,
+/// no function in this crate takes `IsZeroable` by itself,
+/// always a [`TypeSize<T, IsZeroable<T>, _>`](struct@crate::TypeSize),
+/// which can be constructed with the
+/// [`TypeSize`](macro@crate::TypeSize) macro.
+///
+/// Related: the [`copying`](crate::copying) module
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::{IsZeroable, TypeSize};
+///
+/// const FOO: IsZeroable<u32> = IsZeroable!();
+/// assert_eq!(constmuck::zeroed(TypeSize!(u32).with_bounds(FOO)), 0u32);
+/// // alternatively, the typical way to call `constmuck::zeroed`.
+/// assert_eq!(constmuck::zeroed(TypeSize!(u32)), 0u32);
+///
+///
+/// const BAR: IsZeroable<u8> = IsZeroable!(u8);
+/// assert_eq!(constmuck::zeroed_array(TypeSize!(u8).with_bounds(BAR)), [0u8; 4]);
+/// // alternatively, the typical way to call `constmuck::zeroed_array`.
+/// assert_eq!(constmuck::zeroed_array(TypeSize!(u8)), [0u8; 4]);
+///
+///
+/// ```
+#[macro_export]
+macro_rules! IsZeroable {
+    () => {
+        <$crate::IsZeroable<_> as $crate::Infer>::INFER
+    };
+    ($T:ty) => {
+        <$crate::IsZeroable<$T> as $crate::Infer>::INFER
+    };
+}
+
 mod __ {
     use super::*;
 
@@ -26,7 +68,8 @@ mod __ {
     impl<T: Zeroable> IsZeroable<T> {
         /// Constructs an `IsZeroable`
         ///
-        /// You can also use the [`infer`] macro to construct `IsZeroable` arguments.
+        /// You can also use the [`IsZeroable`](macro@crate::IsZeroable)
+        /// macro to construct `IsZeroable` arguments.
         pub const NEW: Self = Self {
             _private: PhantomData,
         };
@@ -89,15 +132,14 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 /// use constmuck::{TypeSize, zeroed_array};
 ///
 /// const BYTES: [u8; 2] = zeroed_array(TypeSize!(u8));
-/// const CHARS: [char; 4] = zeroed_array(TypeSize!(char));
-///
 /// assert_eq!(BYTES, [0, 0]);
-///
-/// // you can use `TypeSize::zeroed_array` like here to pass the length of the returned array.
+/// // using `TypeSize::zeroed_array` to pass the length of the returned array.
 /// assert_eq!(TypeSize!(u8).zeroed_array::<2>(), [0, 0]);
 ///
 ///
+/// const CHARS: [char; 4] = zeroed_array(TypeSize!(char));
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
+/// // using `TypeSize::zeroed_array` to pass the length of the returned array.
 /// assert_eq!(TypeSize!(char).zeroed_array::<4>(), ['\0', '\0', '\0', '\0']);
 ///
 ///

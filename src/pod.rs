@@ -7,9 +7,8 @@ use crate::{IsCopy, IsZeroable};
 /// Constructs an [`IsPod<$T>`](struct@crate::IsPod),
 /// requiring that `$T` implements [`Pod`].
 ///
-/// When no argument is passed, this infers the `$T` type argument.
-///
-/// When an argument is passed, it is used as the `$T` type argument.
+/// This has an optional type argument (`$T`) that default to
+/// infering the type if not passed.
 ///
 /// # Example
 ///
@@ -89,9 +88,10 @@ mod __ {
     }
 
     impl<T: Pod> IsPod<T> {
-        /// Constructs an `IsPod`
+        /// Constructs an `IsPod`.
         ///
-        /// You can also use the [`infer`] macro to construct `IsPod` arguments.
+        /// You can also use the [`IsPod`](macro@crate::IsPod)
+        /// macro to construct `IsPod` arguments.
         pub const NEW: Self = Self {
             is_copy: IsCopy::NEW,
             is_zeroable: IsZeroable::NEW,
@@ -116,7 +116,7 @@ mod __ {
         /// [safety requirements of `Pod`](bytemuck::Pod#safety)
         ///
         /// ```rust
-        /// use constmuck::{IsPod, cast, infer};
+        /// use constmuck::{IsPod, cast};
         ///
         /// #[repr(transparent)]
         /// struct Foo([u8; 4]);

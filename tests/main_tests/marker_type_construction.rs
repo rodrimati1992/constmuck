@@ -83,11 +83,11 @@ fn type_size_construction() {
 
     assert_type_name(impls, "TypeSize");
     assert_type_name(
-        TypeSize::<(), u32, 4>::__13878307735224946849NEW__,
+        TypeSize::<u32, (), 4>::__13878307735224946849NEW__,
         "TypeSize",
     );
     assert_type_name(
-        TypeSize::<NoTraits, u32, 4>::__13878307735224946849NEW__,
+        TypeSize::<u32, NoTraits, 4>::__13878307735224946849NEW__,
         "Unit",
     );
 
