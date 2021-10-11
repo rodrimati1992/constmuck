@@ -75,8 +75,7 @@
 //!
 //! ```rust
 //!
-//! use constmuck::TransparentWrapper;
-//! use constmuck::infer_tw;
+//! use constmuck::{IsTW, TransparentWrapper};
 //!
 //! fn main() {
 //!     const SLICE: &[u32] = &[3, 5, 8, 13, 21];
@@ -101,7 +100,7 @@
 //! impl<T> SliceWrapper<T> {
 //!     // Using `constmuck` allows safely defining this function as a `const fn`
 //!     pub const fn new(reff: &[T]) -> &Self {
-//!         constmuck::wrapper::wrap_ref!(reff, infer_tw!())
+//!         constmuck::wrapper::wrap_ref!(reff, IsTW!())
 //!     }
 //! }
 //!
@@ -213,14 +212,14 @@ pub mod __priv_utils;
 pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
 
 pub use crate::{
-    contiguous::impls_contiguous::IsContiguous,
-    copying::impls_copy::IsCopy,
+    contiguous::is_contiguous::IsContiguous,
+    copying::is_copy::IsCopy,
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, IsPod},
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
     transmutable::transmutable_into::TransmutableInto,
     type_size::TypeSize,
-    wrapper::impls_tw::IsTransparentWrapper,
+    wrapper::is_tw::IsTransparentWrapper,
     zeroable::{zeroed, zeroed_array, IsZeroable},
 };
 

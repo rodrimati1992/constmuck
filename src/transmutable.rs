@@ -136,7 +136,7 @@ pub(crate) mod transmutable_into {
         /// ```rust
         /// use constmuck::{
         ///     transmutable::{TransmutableInto, transmute_ref},
-        ///     infer_tw,
+        ///     wrapper::IsTW,
         /// };
         ///
         /// #[derive(Debug, PartialEq)]
@@ -149,9 +149,9 @@ pub(crate) mod transmutable_into {
         ///     // Transmuting from `&[Other<u32>; 5]` to `&[u32; 5]`
         ///     const ARR: &[u32; 5] = transmute_ref(
         ///         &[Other(0), Other(127), Other(128), Other(129), Other(130)],
-        ///         // `infer_tw!().into_inner.array()` allows transmuting an arrays of wrappers
+        ///         // `IsTW!().into_inner.array()` allows transmuting an arrays of wrappers
         ///         // into an arraw of the values that are inside those wrappers.
-        ///         infer_tw!().into_inner.array(),
+        ///         IsTW!().into_inner.array(),
         ///     );
         ///    
         ///     assert_eq!(*ARR, [0, 127, 128, 129, 130]);
@@ -172,13 +172,13 @@ pub(crate) mod transmutable_into {
         /// # Example
         ///
         /// ```rust
-        /// use constmuck::{TransmutableInto, infer, infer_tw};
+        /// use constmuck::{IsTW, TransmutableInto, infer};
         /// use constmuck::transmutable::{transmute_ref, transmute_slice};
         ///
         /// use std::num::Wrapping;
         ///
         /// const FOO: TransmutableInto<Wrapping<u8>, i8> = {
-        ///     infer_tw!(Wrapping<u8>, u8)
+        ///     IsTW!(Wrapping<u8>, u8)
         ///         .into_inner
         ///         .join(TransmutableInto::<_, i8>::pod(infer!()))
         /// };
@@ -207,7 +207,8 @@ pub(crate) mod transmutable_into {
 /// ```
 /// use constmuck::{
 ///     transmutable::{TransmutableInto, transmute_into},
-///     infer, infer_tw,
+///     wrapper::IsTW,
+///     infer,
 /// };
 ///
 /// use std::num::NonZeroU8;
@@ -231,21 +232,21 @@ pub(crate) mod transmutable_into {
 /// {
 ///     // Transmuting from `[char; 4]` to `That<[char; 4]>`
 ///     //
-///     // `infer_tw!()` constructs an `IsTransparentWrapper`,
+///     // `IsTW!()` constructs an `IsTransparentWrapper`,
 ///     // whose `from_inner` field allows transmuting from a value into a wrapper around it.
 ///     const THAT_ARRAY: That<[char; 4]> =
-///         transmute_into(['A', 'E', 'I', 'O'], infer_tw!().from_inner);
+///         transmute_into(['A', 'E', 'I', 'O'], IsTW!().from_inner);
 ///     assert_eq!(THAT_ARRAY, That(['A', 'E', 'I', 'O']));
 /// }
 ///
 /// {
 ///     // Transmuting from `[That<char>; 4]` to `[char; 4]`
 ///     //
-///     // `infer_tw!().into_inner.array()` allows transmuting an arrays of wrappers
+///     // `IsTW!().into_inner.array()` allows transmuting an arrays of wrappers
 ///     // into an arraw of the values that are inside those wrappers.
 ///     const ARRAY_THAT: [char; 4] = transmute_into(
 ///         [That('A'), That('E'), That('I'), That('O')],
-///         infer_tw!().into_inner.array(),
+///         IsTW!().into_inner.array(),
 ///     );
 ///     assert_eq!(ARRAY_THAT, ['A', 'E', 'I', 'O']);
 /// }
@@ -289,7 +290,7 @@ pub const fn transmute_ref<T, U>(value: &T, _bounds: TransmutableInto<T, U>) -> 
 /// ```
 /// use constmuck::{
 ///     transmutable::transmute_ref,
-///     infer_tw,
+///     wrapper::IsTW,
 /// };
 ///
 /// #[derive(Debug, PartialEq)]
@@ -301,7 +302,7 @@ pub const fn transmute_ref<T, U>(value: &T, _bounds: TransmutableInto<T, U>) -> 
 /// // Transmuting from `&[u8]` to `&Wrapper<[u8]>`
 /// const BYTES: &Wrapper<[u8]> = transmute_ref!(
 ///     b"hello" as &[u8],
-///     infer_tw!().from_inner,
+///     IsTW!().from_inner,
 /// );
 ///
 /// assert_eq!(&BYTES.0, b"hello");
@@ -317,7 +318,8 @@ pub use constmuck_internal::transmute_ref;
 /// ```
 /// use constmuck::{
 ///     transmutable::{TransmutableInto, transmute_slice},
-///     infer, infer_tw,
+///     wrapper::IsTW,
+///     infer,
 /// };
 ///
 /// use std::num::Wrapping;
@@ -328,17 +330,17 @@ pub use constmuck_internal::transmute_ref;
 ///
 /// // Transmuting from `&[Wrapping<u8>]` to `&[i8]`
 /// //
-/// // `infer_tw!()` constructs an `IsTransparentWrapper`,
+/// // `IsTW!()` constructs an `IsTransparentWrapper`,
 /// // whose `into_inner` field allows transmuting from a wrapper into the value in it.
 /// const UNWRAPPED: &[u8] =
-///     transmute_slice(&[Wrapping(5), Wrapping(250)], infer_tw!().into_inner);
+///     transmute_slice(&[Wrapping(5), Wrapping(250)], IsTW!().into_inner);
 /// assert_eq!(*UNWRAPPED, [5, 250]);
 ///
 /// // Transmuting from `&[u8]` to `&[Wrapping<u8>]`
 /// //
-/// // `infer_tw!()` constructs an `IsTransparentWrapper`,
+/// // `IsTW!()` constructs an `IsTransparentWrapper`,
 /// // whose `from_inner` field allows transmuting from a value into a wrapper around it.
-/// const WRAPPED: &[Wrapping<u8>] = transmute_slice(&[7, 78], infer_tw!().from_inner);
+/// const WRAPPED: &[Wrapping<u8>] = transmute_slice(&[7, 78], IsTW!().from_inner);
 /// assert_eq!(*WRAPPED, [Wrapping(7), Wrapping(78)]);
 ///
 ///

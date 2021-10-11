@@ -31,7 +31,7 @@ fn assert_type_name<T>(_: T, name: &str) {
 }
 
 #[test]
-fn impls_contiguous_construction() {
+fn is_contiguous_construction() {
     assert_type_name(IsContiguous::<u32, u32>::NEW, "Is");
     assert_type_name(IsContiguous::<NoTraits, NoTraits>::NEW, "Unit");
 
@@ -40,7 +40,7 @@ fn impls_contiguous_construction() {
 }
 
 #[test]
-fn impls_copy_construction() {
+fn is_copy_construction() {
     assert_type_name(IsCopy::<u32>::NEW, "Is");
     assert_type_name(IsCopy::<NoTraits>::NEW, "Unit");
 
@@ -49,7 +49,7 @@ fn impls_copy_construction() {
 }
 
 #[test]
-fn impls_pod_construction() {
+fn is_pod_construction() {
     assert_type_name(IsPod::<u32>::NEW, "Is");
     assert_type_name(IsPod::<NoTraits>::NEW, "Unit");
 
@@ -58,7 +58,7 @@ fn impls_pod_construction() {
 }
 
 #[test]
-fn impls_transparent_wrapper_construction() {
+fn is_transparent_wrapper_construction() {
     assert_type_name(IsTransparentWrapper::<Wrapping<u32>, u32>::NEW, "Is");
     assert_type_name(IsTransparentWrapper::<Wrapping<u32>, u64>::NEW, "Unit");
     assert_type_name(IsTransparentWrapper::<NoTraits, NoTraits>::NEW, "Unit");
@@ -69,7 +69,7 @@ fn impls_transparent_wrapper_construction() {
 }
 
 #[test]
-fn impls_zeroable_construction() {
+fn is_zeroable_construction() {
     assert_type_name(IsZeroable::<u32>::NEW, "Is");
     assert_type_name(IsZeroable::<NoTraits>::NEW, "Unit");
 

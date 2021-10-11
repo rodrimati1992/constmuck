@@ -12,11 +12,11 @@ fn map_bound_test() {
     assert_eq!(cast::<u32, i32>(100, (*bound.bounds(), infer!())), 100);
 
     assert_eq!(
-        copying::copy(&12345u32, map_bound!(bound, |x| x.impls_copy)),
+        copying::copy(&12345u32, map_bound!(bound, |x| x.is_copy)),
         12345
     );
 
-    assert_eq!(zeroed(map_bound!(bound, |x| x.impls_zeroable)), 0u32);
+    assert_eq!(zeroed(map_bound!(bound, |x| x.is_zeroable)), 0u32);
 }
 
 #[test]
@@ -70,7 +70,7 @@ fn bound_manip() {
     let _: TypeSize<(), u32, 4> = type_size!(u32).with_bound(());
     let _: TypeSize<IsPod<u64>, u32, 4> = type_size!(u32).with_bound(IsPod::NEW);
 
-    assert_eq!(zeroed(map_bound!(bound, |x| x.impls_zeroable)), 0u32);
+    assert_eq!(zeroed(map_bound!(bound, |x| x.is_zeroable)), 0u32);
 
     assert_eq!(zeroed(bound.set_bound(IsZeroable::NEW)), 0u32);
 }

@@ -71,12 +71,12 @@ macro_rules! transmute_ref {
 
 #[macro_export]
 macro_rules! wrapper_inner {
-    ($inner:expr, $impls_wrapper:expr, $AssertTWP:ident, $tw_field:ident) => {
-        match ($inner, $impls_wrapper) {
-            (inner, impls_wrapper) => {
+    ($inner:expr, $is_wrapper:expr, $AssertTWP:ident, $tw_field:ident) => {
+        match ($inner, $is_wrapper) {
+            (inner, is_wrapper) => {
                 let ass = $crate::$AssertTWP(
                     inner,
-                    impls_wrapper._transparent_wrapper_proof,
+                    is_wrapper._transparent_wrapper_proof,
                     $crate::PhantomRef::NEW,
                 );
 
@@ -99,15 +99,15 @@ macro_rules! wrapper_inner {
 
 #[macro_export]
 macro_rules! wrapper_wrap_ref {
-    ($inner:expr, $impls_wrapper:expr $(,)*) => {
-        $crate::wrapper_inner!($inner, $impls_wrapper, AssertTWPInner, from_inner)
+    ($inner:expr, $is_wrapper:expr $(,)*) => {
+        $crate::wrapper_inner!($inner, $is_wrapper, AssertTWPInner, from_inner)
     };
 }
 
 #[macro_export]
 macro_rules! wrapper_peel_ref {
-    ($outer:expr, $impls_wrapper:expr $(,)*) => {
-        $crate::wrapper_inner!($outer, $impls_wrapper, AssertTWPOuter, into_inner)
+    ($outer:expr, $is_wrapper:expr $(,)*) => {
+        $crate::wrapper_inner!($outer, $is_wrapper, AssertTWPOuter, into_inner)
     };
 }
 

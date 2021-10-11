@@ -58,7 +58,7 @@ macro_rules! type_size {
 /// ) -> (T, [T; LEN]) {
 ///     // The type annotation is just for the reader
 ///     let bound: TypeSize<IsZeroable<T>, T, SIZE> =
-///         map_bound!(bound, |x| x.impls_zeroable);
+///         map_bound!(bound, |x| x.is_zeroable);
 ///     (zeroed(bound), zeroed_array(bound))
 /// }
 ///

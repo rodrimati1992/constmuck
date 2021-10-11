@@ -4,6 +4,36 @@ use bytemuck::{Pod, PodCastError};
 
 use crate::{IsCopy, IsZeroable};
 
+/// Constructs an [`IsPod<T>`](struct@crate::IsPod),
+/// requiring that `T` implements [`Pod`].
+///
+/// When no argument is passed, this infers the `T` type argument.
+///
+/// When an argument is passed, it is used as the `T` type argument.
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::{IsPod, cast};
+///
+/// // transmuting `i16` to `u16`
+/// const FOO: u16 = cast(-1i16, (IsPod!(), IsPod!()));
+/// const BAR: u16 = cast(-1, (IsPod!(i16), IsPod!(u16)));
+///    
+/// assert_eq!(FOO, u16::MAX);
+/// assert_eq!(BAR, u16::MAX);
+///
+/// ```
+#[macro_export]
+macro_rules! IsPod {
+    () => {
+        <$crate::IsPod<_> as $crate::Infer>::INFER
+    };
+    ($ty:ty) => {
+        <$crate::IsPod<$ty> as $crate::Infer>::INFER
+    };
+}
+
 mod __ {
     use super::*;
 
@@ -17,13 +47,16 @@ mod __ {
     ///
     /// {
     ///     // transmuting `i16` to `u16`
+    ///     // The four lines below are equivalent
     ///     const FOO1: u16 = cast(-1i16, (IsPod::NEW, IsPod::NEW));
-    ///    
-    ///     // The same as the above constant
-    ///     const FOO2: u16 = cast(-1i16, infer!());
+    ///     const FOO2: u16 = cast(-1i16, (IsPod!(), IsPod!()));
+    ///     const FOO3: u16 = cast(-1, (IsPod!(i16), IsPod!(u16)));
+    ///     const FOO4: u16 = cast(-1i16, infer!());
     ///    
     ///     assert_eq!(FOO1, u16::MAX);
     ///     assert_eq!(FOO2, u16::MAX);
+    ///     assert_eq!(FOO3, u16::MAX);
+    ///     assert_eq!(FOO4, u16::MAX);
     /// }
     ///
     /// {
@@ -42,8 +75,8 @@ mod __ {
     ///
     /// ```
     pub struct IsPod<T> {
-        pub impls_copy: IsCopy<T>,
-        pub impls_zeroable: IsZeroable<T>,
+        pub is_copy: IsCopy<T>,
+        pub is_zeroable: IsZeroable<T>,
         _private: PhantomData<fn() -> T>,
     }
 
@@ -60,8 +93,8 @@ mod __ {
         ///
         /// You can also use the [`infer`] macro to construct `IsPod` arguments.
         pub const NEW: Self = Self {
-            impls_copy: IsCopy::NEW,
-            impls_zeroable: IsZeroable::NEW,
+            is_copy: IsCopy::NEW,
+            is_zeroable: IsZeroable::NEW,
             _private: PhantomData,
         };
     }
@@ -69,8 +102,8 @@ mod __ {
     impl<T> IsPod<T> {
         const __NEW_UNCHECKED__: Self = unsafe {
             Self {
-                impls_copy: IsCopy::new_unchecked(),
-                impls_zeroable: IsZeroable::new_unchecked(),
+                is_copy: IsCopy::new_unchecked(),
+                is_zeroable: IsZeroable::new_unchecked(),
                 _private: PhantomData,
             }
         };

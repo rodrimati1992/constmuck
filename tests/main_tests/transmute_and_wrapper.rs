@@ -1,10 +1,10 @@
 use super::test_utils::{must_panic, Pack, Wrap};
 
 use constmuck::{
-    infer, infer_tw,
+    infer,
     transmutable::{transmute_into, transmute_ref, transmute_slice},
     wrapper::{peel, peel_ref, peel_slice, wrap, wrap_ref, wrap_slice},
-    Infer, IsTransparentWrapper as ITW, TransmutableInto as TI,
+    Infer, IsTW, IsTransparentWrapper as ITW, TransmutableInto as TI,
 };
 
 #[test]
@@ -96,8 +96,8 @@ fn transmute_into_test() {
     assert_eq!(fun(0, TI::<usize, isize>::pod(infer!())), 0);
     assert_eq!(fun(2, TI::<usize, isize>::pod(infer!())), 2);
 
-    assert_eq!(fun(9, infer_tw!(Wrap<_>).from_inner), Wrap(9));
-    assert_eq!(fun(Wrap(9), infer_tw!(Wrap<_>).into_inner), 9);
+    assert_eq!(fun(9, IsTW!(Wrap<_>).from_inner), Wrap(9));
+    assert_eq!(fun(Wrap(9), IsTW!(Wrap<_>).into_inner), 9);
 
     assert_eq!(
         fun([u8::MAX, 0, 1, 2], TI::<[u8; 4], [i8; 4]>::pod(infer!())),
@@ -109,13 +109,13 @@ fn transmute_into_test() {
     );
 
     assert_eq!(
-        fun([u8::MAX, 0, 1, 2], infer_tw!(Wrap<_>).from_inner.array()),
+        fun([u8::MAX, 0, 1, 2], IsTW!(Wrap<_>).from_inner.array()),
         [u8::MAX, 0, 1, 2].map(Wrap),
     );
     assert_eq!(
         fun(
             [u8::MAX, 0, 1, 2].map(Wrap),
-            infer_tw!(Wrap<_>).into_inner.array()
+            IsTW!(Wrap<_>).into_inner.array()
         ),
         [u8::MAX, 0, 1, 2],
     );
@@ -140,8 +140,8 @@ fn transmute_ref_test() {
         assert_eq!(fun $($b)? (&0, TI::<usize, isize>::pod(infer!())), &0);
         assert_eq!(fun $($b)? (&2, TI::<usize, isize>::pod(infer!())), &2);
 
-        assert_eq!(fun $($b)? (&9, infer_tw!(Wrap<_>).from_inner), &Wrap(9));
-        assert_eq!(fun $($b)? (&Wrap(9), infer_tw!(Wrap<_>).into_inner), &9);
+        assert_eq!(fun $($b)? (&9, IsTW!(Wrap<_>).from_inner), &Wrap(9));
+        assert_eq!(fun $($b)? (&Wrap(9), IsTW!(Wrap<_>).into_inner), &9);
 
         assert_eq!(
             fun $($b)? (&[u8::MAX, 0, 1, 2], TI::<[u8; 4], [i8; 4]>::pod(infer!())),
@@ -153,13 +153,13 @@ fn transmute_ref_test() {
         );
 
         assert_eq!(
-            fun $($b)? (&[u8::MAX, 0, 1, 2], infer_tw!(Wrap<_>).from_inner.array()),
+            fun $($b)? (&[u8::MAX, 0, 1, 2], IsTW!(Wrap<_>).from_inner.array()),
             &[u8::MAX, 0, 1, 2].map(Wrap),
         );
         assert_eq!(
             fun $($b)? (
                 &[u8::MAX, 0, 1, 2].map(Wrap),
-                infer_tw!(Wrap<_>).into_inner.array()
+                IsTW!(Wrap<_>).into_inner.array()
             ),
             &[u8::MAX, 0, 1, 2],
         );
@@ -197,13 +197,13 @@ fn transmute_slice_test() {
     );
 
     assert_eq!(
-        fun::<_, Wrap<_>>(&[u8::MAX, 0, 1, 2], infer_tw!().from_inner),
+        fun::<_, Wrap<_>>(&[u8::MAX, 0, 1, 2], IsTW!().from_inner),
         &[Wrap(u8::MAX), Wrap(0), Wrap(1), Wrap(2)]
     );
     assert_eq!(
         fun(
             &[Wrap(u8::MAX), Wrap(0), Wrap(1), Wrap(2)],
-            infer_tw!().into_inner
+            IsTW!().into_inner
         ),
         &[u8::MAX, 0, 1, 2]
     );
@@ -230,7 +230,7 @@ fn wrapper_from_ti_test() {
 fn wrapper_join_test() {
     use std::num::Wrapping as W;
 
-    const ITW: ITW<W<W<u32>>, u32> = infer_tw!(W<W<u32>>, W<u32>).join(infer_tw!(W<u32>, u32));
+    const ITW: ITW<W<W<u32>>, u32> = IsTW!(W<W<u32>>, W<u32>).join(IsTW!(W<u32>, u32));
 
     assert_eq!(wrap(3, ITW), W(W(3)));
     assert_eq!(wrap_ref(&5, ITW), &W(W(5)));
@@ -244,18 +244,15 @@ fn wrapper_join_test() {
 fn peel_test() {
     assert_eq!(peel(Wrap("hello"), infer!()), "hello");
     assert_eq!(peel(Wrap("hello"), Infer::INFER), "hello");
-    assert_eq!(peel(Wrap("foo"), infer_tw!()), "foo");
-    assert_eq!(peel(Wrap(false), infer_tw!(Wrap<_>)), false);
-    assert_eq!(peel(Wrap('A'), infer_tw!(Wrap<_>,)), 'A');
-    assert_eq!(peel(Wrap(b"baz"), infer_tw!(Wrap<_>, _)), b"baz");
-    assert_eq!(peel(Wrap("baz"), infer_tw!(Wrap<_>, _,)), "baz");
+    assert_eq!(peel(Wrap("foo"), IsTW!()), "foo");
+    assert_eq!(peel(Wrap(false), IsTW!(Wrap<_>)), false);
+    assert_eq!(peel(Wrap('A'), IsTW!(Wrap<_>,)), 'A');
+    assert_eq!(peel(Wrap(b"baz"), IsTW!(Wrap<_>, _)), b"baz");
+    assert_eq!(peel(Wrap("baz"), IsTW!(Wrap<_>, _,)), "baz");
 
+    assert_eq!(peel(Wrap(["hello", "world"]), IsTW!()), ["hello", "world"]);
     assert_eq!(
-        peel(Wrap(["hello", "world"]), infer_tw!()),
-        ["hello", "world"]
-    );
-    assert_eq!(
-        peel(["hello", "world"].map(Wrap), infer_tw!().array()),
+        peel(["hello", "world"].map(Wrap), IsTW!().array()),
         ["hello", "world"]
     );
 
@@ -268,12 +265,12 @@ fn peel_test() {
 #[test]
 fn peel_ref_test() {
     macro_rules! test_fn_or_macro {($($b:tt)?) => (
-        assert_eq!(peel_ref $($b)? (&Wrap(true), infer_tw!()), &true);
-        assert_eq!(peel_ref $($b)? (&Wrap(100), infer_tw!()), &100);
+        assert_eq!(peel_ref $($b)? (&Wrap(true), IsTW!()), &true);
+        assert_eq!(peel_ref $($b)? (&Wrap(100), IsTW!()), &100);
 
-        assert_eq!(peel_ref $($b)? (&Wrap([100, 200]), infer_tw!()), &[100, 200]);
+        assert_eq!(peel_ref $($b)? (&Wrap([100, 200]), IsTW!()), &[100, 200]);
         assert_eq!(
-            peel_ref $($b)? (&[100, 200].map(Wrap), infer_tw!().array()),
+            peel_ref $($b)? (&[100, 200].map(Wrap), IsTW!().array()),
             &[100, 200]
         );
     )}
@@ -309,13 +306,13 @@ fn peel_slice_test() {
 
 #[test]
 fn wrap_test() {
-    assert_eq!(wrap("hello", infer_tw!(Wrap<_>)), Wrap("hello"));
+    assert_eq!(wrap("hello", IsTW!(Wrap<_>)), Wrap("hello"));
     assert_eq!(
-        wrap(["hello", "world"], infer_tw!(Wrap<_>)),
+        wrap(["hello", "world"], IsTW!(Wrap<_>)),
         Wrap(["hello", "world"])
     );
     assert_eq!(
-        wrap(["hello", "world"], infer_tw!(Wrap<_>).array()),
+        wrap(["hello", "world"], IsTW!(Wrap<_>).array()),
         ["hello", "world"].map(Wrap)
     );
 
@@ -328,12 +325,12 @@ fn wrap_test() {
 #[test]
 fn wrap_ref_test() {
     macro_rules! test_fn_or_macro {($($b:tt)?) => (
-        assert_eq!(wrap_ref $($b)? (&true, infer_tw!(Wrap<_>)), &Wrap(true));
-        assert_eq!(wrap_ref $($b)? (&100, infer_tw!(Wrap<_>)), &Wrap(100));
+        assert_eq!(wrap_ref $($b)? (&true, IsTW!(Wrap<_>)), &Wrap(true));
+        assert_eq!(wrap_ref $($b)? (&100, IsTW!(Wrap<_>)), &Wrap(100));
 
-        assert_eq!(wrap_ref $($b)? (&[100, 200], infer_tw!(Wrap<_>)), &Wrap([100, 200]));
+        assert_eq!(wrap_ref $($b)? (&[100, 200], IsTW!(Wrap<_>)), &Wrap([100, 200]));
         assert_eq!(
-            wrap_ref $($b)? (&[100, 200], infer_tw!(Wrap<_>).array()),
+            wrap_ref $($b)? (&[100, 200], IsTW!(Wrap<_>).array()),
             &[100, 200].map(Wrap)
         );
     )}
@@ -357,11 +354,11 @@ fn wrap_ref_test() {
 #[test]
 fn wrap_slice_test() {
     assert_eq!(
-        wrap_slice(&[true, false], infer_tw!(Wrap<_>)),
+        wrap_slice(&[true, false], IsTW!(Wrap<_>)),
         &[true, false].map(Wrap)
     );
     assert_eq!(
-        wrap_slice(&[123, 456], infer_tw!(Wrap<_>)),
+        wrap_slice(&[123, 456], IsTW!(Wrap<_>)),
         &[123, 456].map(Wrap)
     );
 

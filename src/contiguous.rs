@@ -56,7 +56,7 @@ use core::marker::PhantomData;
 #[doc(no_inline)]
 pub use crate::IsContiguous;
 
-pub(crate) mod impls_contiguous {
+pub(crate) mod is_contiguous {
     use super::*;
 
     /// Encodes a `T:`[`Contiguous`] bound as a value,

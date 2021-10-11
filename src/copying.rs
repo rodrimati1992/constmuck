@@ -8,7 +8,7 @@ use core::{marker::PhantomData, mem::MaybeUninit};
 
 use crate::TypeSize;
 
-pub(crate) mod impls_copy {
+pub(crate) mod is_copy {
     use super::*;
 
     /// Encodes that a `T` is trivially copyable,
