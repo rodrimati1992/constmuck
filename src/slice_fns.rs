@@ -21,14 +21,14 @@ use crate::{IsCopy, IsPod, TypeSize};
 /// ```
 pub const fn bytes_of<T, const SIZE: usize>(
     bytes: &T,
-    _bounds: TypeSize<IsPod<T>, T, SIZE>,
+    _bounds: TypeSize<T, IsPod<T>, SIZE>,
 ) -> &[u8; SIZE] {
     unsafe { __priv_transmute_ref!(T, [u8; SIZE], bytes) }
 }
 
 pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
     bytes: &T,
-    _bounds: TypeSize<IsCopy<T>, T, SIZE>,
+    _bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> &MaybeUninit<[u8; SIZE]> {
     unsafe { __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes) }
 }

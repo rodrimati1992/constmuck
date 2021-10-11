@@ -9,7 +9,7 @@ fn test_copy() {
         must_panic(|| unsafe {
             let _ = copying::copy(
                 &100u64,
-                TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()),
+                TypeSize::<_, u64, 1>::new_unchecked().with_bounds(infer!()),
             );
         })
         .unwrap();
@@ -33,7 +33,7 @@ fn test_repeat() {
         must_panic(|| unsafe {
             let _: [_; 2] = copying::repeat(
                 &0u64,
-                TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()),
+                TypeSize::<_, u64, 1>::new_unchecked().with_bounds(infer!()),
             );
         })
         .unwrap();
@@ -85,13 +85,13 @@ fn zeroable_test() {
     #[cfg(feature = "debug_checks")]
     {
         must_panic(|| unsafe {
-            let _ = zeroed(TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()));
+            let _ = zeroed(TypeSize::<_, u64, 1>::new_unchecked().with_bounds(infer!()));
         })
         .unwrap();
 
         must_panic(|| unsafe {
             let _: [u64; 2] =
-                zeroed_array(TypeSize::<_, u64, 1>::new_unchecked().with_bound(infer!()));
+                zeroed_array(TypeSize::<_, u64, 1>::new_unchecked().with_bounds(infer!()));
         })
         .unwrap();
     }

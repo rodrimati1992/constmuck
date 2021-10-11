@@ -4,7 +4,7 @@ use constmuck::{cast, copying, infer, map_bound, zeroed, IsCopy, IsPod, IsZeroab
 
 #[test]
 fn map_bound_test() {
-    let bound: TypeSize<IsPod<u32>, u32, 4> = TypeSize!(u32);
+    let bound: TypeSize<u32, IsPod<u32>, 4> = TypeSize!(u32);
 
     assert_eq!(cast::<u32, i32>(100, (bound.into_bounds(), infer!())), 100);
     assert_eq!(cast::<u32, i32>(100, (*bound.bounds(), infer!())), 100);
@@ -25,14 +25,14 @@ fn new_unchecked_test() {
 
     unsafe {
         let ts = TypeSize::<_, WrapNI<u32>, 4>::new_unchecked()
-            .with_bound(IsZeroable::<WrapNI<u32>>::new_unchecked());
+            .with_bounds(IsZeroable::<WrapNI<u32>>::new_unchecked());
 
         assert_eq!(zeroed(ts), WrapNI(0u32));
     }
     unsafe {
         const STR_SIZE: usize = std::mem::size_of::<&str>();
         let ts = TypeSize::<_, WrapNI<&str>, STR_SIZE>::new_unchecked()
-            .with_bound(IsCopy::<WrapNI<&str>>::new_unchecked());
+            .with_bounds(IsCopy::<WrapNI<&str>>::new_unchecked());
 
         assert_eq!(copying::copy(&WrapNI("hello"), ts), WrapNI("hello"));
     }
@@ -40,35 +40,35 @@ fn new_unchecked_test() {
 #[test]
 fn construction_test() {
     must_panic(|| {
-        let _: TypeSize<(), u32, 5> = TypeSize::new_panicking();
+        let _: TypeSize<u32, (), 5> = TypeSize::new_panicking();
     })
     .unwrap();
 
-    let _: TypeSize<(), u32, 4> = TypeSize::new_panicking();
+    let _: TypeSize<u32, (), 4> = TypeSize::new_panicking();
 
-    let _: TypeSize<(), u32, 5> = unsafe { TypeSize::new_unchecked() };
-    let _: TypeSize<(), u32, 4> = unsafe { TypeSize::new_unchecked() };
-    let _: TypeSize<(), u32, 3> = unsafe { TypeSize::new_unchecked() };
+    let _: TypeSize<u32, (), 5> = unsafe { TypeSize::new_unchecked() };
+    let _: TypeSize<u32, (), 4> = unsafe { TypeSize::new_unchecked() };
+    let _: TypeSize<u32, (), 3> = unsafe { TypeSize::new_unchecked() };
 }
 
 #[test]
 fn bound_manip() {
-    let bound: TypeSize<IsPod<u32>, u32, 4> = TypeSize!(u32);
+    let bound: TypeSize<u32, IsPod<u32>, 4> = TypeSize!(u32);
 
     assert_eq!(
         cast::<u32, i32>(12345u32, (bound.split().0, infer!())),
         12345
     );
-    let _: TypeSize<(), u32, 4> = bound.split().1;
+    let _: TypeSize<u32, (), 4> = bound.split().1;
 
     assert_eq!(
-        copying::copy(&12345u32, TypeSize!(u32).with_bound(infer!())),
+        copying::copy(&12345u32, TypeSize!(u32).with_bounds(infer!())),
         12345
     );
-    let _: TypeSize<(), u32, 4> = TypeSize!(u32).with_bound(());
-    let _: TypeSize<IsPod<u64>, u32, 4> = TypeSize!(u32).with_bound(IsPod::NEW);
+    let _: TypeSize<u32, (), 4> = TypeSize!(u32).with_bounds(());
+    let _: TypeSize<u32, IsPod<u64>, 4> = TypeSize!(u32).with_bounds(IsPod::NEW);
 
     assert_eq!(zeroed(map_bound!(bound, |x| x.is_zeroable)), 0u32);
 
-    assert_eq!(zeroed(bound.set_bound(IsZeroable::NEW)), 0u32);
+    assert_eq!(zeroed(bound.set_bounds(IsZeroable::NEW)), 0u32);
 }

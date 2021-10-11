@@ -92,7 +92,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 ///
 /// const fn pair<T, const SIZE: usize>(
 ///     reff: &T,
-///     bounds: TypeSize<IsCopy<T>, T, SIZE>
+///     bounds: TypeSize<T, IsCopy<T>, SIZE>
 /// ) -> [T; 2] {
 ///     [copying::copy(reff, bounds), copying::copy(reff, bounds)]
 /// }
@@ -102,7 +102,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 /// assert_eq!(PAIR_U8, [128, 128]);
 ///
 /// ```
-pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<IsCopy<T>, T, SIZE>) -> T {
+pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<T>, SIZE>) -> T {
     unsafe {
         __priv_transmute_from_copy!(
             MaybeUninit<[u8; SIZE]>,
@@ -135,7 +135,7 @@ pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<IsCopy<T>, T,
 /// ```
 pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
     reff: &T,
-    bounds: TypeSize<IsCopy<T>, T, SIZE>,
+    bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> [T; ARR_LEN] {
     unsafe {
         __priv_transmute_from_copy!(

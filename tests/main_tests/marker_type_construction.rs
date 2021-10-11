@@ -79,7 +79,7 @@ fn is_zeroable_construction() {
 fn type_size_construction() {
     // <_< not much of a black box test anymore, huh?
 
-    let impls: TypeSize<(), u32, 4> = TypeSize!(u32);
+    let impls: TypeSize<u32, (), 4> = TypeSize!(u32);
 
     assert_type_name(impls, "TypeSize");
     assert_type_name(
@@ -92,5 +92,5 @@ fn type_size_construction() {
     );
 
     // TypeSize never implements Infer
-    assert_not_impl_all! {TypeSize<(), u32, 4>: Infer}
+    assert_not_impl_all! {TypeSize<u32, (), 4>: Infer}
 }
