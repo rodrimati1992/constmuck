@@ -1,5 +1,6 @@
 use core::marker::PhantomData;
 
+#[non_exhaustive]
 pub struct TransparentWrapperProof<Outer: ?Sized, Inner: ?Sized>{
     pub from_inner: SameReprProof<Inner, Outer>,
     pub into_inner: SameReprProof<Outer, Inner>,

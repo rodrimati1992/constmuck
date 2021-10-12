@@ -21,6 +21,28 @@ fn wrapper_join_test() {
 }
 
 #[test]
+fn wrapper_identity_test() {
+    {
+        const VAL: ITW<u32, u32> = ITW::IDENTITY;
+        assert_eq!(wrap(3, VAL), 3);
+        assert_eq!(wrap_ref(&5, VAL), &5);
+        assert_eq!(wrap_slice(&[8, 13], VAL), &[8, 13][..]);
+        assert_eq!(peel(21, VAL), 21);
+        assert_eq!(peel_ref(&34, VAL), &34);
+        assert_eq!(peel_slice(&[55, 89], VAL), &[55, 89][..]);
+    }
+    {
+        const REF: ITW<&u32, &u32> = ITW::IDENTITY;
+        assert_eq!(wrap(&3, REF), &3);
+        assert_eq!(wrap_ref(&&5, REF), &&5);
+        assert_eq!(wrap_slice(&[&8, &13], REF), &[&8, &13][..]);
+        assert_eq!(peel(&21, REF), &21);
+        assert_eq!(peel_ref(&&34, REF), &&34);
+        assert_eq!(peel_slice(&[&55, &89], REF), &[&55, &89][..]);
+    }
+}
+
+#[test]
 fn peel_test() {
     assert_eq!(peel(Wrap("hello"), infer!()), "hello");
     assert_eq!(peel(Wrap("hello"), Infer::INFER), "hello");

@@ -64,7 +64,6 @@
 //!
 //! ```
 //!
-
 use bytemuck::TransparentWrapper;
 
 use crate::Infer;
@@ -154,10 +153,10 @@ pub(crate) mod is_tw {
 
     /// Encodes a `Outer:`[`TransparentWrapper`]`<Inner>` bound as a value.
     ///
-    /// Constructible with [`NEW`](Self::NEW) associated constant,
-    /// or [`IsTW`](macro@crate::IsTW) macro.
+    /// Related: [`IsTW`](macro@crate::IsTW) macro, [`wrapper`](crate::wrapper) module.
     ///
-    /// Related: [`wrapper`](crate::wrapper) module.
+    /// You can also [construct an `IsTransparentWrapper<T, T>`](Self::IDENTITY),
+    /// which allows using a type wherever transparent wrappers to it are expected.
     ///
     /// # Example
     ///
@@ -204,6 +203,7 @@ pub(crate) mod is_tw {
     /// }
     ///
     /// ```
+    #[non_exhaustive]
     pub struct IsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
         #[doc(hidden)]
         pub _transparent_wrapper_proof: constmuck_internal::TransparentWrapperProof<Outer, Inner>,
@@ -226,6 +226,33 @@ pub(crate) mod is_tw {
         /// You can also use the [`IsTW`](macro@crate::IsTW) macro to
         /// construct `IsTransparentWrapper` arguments.
         pub const NEW: Self = unsafe {
+            Self {
+                _transparent_wrapper_proof:
+                    constmuck_internal::TransparentWrapperProof::new_unchecked(),
+            }
+        };
+    }
+
+    impl<T: ?Sized> IsTransparentWrapper<T, T> {
+        /// Constructs an `IsTransparentWrapper<T, T>`.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use constmuck::{IsTransparentWrapper as IsTW, wrapper};
+        ///
+        /// use std::num::Wrapping;
+        ///
+        /// const fn add_u32<W>(left: u32, right: &W, is_u32: IsTW<W, u32>) -> u32 {
+        ///     left + *wrapper::peel_ref(right, is_u32)
+        /// }
+        ///
+        /// assert_eq!(add_u32(3, &Wrapping(5), IsTW::NEW), 8);
+        ///
+        /// assert_eq!(add_u32(8, &13, IsTW::IDENTITY), 21);
+        ///
+        /// ```
+        pub const IDENTITY: Self = unsafe {
             Self {
                 _transparent_wrapper_proof:
                     constmuck_internal::TransparentWrapperProof::new_unchecked(),
