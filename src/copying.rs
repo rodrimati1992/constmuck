@@ -77,7 +77,9 @@ pub(crate) mod is_copy {
     ///
     /// [`Pod`]: bytemuck::Pod
     pub struct IsCopy<T> {
-        _private: PhantomData<fn() -> T>,
+        // The lifetime of `T` is invariant,
+        // just in case that it's unsound for lifetimes to be co/contravariant.
+        _private: PhantomData<fn(T) -> T>,
     }
 
     impl<T> Debug for IsCopy<T> {

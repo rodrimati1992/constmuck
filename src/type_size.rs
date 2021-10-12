@@ -134,7 +134,9 @@ macro_rules! map_bound {
 /// [`TypeSize`]: macro@crate::TypeSize
 pub struct TypeSize<T, B, const SIZE: usize> {
     bounds: ManuallyDrop<B>,
-    _private: PhantomData<T>,
+    // The lifetime of `T` is invariant,
+    // just in case that it's unsound for lifetimes to be co/contravariant.
+    _private: PhantomData<fn(T) -> T>,
 }
 
 impl<T, B: Debug, const SIZE: usize> Debug for TypeSize<T, B, SIZE> {
@@ -258,7 +260,7 @@ impl<B, T, const SIZE: usize> TypeSize<T, B, SIZE> {
         }
     }
 
-    /// Gets a reference to the bounds field.
+    /// Accessor for the bounds field.
     pub const fn bounds(&self) -> &B {
         crate::__priv_utils::manuallydrop_as_inner(&self.bounds)
     }

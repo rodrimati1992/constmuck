@@ -23,14 +23,20 @@ pub const fn bytes_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<T, IsPod<T>, SIZE>,
 ) -> &[u8; SIZE] {
+    // safety:
+    // `TypeSize` guarantees that `size_of::<T>() == SIZE`
+    //
+    // `IsPod` guarantees that the type doesn't have any padding,
+    // and allows any bit pattern,
     unsafe { __priv_transmute_ref!(T, [u8; SIZE], bytes) }
 }
 
-pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
+// internal helper function for use in copying a Copy type
+pub(crate) const unsafe fn maybe_uninit_bytes_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> &MaybeUninit<[u8; SIZE]> {
-    unsafe { __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes) }
+    __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes)
 }
 
 /// Casts `&[T]` to `&[U]`
@@ -90,8 +96,8 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &
 /// # Difference with `bytemuck`
 ///
 /// This function requires `T` to have an alignment larger or equal to `U`,
-/// while [`bytemuck::try_cast_slice`] only requires `from` to happen to be aligned
-/// to `U`.
+/// while [`bytemuck::try_cast_slice`] only requires the `from` reference
+/// to happen to be aligned to `U`.
 ///
 /// [`bytemuck::try_cast_slice`] allows the size of `T` to be different than `U` if
 /// it divides evenly into it, this function does not due to limitations in stable const fns.

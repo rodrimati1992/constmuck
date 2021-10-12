@@ -78,9 +78,13 @@ mod __ {
     ///
     /// ```
     pub struct IsPod<T> {
+        /// All types that are `Pod` are `Copy`
         pub is_copy: IsCopy<T>,
+        /// All types that are `Pod` are `Zeroable`
         pub is_zeroable: IsZeroable<T>,
-        _private: PhantomData<fn() -> T>,
+        // The lifetime of `T` is invariant,
+        // just in case that it's unsound for lifetimes to be co/contravariant.
+        _private: PhantomData<fn(T) -> T>,
     }
 
     impl<T> Debug for IsPod<T> {

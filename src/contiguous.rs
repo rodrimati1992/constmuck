@@ -111,7 +111,9 @@ pub(crate) mod is_contiguous {
     pub struct IsContiguous<T, IntRepr> {
         pub(super) min_value: IntRepr,
         pub(super) max_value: IntRepr,
-        _private: PhantomData<fn() -> (T, IntRepr)>,
+        // The lifetime of `T` is invariant,
+        // just in case that it's unsound for lifetimes to be co/contravariant.
+        _private: PhantomData<fn(T, IntRepr) -> (T, IntRepr)>,
     }
 
     impl<T, IntRepr: Debug> Debug for IsContiguous<T, IntRepr> {
@@ -147,7 +149,7 @@ pub(crate) mod is_contiguous {
     }
 
     impl<T, IntRepr> IsContiguous<T, IntRepr> {
-        const __PHANTOM__: PhantomData<fn() -> (T, IntRepr)> = PhantomData;
+        const __PHANTOM__: PhantomData<fn(T, IntRepr) -> (T, IntRepr)> = PhantomData;
 
         /// Constructs an `IsContiguous` without checking that `T` implements
         /// [`Contiguous<Int = IntRepr>`](bytemuck::Contiguous)

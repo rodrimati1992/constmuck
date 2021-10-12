@@ -21,12 +21,6 @@ pub(crate) union PtrToRef<'a, P: ?Sized> {
 }
 
 #[repr(C)]
-pub union BytesAndVal<T, const N: usize> {
-    pub(crate) bytes: [u8; N],
-    pub(crate) value: ManuallyDrop<T>,
-}
-
-#[repr(C)]
 pub union ManuallyDropAsInner<'a, T> {
     pub(crate) outer: &'a ManuallyDrop<T>,
     pub(crate) inner: &'a T,
