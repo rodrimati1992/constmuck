@@ -1,4 +1,7 @@
-use core::marker::PhantomData;
+use core::{
+    fmt::{self, Debug},
+    marker::PhantomData,
+};
 
 use bytemuck::Zeroable;
 
@@ -55,6 +58,12 @@ mod __ {
     /// Related: the [`zeroed`] and [`zeroed_array`] functions.
     pub struct IsZeroable<T> {
         _private: PhantomData<fn() -> T>,
+    }
+
+    impl<T> Debug for IsZeroable<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("IsZeroable")
+        }
     }
 
     impl<T> Copy for IsZeroable<T> {}

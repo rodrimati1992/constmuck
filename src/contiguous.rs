@@ -90,7 +90,10 @@ macro_rules! IsContiguous {
 
 use bytemuck::Contiguous;
 
-use core::marker::PhantomData;
+use core::{
+    fmt::{self, Debug},
+    marker::PhantomData,
+};
 
 #[doc(no_inline)]
 pub use crate::IsContiguous;
@@ -109,6 +112,15 @@ pub(crate) mod is_contiguous {
         pub(super) min_value: IntRepr,
         pub(super) max_value: IntRepr,
         _private: PhantomData<fn() -> (T, IntRepr)>,
+    }
+
+    impl<T, IntRepr: Debug> Debug for IsContiguous<T, IntRepr> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("IsContiguous")
+                .field("min_value", &self.min_value)
+                .field("max_value", &self.max_value)
+                .finish()
+        }
     }
 
     impl<T, IntRepr: Copy> Copy for IsContiguous<T, IntRepr> {}
@@ -466,4 +478,5 @@ declare_from_integer_fns! {
 ///
 /// ```
 ///
+#[allow(missing_debug_implementations)]
 pub struct FromInteger<T, IntRepr>(pub IntRepr, pub IsContiguous<T, IntRepr>);

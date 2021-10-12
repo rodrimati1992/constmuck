@@ -66,6 +66,8 @@
 //!
 use bytemuck::TransparentWrapper;
 
+use core::fmt::{self, Debug};
+
 use crate::Infer;
 
 #[doc(no_inline)]
@@ -207,6 +209,12 @@ pub(crate) mod is_tw {
     pub struct IsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
         #[doc(hidden)]
         pub _transparent_wrapper_proof: constmuck_internal::TransparentWrapperProof<Outer, Inner>,
+    }
+
+    impl<Outer: ?Sized, Inner: ?Sized> Debug for IsTransparentWrapper<Outer, Inner> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("IsTransparentWrapper")
+        }
     }
 
     impl<Outer: ?Sized, Inner: ?Sized> Copy for IsTransparentWrapper<Outer, Inner> {}

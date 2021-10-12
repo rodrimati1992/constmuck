@@ -1,4 +1,5 @@
 use core::{
+    fmt::{self, Debug},
     marker::PhantomData,
     mem::{self, ManuallyDrop},
 };
@@ -43,11 +44,12 @@ macro_rules! TypeSize {
         $crate::TypeSize::<$ty, _, { $crate::__::size_of::<$ty>() }>::__13878307735224946849NEW__
     };
     ($ty:ty, $bounds:ty $(,)*) => {
+        #[rustfmt::skip]
         $crate::TypeSize::<
-                                                            $ty,
-                                                            $bounds,
-                                                            { $crate::__::size_of::<$ty>() }
-                                                        >::__13878307735224946849NEW__
+            $ty,
+            $bounds,
+            { $crate::__::size_of::<$ty>() }
+        >::__13878307735224946849NEW__
     };
 }
 
@@ -133,6 +135,14 @@ macro_rules! map_bound {
 pub struct TypeSize<T, B, const SIZE: usize> {
     bounds: ManuallyDrop<B>,
     _private: PhantomData<T>,
+}
+
+impl<T, B: Debug, const SIZE: usize> Debug for TypeSize<T, B, SIZE> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TypeSize")
+            .field("bounds", &self.bounds)
+            .finish()
+    }
 }
 
 impl<T, B: Copy, const SIZE: usize> Copy for TypeSize<T, B, SIZE> {}

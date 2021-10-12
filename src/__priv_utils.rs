@@ -1,3 +1,5 @@
+#![allow(missing_debug_implementations)]
+
 use core::mem::ManuallyDrop;
 
 #[repr(C)]

@@ -183,6 +183,9 @@
 //! [`wrapper`]: ./wrapper/index.html
 
 #![no_std]
+#![deny(unused_results)]
+#![deny(clippy::missing_safety_doc)]
+#![deny(missing_debug_implementations)]
 
 #[macro_use]
 mod macros;

@@ -4,7 +4,11 @@
 //! and [`TypeSize`](macro@crate::TypeSize) macro.
 #![allow(deprecated)]
 
-use core::{marker::PhantomData, mem::MaybeUninit};
+use core::{
+    fmt::{self, Debug},
+    marker::PhantomData,
+    mem::MaybeUninit,
+};
 
 use crate::TypeSize;
 
@@ -74,6 +78,12 @@ pub(crate) mod is_copy {
     /// [`Pod`]: bytemuck::Pod
     pub struct IsCopy<T> {
         _private: PhantomData<fn() -> T>,
+    }
+
+    impl<T> Debug for IsCopy<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("IsCopy")
+        }
     }
 
     impl<T> Copy for IsCopy<T> {}

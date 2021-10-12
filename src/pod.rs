@@ -1,4 +1,8 @@
-use core::{marker::PhantomData, mem};
+use core::{
+    fmt::{self, Debug},
+    marker::PhantomData,
+    mem,
+};
 
 use bytemuck::{Pod, PodCastError};
 
@@ -77,6 +81,12 @@ mod __ {
         pub is_copy: IsCopy<T>,
         pub is_zeroable: IsZeroable<T>,
         _private: PhantomData<fn() -> T>,
+    }
+
+    impl<T> Debug for IsPod<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("IsPod")
+        }
     }
 
     impl<T> Copy for IsPod<T> {}
