@@ -59,8 +59,9 @@
 ///
 /// use std::num::Wrapping;
 ///
-/// const fn requires_2_bounds<T, U>(_bounds: (IsPod<T>, IsTransparentWrapper<U, T>)) {}
-/// requires_2_bounds::<u32, Wrapping<u32>>(infer!());
+/// const fn requires_2_bounds<O, I>(_bounds: (IsPod<I>, IsTransparentWrapper<O, I>)) {}
+///
+/// requires_2_bounds::<Wrapping<u32>, u32>(infer!());
 ///
 /// // the same as the above call
 /// requires_2_bounds(infer!((IsPod<u32>, IsTransparentWrapper<Wrapping<u32>, u32>)));
@@ -81,26 +82,29 @@ macro_rules! infer {
 /// For constructing `Is*` types (values that represent trait bounds),
 /// and tuples of them.
 ///
-/// For a more concise way to write to `Infer::INFER`, there's the [`infer`] macro.
+/// For a more concise way to write [`Infer::INFER`], there's the [`infer`] macro.
 ///
 /// # Example
 ///
+/// ### Basic
+///
+/// This example demonstrates how you can use the `INFER` associated constant
+/// instead of using the [`infer`] macro.
+///
 /// ```rust
-/// use constmuck::cast;
-/// use constmuck::{Infer, IsPod, IsTransparentWrapper};
+/// use constmuck::{cast, wrapper};
+/// use constmuck::{Infer};
 ///
 /// use std::num::Wrapping;
 ///
-/// const ARR: [i8; 3] = cast([3u8, 5, u8::MAX - 1], Infer::INFER);
-/// assert_eq!(ARR, [3, 5, -2]);
-///
-/// const fn requires_pod<T>(_bounds: IsPod<T>) {}
-/// requires_pod::<u32>(Infer::INFER);
-///
-/// const fn requires_2_bounds<T, U>(_bounds: (IsPod<T>, IsTransparentWrapper<U, T>)) {}
-/// requires_2_bounds::<u32, Wrapping<u32>>(Infer::INFER);
+/// const FOO: [i8; 3] = cast([3u8, 5, u8::MAX - 1], Infer::INFER);
+/// assert_eq!(FOO, [3, 5, -2]);
+///  
+/// const BAR: &[Wrapping<i8>] = wrapper::wrap_slice(&[13, 21, 34], Infer::INFER);
+/// assert_eq!(BAR, &[Wrapping(13), Wrapping(21), Wrapping(34)]);
 ///  
 /// ```
+///  
 pub trait Infer: Sized + Copy {
     /// Constructs this type.
     const INFER: Self;

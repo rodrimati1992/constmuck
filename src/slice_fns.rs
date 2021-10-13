@@ -6,6 +6,8 @@ use crate::{IsCopy, IsPod, TypeSize};
 
 /// Casts `&T` to `&[u8; SIZE]`
 ///
+/// Requires `T` to implement [`Pod`](trait@bytemuck::Pod).
+///
 /// `SIZE` is guaranteed to be the size of `T` by the `TypeSize` argument.
 ///
 /// # Example
@@ -40,6 +42,8 @@ pub(crate) const unsafe fn maybe_uninit_bytes_of<T, const SIZE: usize>(
 }
 
 /// Casts `&[T]` to `&[U]`
+///
+/// Requires both `T` and `U` to implement [`Pod`](trait@bytemuck::Pod).
 ///
 /// # Panics
 ///
@@ -82,13 +86,15 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &
 
 /// Tries to cast `&[T]` to `&[U]`
 ///
-/// Requires both `T` and `U` to implement `Pod`.
+/// Requires both `T` and `U` to implement [`Pod`](trait@bytemuck::Pod).
 ///
 /// # Errors
 ///
 /// This function returns errors in these cases:
 /// - The alignment of `T` is larger than `U`, returning a
 /// `Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)`.
+/// <br>(using this instead of `PodCastError::AlignmentMismatch` because that
+/// is not returned by [`bytemuck::try_cast_slice`])
 ///
 /// - The size of `T` is not equal to `U`, returning a `Err(PodCastError::SizeMismatch)`.
 ///

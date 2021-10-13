@@ -12,8 +12,8 @@ use core::{
 
 use crate::TypeSize;
 
-/// Constructs an [`IsCopy`](struct@crate::IsCopy),
-/// requires [`$T: Pod`](trait@bytemuck::Pod) for reasons explained in the
+/// Constructs an [`IsCopy<$T>`](struct@crate::IsCopy),
+/// requires `$T:`[`Pod`](trait@bytemuck::Pod) for reasons explained in the
 /// [bound](struct@crate::IsCopy#bound) section.
 ///
 /// This has an optional type argument (`$T`) that defaults to
@@ -34,14 +34,14 @@ use crate::TypeSize;
 ///
 /// const FOO: IsCopy<u32> = IsCopy!();
 /// assert_eq!(copying::copy(&100u32, TypeSize!(u32).with_bounds(FOO)), 100);
-/// // alternatively, the typical way to call `copying::copy`.
+/// // the typical way to call `copying::copy`.
 /// assert_eq!(copying::copy(&100u32, TypeSize!(u32)), 100);
 ///
 ///
 /// const BAR: IsCopy<[u8; 4]> = IsCopy!([u8; 4]);
 /// let arr = [3, 5, 8, 13];
 /// assert_eq!(copying::copy(&arr, TypeSize!([u8; 4]).with_bounds(BAR)), arr);
-/// // alternatively, the typical way to call `copying::copy`.
+/// // the typical way to call `copying::copy`.
 /// assert_eq!(copying::copy(&arr, TypeSize!([u8; 4])), arr);
 ///
 ///
@@ -59,8 +59,7 @@ macro_rules! IsCopy {
 pub(crate) mod is_copy {
     use super::*;
 
-    /// Encodes that a `T` is trivially copyable,
-    /// avoiding requiring (unstable as of 2021) trait bounds in `const fn`s.
+    /// Encodes that a `T` is trivially copyable.
     ///
     /// Related: the [`copying`](crate::copying) module
     ///
@@ -75,7 +74,7 @@ pub(crate) mod is_copy {
     /// If there's a more permissive bound that allows more non-pointer-containing
     /// `Copy` types, `IsCopy` will be changed to use that.
     ///
-    /// [`Pod`]: bytemuck::Pod
+    /// [`Pod`]: trait@bytemuck::Pod
     pub struct IsCopy<T> {
         // The lifetime of `T` is invariant,
         // just in case that it's unsound for lifetimes to be co/contravariant.
@@ -119,7 +118,11 @@ pub(crate) mod is_copy {
         /// You must ensure that `T` is safe to `memcpy` without forgetting the
         /// copied-from value, and doesn't contain pointers of any kind.
         ///
-        /// [`Pod`]: bytemuck::Pod
+        /// The "no pointers" requirement is due to how [`constmuck::copying`]
+        /// copies values, and might be lifted in the future.
+        ///
+        /// [`Pod`]: trait@bytemuck::Pod
+        /// [`constmuck::copying`]: crate::copying
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
             Self::__NEW_UNCHECKED__

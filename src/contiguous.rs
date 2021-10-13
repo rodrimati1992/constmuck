@@ -1,7 +1,7 @@
 //! Functions for converting types that implement [`Contiguous`]
 //! into and from their integer representation.
 //!
-//! Related: the [`IsContiguous`](struct@crate::IsContiguous) type.
+//! Related: the [`IsContiguous`](struct@IsContiguous) type.
 //!
 //! # Example
 //!
@@ -48,8 +48,8 @@
 //! ```
 //!
 
-/// Constructs an [`IsContiguous<$T, $IntRepr>`](struct@crate::IsContiguous),
-/// requiring that `$T` implements [`Contiguous`](trait@bytemuck::Contiguous).
+/// Constructs an [`IsContiguous<$T, $IntRepr>`](struct@IsContiguous),
+/// requires `$T:`[`Contiguous`](trait@bytemuck::Contiguous)`<Int = $IntRepr>`.
 ///
 /// This has two optional type arguments (`$T` and `$IntRepr`) that default to
 /// infering the type if not passed.
@@ -101,8 +101,7 @@ pub use crate::IsContiguous;
 pub(crate) mod is_contiguous {
     use super::*;
 
-    /// Encodes a `T:`[`Contiguous`] bound as a value,
-    /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
+    /// Encodes a `T:`[`Contiguous`](trait@Contiguous)`<Int = IntRepr>` bound as a value.
     ///
     /// This also stores the [minimum](Self::min_value) and [maximum](Self::max_value)
     /// values of the integer represetantion.
@@ -140,7 +139,8 @@ pub(crate) mod is_contiguous {
     impl<T: Contiguous> IsContiguous<T, T::Int> {
         /// Constructs an `IsContiguous`
         ///
-        /// You can also use the [`infer`] macro to construct `IsContiguous` arguments.
+        /// You can also use the [`IsContiguous`](macro@IsContiguous) or [`infer`] macros
+        /// to construct `IsContiguous` arguments.
         pub const NEW: Self = Self {
             min_value: T::MIN_VALUE,
             max_value: T::MAX_VALUE,
@@ -245,7 +245,7 @@ impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
 ///
 /// # By-reference `IsContiguous` argument
 ///
-/// This takes an [`IsContiguous`](struct@crate::IsContiguous)
+/// This takes an [`IsContiguous`](struct@IsContiguous)
 /// by reference, to allow calling this function in a
 /// function generic over the integer representation
 /// (eg: `const fn foo<T, I>(bound: &IsContiguous<T, I>, `)
@@ -356,6 +356,8 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: &IsContiguous<T, IntRep
 /// const DOWN: Option<Direction> = contiguous::from_u8(11, IsContiguous!());
 /// assert_eq!(DOWN, Some(Direction::Down));
 ///
+/// // Passing the `Direction` type argument is required,
+/// // since any type can `ìmpl PartialEq<Foo> for Direction`.
 /// let left = contiguous::from_u8(12, IsContiguous!(Direction));
 /// assert_eq!(left, Some(Direction::Left));
 ///

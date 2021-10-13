@@ -46,8 +46,8 @@ impl<L: ?Sized, R: ?Sized> CheckSameSize<L, R> {
 
 #[macro_export]
 macro_rules! wrapper_inner {
-    ($inner:expr, $is_wrapper:expr, $AssertTWP:ident, $tw_field:ident) => {
-        match ($inner, $is_wrapper) {
+    ($reff:expr, $is_tw:expr, $AssertTWP:ident, $tw_field:ident) => {
+        match ($reff, $is_tw) {
             (inner, is_wrapper) => {
                 let ass = $crate::$AssertTWP(
                     inner,
@@ -74,15 +74,15 @@ macro_rules! wrapper_inner {
 
 #[macro_export]
 macro_rules! wrapper_wrap_ref {
-    ($inner:expr, $is_wrapper:expr $(,)*) => {
-        $crate::wrapper_inner!($inner, $is_wrapper, AssertTWPInner, from_inner)
+    ($reff:expr, $is_tw:expr $(,)*) => {
+        $crate::wrapper_inner!($reff, $is_tw, AssertTWPInner, from_inner)
     };
 }
 
 #[macro_export]
 macro_rules! wrapper_peel_ref {
-    ($outer:expr, $is_wrapper:expr $(,)*) => {
-        $crate::wrapper_inner!($outer, $is_wrapper, AssertTWPOuter, into_inner)
+    ($reff:expr, $is_tw:expr $(,)*) => {
+        $crate::wrapper_inner!($reff, $is_tw, AssertTWPOuter, into_inner)
     };
 }
 

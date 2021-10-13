@@ -1,12 +1,15 @@
 //! Const equivalents of many [`bytemuck`] functions,
-//! and a few additional const functions.
+//! and additional functionality.
 //!
 //! `constmuck` uses `bytemuck`'s traits,
-//! so any type that implements those traits can be used with the
+//! any type that implements those traits can be used with the
 //! relevant functions from this crate.
 //!
 //! The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
 //! each one describes how it's different.
+//!
+//! This crate avoids requiring (unstable as of 2021) trait bounds in `const fn`s
+//! by using marker types to require that a trait is implemented.
 //!
 //! # Examples
 //!
@@ -185,6 +188,8 @@
 #![deny(unused_results)]
 #![deny(clippy::missing_safety_doc)]
 #![deny(missing_debug_implementations)]
+#![deny(missing_docs)]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 #[macro_use]
 mod macros;

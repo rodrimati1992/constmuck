@@ -1,4 +1,5 @@
-//! Functions for wrapping/peeling types that implement [`TransparentWrapper`]
+//! Functions for wrapping/peeling types that implement
+//! [`TransparentWrapper`](trait@TransparentWrapper).
 //!
 //! Related: [`IsTransparentWrapper`](crate::IsTransparentWrapper) type and
 //! [IsTW](crate::IsTW) macro.
@@ -18,35 +19,38 @@
 //!
 //! // `[u8; 3]` to `[Foo<u8>; 3]`
 //! {
-//!     const ARR: [Foo<u8>; 3] = wrapper::wrap([3, 5, 8], IsTW!().array());
+//1     // Transmute `[u8; 3]` to `[Foo<u8>; 3]`
+//1     //
+//1     // The `.array()` is currently required to cast arrays of values into arrays of
+//1     // wrappers around those values.
+//!     const ARR: [Foo<u8>; 3] = wrapper::wrap([3, 5, 8], IsTW!(Foo<u8>, u8).array());
 //!
 //!     assert_eq!(ARR, [Foo(3), Foo(5), Foo(8)]);
 //!     // How to use `wrap` without relying on return type inference:
-//!     // `IsTW!(Foo<_>)` is required because any type can implement comparison with `Foo`.
 //!     assert_eq!(
-//!         wrapper::wrap([13, 21, 34], IsTW!(Foo<_>).array()),
+//!         wrapper::wrap([13, 21, 34], IsTW!(Foo<u8>, u8).array()),
 //!         [Foo(13), Foo(21), Foo(34)],
 //!     );
 //! }
 //!
 //! // `[Foo<u8>; 3]` to `[u8; 3]`
 //! {
-//!     const ARR: [u8; 3] = wrapper::peel([Foo(3), Foo(5), Foo(8)], IsTW!().array());
+//!     const ARR: [u8; 3] = wrapper::peel([Foo(3), Foo(5), Foo(8)], IsTW!(Foo<u8>, u8).array());
 //!
 //!     assert_eq!(ARR, [3, 5, 8]);
 //!     assert_eq!(
-//!         wrapper::peel([Foo(13), Foo(21), Foo(34)], IsTW!(Foo<_>).array()),
+//!         wrapper::peel([Foo(13), Foo(21), Foo(34)], IsTW!(Foo<u16>, u16).array()),
 //!         [13, 21, 34],
 //!     );
 //! }
 //!
 //! // `&[u8; 3]` to `&[Foo<u8>; 3]`
 //! {
-//!     const REF_ARR: &[Foo<u8>; 3] = wrapper::wrap_ref(&[3, 5, 8], IsTW!().array());
+//!     const REF_ARR: &[Foo<u8>; 3] = wrapper::wrap_ref(&[3, 5, 8], IsTW!(Foo<u8>, u8).array());
 //!
 //!     assert_eq!(REF_ARR, &[Foo(3), Foo(5), Foo(8)]);
 //!     assert_eq!(
-//!         wrapper::wrap_ref(&[13, 21, 34], IsTW!(Foo<_>).array()),
+//!         wrapper::wrap_ref(&[13, 21, 34], IsTW!(Foo<i32>, i32).array()),
 //!         &[Foo(13), Foo(21), Foo(34)],
 //!     );    
 //! }
@@ -106,13 +110,13 @@ pub use crate::IsTW;
 ///     
 ///     // Transmute `[u8; 3]` to `[Foo<u8>; 3]`
 ///     //
-///     // The `.array()` is required to cast arrays of values into arrays of
+///     // The `.array()` is currently required to cast arrays of values into arrays of
 ///     // wrappers around those values.
-///     const WRAP_VAL_ARR: [Foo<u8>; 3] = wrapper::wrap([5, 8, 13], IsTW!().array());
+///     const WRAP_VAL_ARR: [Foo<u8>; 3] = wrapper::wrap([5, 8, 13], IsTW!(Foo<u8>, u8).array());
 ///     
 ///     assert_eq!(WRAP_VAL_ARR, [Foo(5), Foo(8), Foo(13)]);
 ///     assert_eq!(
-///         wrapper::wrap([5, 8, 13], IsTW!(Foo<u8>).array()),
+///         wrapper::wrap([5, 8, 13], IsTW!(Foo<u8>, u8).array()),
 ///         [Foo(5), Foo(8), Foo(13)],
 ///     );
 ///     assert_eq!(
@@ -123,11 +127,10 @@ pub use crate::IsTW;
 /// {
 ///     // Transmute `&i8` to `&Foo<i8>`
 ///     const WRAP_REF_ONE: &Foo<i8> = wrapper::wrap_ref(&3, IsTW!());
+///     assert_eq!(WRAP_REF_ONE, &Foo(3));
 ///     
 ///     // Transmute `&[u8; 3]` to `&[Foo<u8>; 3]`
 ///     const WRAP_REF_ARR: &[Foo<u8>; 3] = wrapper::wrap_ref(&[5, 8, 13], IsTW!().array());
-///     
-///     assert_eq!(WRAP_REF_ONE, &Foo(3));
 ///     assert_eq!(WRAP_REF_ARR, &[Foo(5), Foo(8), Foo(13)]);
 /// }
 /// {
@@ -137,6 +140,8 @@ pub use crate::IsTW;
 ///     assert_eq!(WRAP_SLICE, &[Foo(21), Foo(34), Foo(55)]);
 /// }
 /// ```
+///
+/// [`TransparentWrapper`]: trait@TransparentWrapper
 #[macro_export]
 macro_rules! IsTW {
     () => {
@@ -188,23 +193,28 @@ pub(crate) mod is_tw {
     /// {
     ///     // Casting from `[u64; 2]` to `[This<u64>; 2]`
     ///     //
-    ///     // The `.array()` is required to cast arrays of values into arrays of
+    ///     // The `.array()` is currently required to cast arrays of values into arrays of
     ///     // wrappers around those values.
-    ///     const WRAPPED_ARR: [This<u64>; 2] = wrapper::wrap([9, 99], IsTW!().array());
+    ///     const WRAPPED_ARR: [This<u64>; 2] =
+    ///         wrapper::wrap([9, 99], IsTW!(This<u64>, u64).array());
+    ///
     ///     assert_eq!(WRAPPED_ARR, [This(9), This(99)]);
     /// }
     ///
     /// {
     ///     // Casting from `[This<i8>; 2]` to `[i8; 2]`
     ///     //
-    ///     // `.array()` also allows casting arrays of wrappers into
+    ///     // `.array()` allows casting arrays of wrappers into
     ///     // arrays of the values inside those wrappers, using the `peel*` functions.
     ///     const UNWRAPPED_ARR: [i8; 2] =
-    ///         wrapper::peel([This(2), This(22)], IsTW!().array());
+    ///         wrapper::peel([This(2), This(22)], IsTW!(This<i8>, i8).array());
+    ///
     ///     assert_eq!(UNWRAPPED_ARR, [2, 22]);
     /// }
     ///
     /// ```
+    ///
+    /// [`TransparentWrapper`]: trait@TransparentWrapper
     #[non_exhaustive]
     pub struct IsTransparentWrapper<Outer: ?Sized, Inner: ?Sized> {
         #[doc(hidden)]
@@ -307,12 +317,12 @@ pub(crate) mod is_tw {
         ///
         /// const FOO: IsTransparentWrapper<Bar<u32>, u32> = IsTW!().join(IsTW!());
         ///
-        /// // Equivalent to FOO, but passing the types to `IsTW`.
-        /// // Only the innermost joined IsTransparentWrapper requires you
-        /// // to pass both arguments to `IsTW`.
-        /// let foo = IsTW!(Bar<u32>).join(IsTW!(Wrapping<u32>, u32));
+        /// // Equivalent to FOO, but passing the types explicitly to `IsTW`.
+        /// // Only the last joined `IsTW!(` needs to be passed the `$Inner` argument.
+        /// let foo = IsTW!(Bar<_>).join(IsTW!(Wrapping<u32>, u32));
         ///
         /// assert_eq!(wrapper::wrap_ref(&5, FOO), &Bar(Wrapping(5)));
+        ///
         /// assert_eq!(wrapper::wrap_ref(&8, foo), &Bar(Wrapping(8)));
         ///
         /// assert_eq!(
@@ -354,7 +364,7 @@ pub(crate) mod is_tw {
         ///     // Casting from `[u32; 5]` to `[Xyz<u32>; 5]`
         ///     const ARR: [Xyz<u32>; 5] = wrapper::wrap(
         ///         [3, 5, 13, 34, 89],
-        ///         IsTW!().array(),
+        ///         IsTW!(Xyz<u32>, u32).array(),
         ///     );
         ///    
         ///     assert_eq!(ARR, [Xyz(3), Xyz(5), Xyz(13), Xyz(34), Xyz(89)]);
@@ -364,7 +374,7 @@ pub(crate) mod is_tw {
         ///     // Casting from `[Xyz<u32>; 5]` to `[u32; 5]`
         ///     const ARR: [u32; 5] = wrapper::peel(
         ///         [Xyz(3), Xyz(5), Xyz(13), Xyz(34), Xyz(89)],
-        ///         IsTW!().array::<5>(),
+        ///         IsTW!(Xyz<u32>, u32).array::<5>(),
         ///     );
         ///    
         ///     assert_eq!(ARR, [3, 5, 13, 34, 89]);
@@ -422,9 +432,9 @@ where
 ///
 /// // Casting `[u32; 3]` to `[Qux<u32>; 3]`
 /// //
-/// // The `.array()` is required to cast arrays of values into arrays of
+/// // The `.array()` is currently required to cast arrays of values into arrays of
 /// // wrappers around those values.
-/// const ARR: [Qux<u32>; 3] = wrapper::wrap([5, 8, 13], IsTW!().array());
+/// const ARR: [Qux<u32>; 3] = wrapper::wrap([5, 8, 13], IsTW!(Qux<u32>, u32).array());
 ///
 /// assert_eq!(ARR, [Qux(5), Qux(8), Qux(13)]);
 ///
@@ -578,7 +588,7 @@ pub const fn wrap_slice<Outer, Inner>(
 ///
 /// // `IsTW!()` is a more concise way to write `IsTransparentWrapper::NEW`
 /// const VALUE: u32 = wrapper::peel(Wrapping(3), IsTW!());
-///
+/// assert_eq!(VALUE, 3);
 ///
 /// // Casting `[Wrapping<u32>; 3]` to `[u32; 3]`
 /// //
@@ -586,10 +596,8 @@ pub const fn wrap_slice<Outer, Inner>(
 /// // arrays of the values inside those wrappers.
 /// const ARR: [u32; 3] = wrapper::peel(
 ///     [Wrapping(5), Wrapping(8), Wrapping(13)],
-///     IsTW!().array(),
+///     IsTW!(Wrapping<u32>, u32).array(),
 /// );
-///
-/// assert_eq!(VALUE, 3);
 /// assert_eq!(ARR, [5, 8, 13]);
 ///
 /// ```

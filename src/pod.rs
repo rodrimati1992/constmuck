@@ -9,7 +9,7 @@ use bytemuck::{Pod, PodCastError};
 use crate::{IsCopy, IsZeroable};
 
 /// Constructs an [`IsPod<$T>`](struct@crate::IsPod),
-/// requiring that `$T` implements [`Pod`].
+/// requires `$T:`[`Pod`](trait@Pod).
 ///
 /// This has an optional type argument (`$T`) that defaults to
 /// infering the type if not passed.
@@ -17,14 +17,17 @@ use crate::{IsCopy, IsZeroable};
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{IsPod, cast};
+/// use constmuck::{IsPod, cast, infer};
 ///
 /// // transmuting `i16` to `u16`
 /// const FOO: u16 = cast(-1i16, (IsPod!(), IsPod!()));
 /// const BAR: u16 = cast(-1, (IsPod!(i16), IsPod!(u16)));
-///    
+/// // A more concise way to call `constmuck::cast` when the types are inferred.
+/// const BAZ: u16 = cast(-1, infer!());
+///
 /// assert_eq!(FOO, u16::MAX);
 /// assert_eq!(BAR, u16::MAX);
+/// assert_eq!(BAZ, u16::MAX);
 ///
 /// ```
 #[macro_export]
@@ -40,8 +43,7 @@ macro_rules! IsPod {
 mod __ {
     use super::*;
 
-    /// Encodes a `T:`[`Pod`] bound as a value,
-    /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
+    /// Encodes a `T:`[`Pod`](trait@Pod) bound as a value.
     ///
     /// # Example
     ///
@@ -78,9 +80,9 @@ mod __ {
     ///
     /// ```
     pub struct IsPod<T> {
-        /// All types that are `Pod` are `Copy`
+        /// All types that are [`Pod`](trait@Pod) are [`Copy`]
         pub is_copy: IsCopy<T>,
-        /// All types that are `Pod` are `Zeroable`
+        /// All types that are [`Pod`](trait@Pod) are [`Zeroable`](trait@bytemuck::Zeroable)
         pub is_zeroable: IsZeroable<T>,
         // The lifetime of `T` is invariant,
         // just in case that it's unsound for lifetimes to be co/contravariant.
@@ -104,8 +106,8 @@ mod __ {
     impl<T: Pod> IsPod<T> {
         /// Constructs an `IsPod`.
         ///
-        /// You can also use the [`IsPod`](macro@crate::IsPod)
-        /// macro to construct `IsPod` arguments.
+        /// You can also use the [`IsPod`](macro@crate::IsPod) or [`ìnfer`](macro@crate::infer)
+        /// macros to construct `IsPod` arguments.
         pub const NEW: Self = Self {
             is_copy: IsCopy::NEW,
             is_zeroable: IsZeroable::NEW,
@@ -122,7 +124,7 @@ mod __ {
             }
         };
 
-        /// Constructs an `IsPod<T>` without checking that `T` implements [`Pod`].
+        /// Constructs an `IsPod<T>` without checking that `T` implements [`Pod`](trait@Pod).
         ///
         /// # Safety
         ///
@@ -154,7 +156,7 @@ impl<T: Pod> crate::Infer for IsPod<T> {
 
 /// Casts `T` into `U`
 ///
-/// Requires both `T` and `U` to implement [`Pod`].
+/// Requires both `T` and `U` to implement [`Pod`](trait@Pod).
 ///
 /// # Panics
 ///
@@ -183,7 +185,7 @@ pub const fn cast<T, U>(from: T, _bounds: (IsPod<T>, IsPod<U>)) -> U {
 
 /// Tries to cast `T` into `U`
 ///
-/// Requires both `T` and `U` to implement [`Pod`].
+/// Requires both `T` and `U` to implement [`Pod`](trait@Pod).
 ///
 /// # Errors
 ///
@@ -220,7 +222,7 @@ pub const fn try_cast<T, U>(
 
 /// Cast a `&T` to `&U`
 ///
-/// Requires both `T` and `U` to implement [`Pod`].
+/// Requires both `T` and `U` to implement [`Pod`](trait@Pod).
 ///
 /// # Panics
 ///
@@ -231,8 +233,8 @@ pub const fn try_cast<T, U>(
 /// # Difference with `bytemuck`
 ///
 /// This function requires `T` to have an alignment larger or equal to `U`,
-/// while [`bytemuck::cast_ref`] only requires `from` to happen to be aligned
-/// to `U`.
+/// while [`bytemuck::cast_ref`] only requires the `from` reference
+/// to happen to be aligned to `U`.
 ///
 /// # Example
 ///
@@ -261,13 +263,15 @@ pub const fn cast_ref_alt<T, U>(from: &T, bounds: (IsPod<T>, IsPod<U>)) -> &U {
 
 /// Tries to cast `&T` to `&U`
 ///
-/// Requires both `T` and `U` to implement [`Pod`].
+/// Requires both `T` and `U` to implement [`Pod`](trait@Pod).
 ///
 /// # Errors
 ///
 /// This function returns errors in these cases:
 /// - The alignment of `T` is larger than `U`, returning a
 /// `Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)`.
+/// <br>(using this instead of `PodCastError::AlignmentMismatch` because that
+/// is not returned by [`bytemuck::try_cast_ref`])
 ///
 /// - The size of `T` is not equal to `U`, returning a
 /// `Err(PodCastError::SizeMismatch)`.
@@ -275,8 +279,8 @@ pub const fn cast_ref_alt<T, U>(from: &T, bounds: (IsPod<T>, IsPod<U>)) -> &U {
 /// # Difference with `bytemuck`
 ///
 /// This function requires `T` to have an alignment larger or equal to `U`,
-/// while [`bytemuck::try_cast_ref`] only requires `from` to happen to be aligned
-/// to `U`.
+/// while [`bytemuck::try_cast_ref`] only requires the `from` reference
+/// to happen to be aligned to `U`.
 ///
 /// # Example
 ///

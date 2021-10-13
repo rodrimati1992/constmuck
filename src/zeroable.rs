@@ -8,7 +8,7 @@ use bytemuck::Zeroable;
 use crate::TypeSize;
 
 /// Constructs an [`IsZeroable<$T>`](struct@crate::IsZeroable),
-/// requires [`$T: Zeroable`](trait@bytemuck::Zeroable).
+/// requires `$T:`[`Zeroable`].
 ///
 /// This has an optional type argument (`$T`) that defaults to
 /// infering the type if not passed.
@@ -37,8 +37,9 @@ use crate::TypeSize;
 /// // alternatively, the typical way to call `constmuck::zeroed_array`.
 /// assert_eq!(constmuck::zeroed_array(TypeSize!(u8)), [0u8; 4]);
 ///
-///
 /// ```
+///
+/// [`Zeroable`]: trait@Zeroable
 #[macro_export]
 macro_rules! IsZeroable {
     () => {
@@ -52,10 +53,11 @@ macro_rules! IsZeroable {
 mod __ {
     use super::*;
 
-    /// Encodes a `T:`[`Zeroable`] bound as a value,
-    /// avoids requiring (unstable as of 2021) trait bounds in `const fn`s.
+    /// Encodes a `T:`[`Zeroable`] bound as a value.
     ///
     /// Related: the [`zeroed`] and [`zeroed_array`] functions.
+    ///
+    /// [`Zeroable`]: trait@Zeroable
     pub struct IsZeroable<T> {
         // The lifetime of `T` is invariant,
         // just in case that it's unsound for lifetimes to be co/contravariant.
@@ -96,7 +98,9 @@ mod __ {
         /// # Safety
         ///
         /// You must ensure that `T` follows the
-        /// [safety requirements of `Zeroable`](bytemuck::Zeroable#safety)
+        /// [safety requirements of `Zeroable`](trait@bytemuck::Zeroable#safety)
+        ///
+        /// [`Zeroable`]: trait@Zeroable
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> Self {
             Self::__NEW_UNCHECKED__
@@ -112,7 +116,7 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
 /// Constructs a zero-initialized `T`,
 /// equivalent to [`std::mem::zeroed::<T>()`](core::mem::zeroed).
 ///
-/// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
+/// This function requires that `T` implements [`Zeroable`].
 ///
 /// # Example
 ///
@@ -125,8 +129,9 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
 /// assert_eq!(BYTES, [0, 0, 0, 0]);
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
 ///
-///
 /// ```
+///
+/// [`Zeroable`]: trait@Zeroable
 pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SIZE>) -> T {
     unsafe { __priv_transmute!([u8; SIZE], T, [0; SIZE]) }
 }
@@ -134,7 +139,7 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 /// Constructs a zero-initialized `[T; N]`,
 /// equivalent to [`std::mem::zeroed::<[T; N]>()`](core::mem::zeroed).
 ///
-/// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
+/// This function requires that `T` implements [`Zeroable`].
 ///
 /// To specify the length of the returned array, [`TypeSize::zeroed_array`]
 /// can be used instead.
@@ -155,11 +160,9 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 /// // using `TypeSize::zeroed_array` to pass the length of the returned array.
 /// assert_eq!(TypeSize!(char).zeroed_array::<4>(), ['\0', '\0', '\0', '\0']);
 ///
-///
-///
-///
-///
 /// ```
+///
+/// [`Zeroable`]: trait@Zeroable
 pub const fn zeroed_array<T, const SIZE: usize, const LEN: usize>(
     _bounds: TypeSize<T, IsZeroable<T>, SIZE>,
 ) -> [T; LEN] {

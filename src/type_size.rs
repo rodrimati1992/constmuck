@@ -94,7 +94,7 @@ macro_rules! map_bound {
     }};
 }
 
-/// For passing a type along with its size, constructible with the [`TypeSize`] macro.
+/// For passing a type along with its size and additional bounds.
 ///
 /// The `B` (bounds) type parameter can be any type that implements [`Infer`],
 /// and is implicitly constructed by the [`TypeSize`] macro.
@@ -107,12 +107,12 @@ macro_rules! map_bound {
 /// use constmuck::{IsPod, TypeSize};
 ///
 /// pub const fn max_bit_pattern<T, const SIZE: usize>(bound: TypeSize<T, IsPod<T>, SIZE>) -> T {
-///     constmuck::cast::<[u8; SIZE], T>(
+///     constmuck::cast(
 ///         [u8::MAX; SIZE],
 ///         // `IsPod!()` here constructs an `IsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.bounds()` here returns a `&IsPod<T>`.
-///         (IsPod!(), *bound.bounds())
+///         // `bound.into_bounds()` here returns a `IsPod<T>`.
+///         (IsPod!(), bound.into_bounds())
 ///     )
 /// }
 ///
