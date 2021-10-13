@@ -10,7 +10,7 @@ use crate::TypeSize;
 /// Constructs an [`IsZeroable<$T>`](struct@crate::IsZeroable),
 /// requires [`$T: Zeroable`](trait@bytemuck::Zeroable).
 ///
-/// This has an optional type argument (`$T`) that default to
+/// This has an optional type argument (`$T`) that defaults to
 /// infering the type if not passed.
 ///
 /// This macro is defined for completeness' sake,
@@ -109,7 +109,8 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
     const INFER: Self = Self::NEW;
 }
 
-/// For safely getting a [`std::mem::zeroed`](core::mem::zeroed) `T`.
+/// Constructs a zero-initialized `T`,
+/// equivalent to [`std::mem::zeroed::<T>()`](core::mem::zeroed).
 ///
 /// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
 ///
@@ -130,7 +131,8 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
     unsafe { __priv_transmute!([u8; SIZE], T, [0; SIZE]) }
 }
 
-/// For safely getting a [`std::mem::zeroed`](core::mem::zeroed) `[T; N]`.
+/// Constructs a zero-initialized `[T; N]`,
+/// equivalent to [`std::mem::zeroed::<[T; N]>()`](core::mem::zeroed).
 ///
 /// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
 ///

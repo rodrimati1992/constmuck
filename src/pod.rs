@@ -11,7 +11,7 @@ use crate::{IsCopy, IsZeroable};
 /// Constructs an [`IsPod<$T>`](struct@crate::IsPod),
 /// requiring that `$T` implements [`Pod`].
 ///
-/// This has an optional type argument (`$T`) that default to
+/// This has an optional type argument (`$T`) that defaults to
 /// infering the type if not passed.
 ///
 /// # Example
@@ -152,7 +152,7 @@ impl<T: Pod> crate::Infer for IsPod<T> {
     const INFER: Self = Self::NEW;
 }
 
-/// For casting `T` into `U`
+/// Casts `T` into `U`
 ///
 /// Requires both `T` and `U` to implement [`Pod`].
 ///
@@ -181,7 +181,7 @@ pub const fn cast<T, U>(from: T, _bounds: (IsPod<T>, IsPod<U>)) -> U {
     }
 }
 
-/// For casting `T` into `U`
+/// Tries to cast `T` into `U`
 ///
 /// Requires both `T` and `U` to implement [`Pod`].
 ///
@@ -259,7 +259,7 @@ pub const fn cast_ref_alt<T, U>(from: &T, bounds: (IsPod<T>, IsPod<U>)) -> &U {
     }
 }
 
-/// Cast a `&T` to `&U`
+/// Tries to cast `&T` to `&U`
 ///
 /// Requires both `T` and `U` to implement [`Pod`].
 ///

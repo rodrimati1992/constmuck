@@ -80,7 +80,7 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &
     }
 }
 
-/// Casts `&[T]` to `&[U]`
+/// Tries to cast `&[T]` to `&[U]`
 ///
 /// Requires both `T` and `U` to implement `Pod`.
 ///

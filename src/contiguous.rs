@@ -26,9 +26,9 @@
 //! }
 //!
 //! const SIDE_INTS: [u32; 3] = [
-//!     contiguous::into_integer(Side::Front, infer!()),
-//!     contiguous::into_integer(Side::Back, infer!()),
-//!     contiguous::into_integer(Side::Sides, infer!()),
+//!     contiguous::into_integer(Side::Front, &infer!()),
+//!     contiguous::into_integer(Side::Back, &infer!()),
+//!     contiguous::into_integer(Side::Sides, &infer!()),
 //! ];
 //! assert_eq!(SIDE_INTS, [0, 1, 2]);
 //!
@@ -71,7 +71,7 @@
 /// assert_eq!(contiguous::from_u8(0, BAZ), None);
 /// assert_eq!(contiguous::from_u8(1, BAZ), Some(NonZeroU8::new(1).unwrap()));
 ///
-/// assert_eq!(contiguous::into_integer(NonZeroU8::new(1).unwrap(), FOO), 1u8);
+/// assert_eq!(contiguous::into_integer(NonZeroU8::new(1).unwrap(), &FOO), 1u8);
 ///
 ///
 /// ```
@@ -173,8 +173,8 @@ pub(crate) mod is_contiguous {
         /// assert_eq!(contiguous::from_u8(20, ic), Some(Wrapping(20)));
         /// assert_eq!(contiguous::from_u8(21, ic), None);
         ///
-        /// assert_eq!(contiguous::into_integer(Wrapping(11), ic), 11);
-        /// assert_eq!(contiguous::into_integer(Wrapping(15), ic), 15);
+        /// assert_eq!(contiguous::into_integer(Wrapping(11), &ic), 11);
+        /// assert_eq!(contiguous::into_integer(Wrapping(15), &ic), 15);
         ///
         ///
         /// ```
@@ -243,6 +243,19 @@ impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
 ///
 /// Requires that `T` implements [`Contiguous<Int = IntRepr>`](bytemuck::Contiguous)
 ///
+/// # By-reference `IsContiguous` argument
+///
+/// This takes an [`IsContiguous`](struct@crate::IsContiguous)
+/// by reference, to allow calling this function in a
+/// function generic over the integer representation
+/// (eg: `const fn foo<T, I>(bound: &IsContiguous<T, I>, `)
+/// multiple times.
+///
+/// The `constmuck::contiguous::from_*`
+/// functions have a concrete integer representation they deal with,
+/// which means the `IsContiguous` type they take implements `Copy`,
+/// and can be passed by value multiple times.
+///
 /// # Example
 ///
 /// ```
@@ -265,24 +278,22 @@ impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
 /// }
 ///
 ///
-/// const FTB: i8 = contiguous::into_integer(Order::FrontToBack, infer!());
+/// const FTB: i8 = contiguous::into_integer(Order::FrontToBack, &infer!());
 /// assert_eq!(FTB, 10);
 ///
-/// const BTF: i8 = contiguous::into_integer(Order::BackToFront, IsContiguous!());
+/// const BTF: i8 = contiguous::into_integer(Order::BackToFront, &IsContiguous!());
 /// assert_eq!(BTF, 11);
 ///
-/// const RTL: i8 = contiguous::into_integer(Order::RightToLeft, IsContiguous!(Order));
+/// const RTL: i8 = contiguous::into_integer(Order::RightToLeft, &IsContiguous!(Order));
 /// assert_eq!(RTL, 12);
 ///
-/// const LTR: i8 = contiguous::into_integer(Order::LeftToRight, IsContiguous!(Order, i8));
+/// const LTR: i8 = contiguous::into_integer(Order::LeftToRight, &IsContiguous!(Order, i8));
 /// assert_eq!(LTR, 13);
 ///
 /// ```
 ///
 #[inline(always)]
-pub const fn into_integer<T, IntRepr>(value: T, _bounds: IsContiguous<T, IntRepr>) -> IntRepr {
-    core::mem::forget(_bounds);
-
+pub const fn into_integer<T, IntRepr>(value: T, _bounds: &IsContiguous<T, IntRepr>) -> IntRepr {
     unsafe { __priv_transmute!(T, IntRepr, value) }
 }
 
@@ -314,7 +325,7 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: IsContiguous<T, IntRepr
 /// ### Custom type
 ///
 /// ```rust
-/// use constmuck::{Contiguous, contiguous, infer};
+/// use constmuck::{Contiguous, IsContiguous, contiguous, infer};
 ///
 /// #[repr(u8)]
 /// #[derive(Debug, PartialEq, Copy, Clone)]
@@ -342,16 +353,16 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: IsContiguous<T, IntRepr
 /// const UP: Option<Direction> = contiguous::from_u8(10, infer!());
 /// assert_eq!(UP, Some(Direction::Up));
 ///
-/// const DOWN: Option<Direction> = contiguous::from_u8(11, infer!());
+/// const DOWN: Option<Direction> = contiguous::from_u8(11, IsContiguous!());
 /// assert_eq!(DOWN, Some(Direction::Down));
 ///
-/// const LEFT: Option<Direction> = contiguous::from_u8(12, infer!());
-/// assert_eq!(LEFT, Some(Direction::Left));
+/// let left = contiguous::from_u8(12, IsContiguous!(Direction));
+/// assert_eq!(left, Some(Direction::Left));
 ///
-/// const RIGHT: Option<Direction> = contiguous::from_u8(13, infer!());
-/// assert_eq!(RIGHT, Some(Direction::Right));
+/// let right = contiguous::from_u8(13, IsContiguous!(Direction, u8));
+/// assert_eq!(right, Some(Direction::Right));
 ///
-/// const NONE14: Option<Direction> = contiguous::from_u8(14, infer!());
+/// const NONE14: Option<Direction> = contiguous::from_u8(14, IsContiguous!());
 /// assert_eq!(NONE14, None);
 ///
 /// ```

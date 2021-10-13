@@ -44,12 +44,7 @@ macro_rules! TypeSize {
         $crate::TypeSize::<$ty, _, { $crate::__::size_of::<$ty>() }>::__13878307735224946849NEW__
     };
     ($ty:ty, $bounds:ty $(,)*) => {
-        #[rustfmt::skip]
-        $crate::TypeSize::<
-            $ty,
-            $bounds,
-            { $crate::__::size_of::<$ty>() }
-        >::__13878307735224946849NEW__
+        $crate::TypeSize::<$ty, $bounds, {$crate::__::size_of::<$ty>()}>::__13878307735224946849NEW__
     };
 }
 
@@ -169,19 +164,24 @@ impl<T, B: Infer, const SIZE: usize> TypeSize<T, B, SIZE> {
     };
 }
 
-const UNIT_MD: ManuallyDrop<()> = ManuallyDrop::new(());
+impl<T, B, const SIZE: usize> TypeSize<T, B, SIZE> {
+    const __GHOST: PhantomData<fn(T) -> T> = PhantomData;
+}
 
 impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
+    const __UNCHECKED_UNIT: Self = Self {
+        bounds: ManuallyDrop::new(()),
+        _private: PhantomData,
+    };
+
     /// Constructs a bound-less `TypeSize`.
     ///
     /// # Safety
     ///
     /// You must ensure that `std::mem::size_of::<T>()` equals the `SIZE` const argument.
+    #[inline(always)]
     pub const unsafe fn new_unchecked() -> Self {
-        Self {
-            bounds: UNIT_MD,
-            _private: PhantomData,
-        }
+        Self::__UNCHECKED_UNIT
     }
 
     /// Constructs a bound-less `TypeSize`.
@@ -191,10 +191,7 @@ impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
     /// Panics if `std::mem::size_of::<T>()` does not equal the `SIZE` const argument.
     pub const fn new_panicking() -> Self {
         if mem::size_of::<T>() == SIZE {
-            Self {
-                bounds: UNIT_MD,
-                _private: PhantomData,
-            }
+            Self::__UNCHECKED_UNIT
         } else {
             #[allow(non_snake_case)]
             let size_of_T = mem::size_of::<T>();
@@ -241,7 +238,7 @@ impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
     pub const fn with_bounds<B>(self, bounds: B) -> TypeSize<T, B, SIZE> {
         TypeSize {
             bounds: ManuallyDrop::new(bounds),
-            _private: PhantomData,
+            _private: Self::__GHOST,
         }
     }
 }
@@ -256,7 +253,7 @@ impl<B, T, const SIZE: usize> TypeSize<T, B, SIZE> {
     pub const fn set_bounds<V>(self, bounds: V) -> TypeSize<T, V, SIZE> {
         TypeSize {
             bounds: ManuallyDrop::new(bounds),
-            _private: PhantomData,
+            _private: Self::__GHOST,
         }
     }
 

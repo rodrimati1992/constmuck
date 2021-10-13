@@ -434,7 +434,7 @@ where
 /// );
 ///
 /// ```
-pub const fn wrap<Inner, Outer>(val: Inner, _: IsTransparentWrapper<Outer, Inner>) -> Outer {
+pub const fn wrap<Outer, Inner>(val: Inner, _: IsTransparentWrapper<Outer, Inner>) -> Outer {
     __check_same_alignment! {Outer, Inner}
 
     unsafe { __priv_transmute!(Inner, Outer, val) }
@@ -470,7 +470,7 @@ pub const fn wrap<Inner, Outer>(val: Inner, _: IsTransparentWrapper<Outer, Inner
 /// assert_eq!(wrapper::wrap_ref(&100, IsTW!(Foo<_>)), &Foo(100));
 ///
 /// ```
-pub const fn wrap_ref<Inner, Outer>(reff: &Inner, _: IsTransparentWrapper<Outer, Inner>) -> &Outer {
+pub const fn wrap_ref<Outer, Inner>(reff: &Inner, _: IsTransparentWrapper<Outer, Inner>) -> &Outer {
     __check_same_alignment! {Outer, Inner}
 
     unsafe {
@@ -553,7 +553,7 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 /// );
 ///
 /// ```
-pub const fn wrap_slice<Inner, Outer>(
+pub const fn wrap_slice<Outer, Inner>(
     reff: &[Inner],
     _: IsTransparentWrapper<Outer, Inner>,
 ) -> &[Outer] {
@@ -593,7 +593,7 @@ pub const fn wrap_slice<Inner, Outer>(
 /// assert_eq!(ARR, [5, 8, 13]);
 ///
 /// ```
-pub const fn peel<Inner, Outer>(val: Outer, _: IsTransparentWrapper<Outer, Inner>) -> Inner {
+pub const fn peel<Outer, Inner>(val: Outer, _: IsTransparentWrapper<Outer, Inner>) -> Inner {
     __check_same_alignment! {Outer, Inner}
 
     unsafe { __priv_transmute!(Outer, Inner, val) }
@@ -626,7 +626,7 @@ pub const fn peel<Inner, Outer>(val: Outer, _: IsTransparentWrapper<Outer, Inner
 /// assert_eq!(X, &'@');
 ///
 /// ```
-pub const fn peel_ref<Inner, Outer>(reff: &Outer, _: IsTransparentWrapper<Outer, Inner>) -> &Inner {
+pub const fn peel_ref<Outer, Inner>(reff: &Outer, _: IsTransparentWrapper<Outer, Inner>) -> &Inner {
     __check_same_alignment! {Outer, Inner}
 
     unsafe {
@@ -704,7 +704,7 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 /// assert_eq!(X, ["hello", "world"]);
 ///
 /// ```
-pub const fn peel_slice<Inner, Outer>(
+pub const fn peel_slice<Outer, Inner>(
     reff: &[Outer],
     _: IsTransparentWrapper<Outer, Inner>,
 ) -> &[Inner] {

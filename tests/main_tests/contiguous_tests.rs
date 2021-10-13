@@ -112,7 +112,7 @@ fn custom_type_tests() {
         must_panic(|| drop(contiguous::from_u8::<Wrong>(0, make_ic!(u8)))).unwrap();
         must_panic(|| drop(contiguous::from_i8::<Wrong>(0, make_ic!(i8)))).unwrap();
         must_panic(|| drop(contiguous::from_i16::<Wrong>(0, make_ic!(i16)))).unwrap();
-        must_panic(|| drop(contiguous::into_integer(Wrong::Z, make_ic!(i16)))).unwrap();
+        must_panic(|| drop(contiguous::into_integer(Wrong::Z, &make_ic!(i16)))).unwrap();
     }
 }
 
@@ -133,7 +133,7 @@ fn convert_to_nonzero() {
                 assert_eq!($from_fn(n, infer!()), Some(nz));
                 assert_eq!(FromInteger(n, infer!()).call(), Some(nz));
 
-                assert_eq!(contiguous::into_integer(nz, infer!()), n);
+                assert_eq!(contiguous::into_integer(nz, &infer!()), n);
             }
             let zero: $Int = 0;
             assert_eq!($from_fn::<$NonZero>(zero, infer!()), None);

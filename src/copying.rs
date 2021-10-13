@@ -16,7 +16,7 @@ use crate::TypeSize;
 /// requires [`$T: Pod`](trait@bytemuck::Pod) for reasons explained in the
 /// [bound](struct@crate::IsCopy#bound) section.
 ///
-/// This has an optional type argument (`$T`) that default to
+/// This has an optional type argument (`$T`) that defaults to
 /// infering the type if not passed.
 ///
 /// This macro is defined for completeness' sake,

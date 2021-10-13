@@ -126,24 +126,13 @@
 //!
 //! ```
 //!
-//!
-//! # Features
-//!
-//! These are the features of this crate:
-//!
-//! - `"derive"`(disabled by default):
-//! enables `bytemuck`'s `"derive"` feature and reexports its derives.
-//!
-//! - `"debug_checks"`(disabled by default):
-//! Enables [`additional checks`](#additional-checks)
-//!
 //! # Additional checks
 //!
 //! The `"debug_checks"` feature enables additional checks,
 //! all of which cause panics when it'd have otherwise been Undefined Behavior
 //! (caused by unsound `unsafe impl`s or calling `unsafe` constructor functions).
 //!
-//! ##### Size checks
+//! ### Size checks
 //!
 //! Functions that transmute values check that the value doesn't change size when transmuted.
 //!
@@ -167,6 +156,16 @@
 //! The `from_*` functions in the [`contiguous`] module check that the
 //! `min_value` of the passed-in `IsContiguous` is less than its `max_value`.
 //!
+//!
+//! # Features
+//!
+//! These are the features of this crate:
+//!
+//! - `"derive"`(disabled by default):
+//! enables `bytemuck`'s `"derive"` feature and reexports its derives.
+//!
+//! - `"debug_checks"`(disabled by default):
+//! Enables [`additional checks`](#additional-checks)
 //!
 //! # No-std support
 //!
