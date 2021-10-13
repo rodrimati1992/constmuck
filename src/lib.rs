@@ -191,6 +191,10 @@
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
+#[cfg(all(doctest, feature = "derive"))]
+#[doc = include_str!("../README.md")]
+pub struct ReadmeTest;
+
 #[macro_use]
 mod macros;
 

@@ -23,7 +23,7 @@ use crate::{IsCopy, IsZeroable};
 /// const FOO: u16 = cast(-1i16, (IsPod!(), IsPod!()));
 /// const BAR: u16 = cast(-1, (IsPod!(i16), IsPod!(u16)));
 /// // A more concise way to call `constmuck::cast` when the types are inferred.
-/// const BAZ: u16 = cast(-1, infer!());
+/// const BAZ: u16 = cast(-1i16, infer!());
 ///
 /// assert_eq!(FOO, u16::MAX);
 /// assert_eq!(BAR, u16::MAX);
