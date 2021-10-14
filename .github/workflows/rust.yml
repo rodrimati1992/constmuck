@@ -25,7 +25,8 @@ jobs:
         cd "${{github.workspace}}/"
         cargo build --features "derive"
         cargo test 
-        cargo test --features "debug_checks"
+        cargo test --features "derive"
+        cargo test --features "debug_checks derive"
 
     - uses: actions/checkout@v2
     - name: ci-nighly

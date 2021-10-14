@@ -1,5 +1,51 @@
 This changelog is a summary of the changes made in each release.
 
+# 1.0
+
+### 1.0.0
+
+Renamed all `Impls*` types to `Is*`
+
+Renamed `IsPod`'s fields, `impls_copy` to `is_copy` and `is_zeroable` to `impls_zeroable`
+
+Renamed  `infer_tw` macro to `IsTW`
+
+Renamed  `type_size` macro to `TypeSize`
+
+Renamed `TypeSize::with_bound` to `with_bounds` and `set_bound` to `set_bounds`.
+
+Added these macros for constructing `Is*` types:
+- `IsPod`: constructs `IsPod`
+- `IsContiguous`: constructs `IsContiguous`
+- `IsCopy`: constructs `IsCopy`
+- `IsZeroable`: constructs `IsZeroable`
+
+Added optional `$bound` type argument to `TypeSize` macro.
+
+Swapped `TypeSize`'s' `B` and `T` type parameters
+
+Added `IsTransparentWrapper::IDENTITY` associated constant
+
+Added `Debug` impls for all types.
+
+Removed `TransmutableInto`, and `transmutable` module, because they are leaky abstractions.
+
+Removed the `into_inner` and `from_inner` fields in `IsTransparentWrapper`.
+
+Changed `contiguous::into_integer` to take `IsContiguous` by reference.
+
+Swapped `Inner` and `Outer` type parameters of `wrap*` and `peel*` functions to have the same order as `IsTransparentWrapper`
+
+Made all type parameters of `Is*`  types and `TypeSize` invariant, just in case that it's unsound for them to be covariant.
+
+# 0.2
+
+### 0.2.0
+
+Changed `ImplsCopy` bound to `Pod`
+
+Added `join` methods to both `TransmutableInto` and `ImplsTransparentWrapper`
+
 # 0.1
 
 ### 0.1.0
