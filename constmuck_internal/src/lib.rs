@@ -1,22 +1,22 @@
 #![no_std]
+//! Implementation detail of constmuck,
+//! this crate is allowed to make breaking changing at any point.
+
+mod wrap_and_peel_ref;
+
+mod proof_types;
 
 #[doc(hidden)]
-pub mod trans;
-
-#[doc(hidden)]
-pub mod proof_types;
-
-#[cfg(feature = "debug_checks")]
-pub use crate::trans::CheckSameSize;
+pub use core::marker::PhantomData;
 
 #[doc(hidden)]
 pub use crate::{
-    trans::{
-        AssertTPCasted,
-        AssertTWPInner,
-        AssertTWPOuter,
-        PhantomRef,
-        TPPtrToRef,
+    wrap_and_peel_ref::{
+        TWCastLifetimes,
+        FromInnerToOuterRef,
+        FromOuterToInnerRef,
+        CastedWrapperPtr,
+        CastedWrapperPtrToRef,
     },
-    proof_types::{SameReprProof, TransparentWrapperProof},
+    proof_types::TransparentWrapperProof,
 };
