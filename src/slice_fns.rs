@@ -13,15 +13,15 @@ use crate::{IsCopy, IsPod, TypeSize};
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{TypeSize, bytes_of};
+/// use constmuck::{TypeSize, byte_array_of};
 ///
-/// const ARRAY: &[u8; 4] = bytes_of(&123456789, TypeSize!(u32));
-/// const BYTES: &[u8] = bytes_of(&987654321, TypeSize!(u32));
+/// const ARRAY: &[u8; 4] = byte_array_of(&123456789, TypeSize!(u32));
+/// const BYTES: &[u8] = byte_array_of(&987654321, TypeSize!(u32));
 ///
 /// assert_eq!(*ARRAY, 123456789u32.to_ne_bytes());
 /// assert_eq!(*BYTES, 987654321u32.to_ne_bytes());
 /// ```
-pub const fn bytes_of<T, const SIZE: usize>(
+pub const fn byte_array_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<T, IsPod<T>, SIZE>,
 ) -> &[u8; SIZE] {
@@ -33,12 +33,21 @@ pub const fn bytes_of<T, const SIZE: usize>(
     unsafe { __priv_transmute_ref!(T, [u8; SIZE], bytes) }
 }
 
-// internal helper function for use in copying a Copy type
+// Internal helper function for use in copying a Copy type.
+//
+// Once it's possible to copy generic types without using an intermediate
+// `MaybeUninit<[u8; SIZE]>` this function will be deleted.
 pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> &MaybeUninit<[u8; SIZE]> {
-    __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes)
+    // safety:
+    // `IsCopy<T>` guarantees that `T` is safe to copy using
+    // an intermediate `MaybeUninit<[u8; std::mem::size_of::<T>()]>`.
+    //
+    // `TypeSize<T, _, SIZE>` guarantees that `T` is `SIZE` bytes large
+    //
+    unsafe { __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes) }
 }
 
 /// Casts `&[T]` to `&[U]`

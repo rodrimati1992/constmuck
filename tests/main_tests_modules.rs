@@ -8,4 +8,5 @@ mod main_tests {
     mod pod_tests;
     mod transmute_and_wrapper;
     mod type_size_tests;
+    mod ui_tests;
 }

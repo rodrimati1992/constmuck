@@ -6,6 +6,9 @@ use constmuck::{Infer, IsContiguous, IsCopy, IsPod, IsTransparentWrapper, IsZero
 
 struct NoTraits;
 
+#[derive(Clone)]
+struct OnlyClone;
+
 struct Unit;
 
 trait New {
@@ -44,6 +47,12 @@ fn is_copy_construction() {
 
     assert_impl_one! {IsCopy<u32>: Infer}
     assert_not_impl_all! {IsCopy<NoTraits>: Infer}
+    assert_not_impl_all! {IsCopy<OnlyClone>: Infer}
+
+    // remove this if you find a way to implement `copying::copy` that is sound
+    // with references.
+    assert_not_impl_all! {IsCopy<&u32>: Infer}
+    assert_not_impl_all! {IsCopy<*const u32>: Infer}
 }
 
 #[test]

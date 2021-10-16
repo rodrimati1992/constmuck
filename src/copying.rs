@@ -204,6 +204,10 @@ pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
     reff: &T,
     bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> [T; ARR_LEN] {
+    if crate::__priv_utils::SizeIsStride::<T, ARR_LEN>::V {
+        crate::__priv_utils::SizeIsStride::<T, ARR_LEN>::panic();
+    }
+
     // safety: same as `copying::copy`
     unsafe {
         __priv_transmute_from_copy!(

@@ -171,6 +171,10 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 pub const fn zeroed_array<T, const SIZE: usize, const LEN: usize>(
     _bounds: TypeSize<T, IsZeroable<T>, SIZE>,
 ) -> [T; LEN] {
+    if crate::__priv_utils::SizeIsStride::<T, LEN>::V {
+        crate::__priv_utils::SizeIsStride::<T, LEN>::panic();
+    }
+
     // safety: see `zeroable::zeroed`
     unsafe { __priv_transmute!([[u8; SIZE]; LEN], [T; LEN], [[0u8; SIZE]; LEN]) }
 }

@@ -203,7 +203,7 @@ pub use crate::{
     copying::is_copy::IsCopy,
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, IsPod},
-    slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
+    slice_fns::{byte_array_of, cast_slice_alt, try_cast_slice_alt},
     type_size::TypeSize,
     wrapper::is_tw::IsTransparentWrapper,
     zeroable::{zeroed, zeroed_array, IsZeroable},
