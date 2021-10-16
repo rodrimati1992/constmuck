@@ -133,6 +133,11 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
 ///
 /// [`Zeroable`]: trait@Zeroable
 pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SIZE>) -> T {
+    // safety:
+    // `IsZeroable<T>` guarantees that `std::mem::zeroed::<T>` is sound to call.
+    //
+    // `TypeSize<T, _, SIZE>` guarantees that `T` is `SIZE` bytes large
+    //
     unsafe { __priv_transmute!([u8; SIZE], T, [0; SIZE]) }
 }
 
@@ -166,5 +171,6 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 pub const fn zeroed_array<T, const SIZE: usize, const LEN: usize>(
     _bounds: TypeSize<T, IsZeroable<T>, SIZE>,
 ) -> [T; LEN] {
+    // safety: see `zeroable::zeroed`
     unsafe { __priv_transmute!([[u8; SIZE]; LEN], [T; LEN], [[0u8; SIZE]; LEN]) }
 }

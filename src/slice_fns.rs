@@ -34,7 +34,7 @@ pub const fn bytes_of<T, const SIZE: usize>(
 }
 
 // internal helper function for use in copying a Copy type
-pub(crate) const unsafe fn maybe_uninit_bytes_of<T, const SIZE: usize>(
+pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
     bytes: &T,
     _bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> &MaybeUninit<[u8; SIZE]> {
@@ -133,6 +133,11 @@ pub const fn try_cast_slice_alt<T, U>(
         } else if mem::size_of::<T>() != mem::size_of::<U>() {
             Err(PodCastError::SizeMismatch)
         } else {
+            // safety: the `_bounds` parameter guarantees that both `T` and `U`
+            // contain no padding and are valid for all bitpatterns.
+            //
+            // They are both guaranteed the same size in this branch,
+            // and T is at least as aligned as U.
             Ok(__priv_transmute_slice!(T, U, from))
         }
     }

@@ -179,6 +179,9 @@ pub const fn cast<T, U>(from: T, _bounds: (IsPod<T>, IsPod<U>)) -> U {
             let _: () = [/* the size of T and U is not the same */][x];
         }
 
+        // safety: the `_bounds` parameter guarantees that both `T` and `U`
+        // contain no padding and are valid for all bitpatterns.
+        // They are both guaranteed to be the same size by the above conditional.
         __priv_transmute!(T, U, from)
     }
 }
@@ -211,6 +214,9 @@ pub const fn try_cast<T, U>(
 ) -> Result<U, crate::PodCastError> {
     unsafe {
         if mem::size_of::<T>() == mem::size_of::<U>() {
+            // safety: the `_bounds` parameter guarantees that both `T` and `U`
+            // contain no padding and are valid for all bitpatterns.
+            // They are both guaranteed the same size in this branch.
             Ok(__priv_transmute!(T, U, from))
         } else {
             // Pod requires types to be Copy, so this never causes a leak
@@ -307,6 +313,11 @@ pub const fn try_cast_ref_alt<T, U>(
         } else if mem::size_of::<T>() != mem::size_of::<U>() {
             Err(PodCastError::SizeMismatch)
         } else {
+            // safety: the `_bounds` parameter guarantees that both `T` and `U`
+            // contain no padding and are valid for all bitpatterns.
+            //
+            // They are both guaranteed the same size in this branch,
+            // and T is at least as aligned as U.
             Ok(__priv_transmute_ref!(T, U, from))
         }
     }

@@ -444,9 +444,10 @@ where
 /// );
 ///
 /// ```
-pub const fn wrap<Outer, Inner>(val: Inner, _: IsTransparentWrapper<Outer, Inner>) -> Outer {
+pub const fn wrap<Outer, Inner>(val: Inner, _bound: IsTransparentWrapper<Outer, Inner>) -> Outer {
     __check_same_alignment! {Outer, Inner}
 
+    // safety: `_bound` guarantees that `Outer` has the same layout as `Inner`
     unsafe { __priv_transmute!(Inner, Outer, val) }
 }
 
@@ -480,9 +481,13 @@ pub const fn wrap<Outer, Inner>(val: Inner, _: IsTransparentWrapper<Outer, Inner
 /// assert_eq!(wrapper::wrap_ref(&100, IsTW!(Foo<_>)), &Foo(100));
 ///
 /// ```
-pub const fn wrap_ref<Outer, Inner>(reff: &Inner, _: IsTransparentWrapper<Outer, Inner>) -> &Outer {
+pub const fn wrap_ref<Outer, Inner>(
+    reff: &Inner,
+    _bound: IsTransparentWrapper<Outer, Inner>,
+) -> &Outer {
     __check_same_alignment! {Outer, Inner}
 
+    // safety: `_bound` guarantees that `Outer` has the same layout as `Inner`
     unsafe {
         __priv_transmute_ref! {Inner, Outer, reff}
     }
@@ -565,10 +570,11 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 /// ```
 pub const fn wrap_slice<Outer, Inner>(
     reff: &[Inner],
-    _: IsTransparentWrapper<Outer, Inner>,
+    _bound: IsTransparentWrapper<Outer, Inner>,
 ) -> &[Outer] {
     __check_same_alignment! {Outer, Inner}
 
+    // safety: `_bound` guarantees that `Outer` has the same layout as `Inner`
     unsafe {
         __priv_transmute_slice! {Inner, Outer, reff}
     }
@@ -601,9 +607,10 @@ pub const fn wrap_slice<Outer, Inner>(
 /// assert_eq!(ARR, [5, 8, 13]);
 ///
 /// ```
-pub const fn peel<Outer, Inner>(val: Outer, _: IsTransparentWrapper<Outer, Inner>) -> Inner {
+pub const fn peel<Outer, Inner>(val: Outer, _bound: IsTransparentWrapper<Outer, Inner>) -> Inner {
     __check_same_alignment! {Outer, Inner}
 
+    // safety: `_bound` guarantees that `Outer` has the same layout as `Inner`
     unsafe { __priv_transmute!(Outer, Inner, val) }
 }
 
@@ -634,9 +641,13 @@ pub const fn peel<Outer, Inner>(val: Outer, _: IsTransparentWrapper<Outer, Inner
 /// assert_eq!(X, &'@');
 ///
 /// ```
-pub const fn peel_ref<Outer, Inner>(reff: &Outer, _: IsTransparentWrapper<Outer, Inner>) -> &Inner {
+pub const fn peel_ref<Outer, Inner>(
+    reff: &Outer,
+    _bound: IsTransparentWrapper<Outer, Inner>,
+) -> &Inner {
     __check_same_alignment! {Outer, Inner}
 
+    // safety: `_bound` guarantees that `Outer` has the same layout as `Inner`
     unsafe {
         __priv_transmute_ref! {Outer, Inner, reff}
     }
@@ -714,10 +725,11 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 /// ```
 pub const fn peel_slice<Outer, Inner>(
     reff: &[Outer],
-    _: IsTransparentWrapper<Outer, Inner>,
+    _bound: IsTransparentWrapper<Outer, Inner>,
 ) -> &[Inner] {
     __check_same_alignment! {Outer, Inner}
 
+    // safety: `_bound` guarantees that `Outer` has the same layout as `Inner`
     unsafe {
         __priv_transmute_slice! {Outer, Inner, reff}
     }

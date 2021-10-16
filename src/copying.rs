@@ -163,6 +163,13 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 ///
 /// ```
 pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<T>, SIZE>) -> T {
+    // safety:
+    // `IsCopy<T>` guarantees that `T` is safe to copy using
+    // an intermediate `MaybeUninit<[u8; std::mem::size_of::<T>()]>`,
+    // by requiring `T: Pod`(the bound may change in the future).
+    //
+    // `TypeSize<T, _, SIZE>` guarantees that `T` is `SIZE` bytes large
+    //
     unsafe {
         __priv_transmute_from_copy!(
             MaybeUninit<[u8; SIZE]>,
@@ -197,6 +204,7 @@ pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
     reff: &T,
     bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> [T; ARR_LEN] {
+    // safety: same as `copying::copy`
     unsafe {
         __priv_transmute_from_copy!(
             [MaybeUninit<[u8; SIZE]>; ARR_LEN],
