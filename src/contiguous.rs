@@ -157,7 +157,11 @@ pub(crate) mod is_contiguous {
         /// # Safety
         ///
         /// You must ensure that `T` follows the
-        /// [safety requirements of `Contiguous`](bytemuck::Contiguous#safety)
+        /// [safety requirements of `Contiguous`](bytemuck::Contiguous#safety),
+        /// `<T as Contiguous>::Int` is `IntRepr`,
+        /// `min_value` equals `<T as Contiguous>::MIN_VALUE`,
+        /// and `max_value` equals `<T as Contiguous>::MAX_VALUE`.
+        ///
         ///
         /// # Example
         ///
@@ -294,6 +298,9 @@ impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
 ///
 #[inline(always)]
 pub const fn into_integer<T, IntRepr>(value: T, _bounds: &IsContiguous<T, IntRepr>) -> IntRepr {
+    // safety:
+    // `_bounds: &IsContiguous<T, IntRepr>` guarantees that `T` is represented as
+    // an `IntRepr`,
     unsafe { __priv_transmute!(T, IntRepr, value) }
 }
 
@@ -377,6 +384,10 @@ pub const fn from_u8<T>(integer: u8, bounds: IsContiguous<T, u8>) -> Option<T> {
     }
 
     if bounds.min_value <= integer && integer <= bounds.max_value {
+        // safety:
+        // `bounds: IsContiguous<T, u8>` guarantees that `T` is represented as a `u8`,
+        // and is valid for all values between `bounds.min_value` and
+        // `bounds.max_value` inclusive.
         unsafe { Some(__priv_transmute_from_copy!(u8, T, integer)) }
     } else {
         None
@@ -431,6 +442,10 @@ macro_rules! declare_from_integer_fns {
             }
 
             if bounds.min_value <= integer && integer <= bounds.max_value {
+                // safety:
+                // `bounds: IsContiguous<T, $Int>` guarantees that
+                // `T` is represented as a `$Int`, and is valid for all values between
+                // `bounds.min_value` and `bounds.max_value` inclusive.
                 unsafe { Some(__priv_transmute_from_copy!($Int, T, integer)) }
             } else {
                 None

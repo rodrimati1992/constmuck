@@ -125,31 +125,10 @@ impl SliceWrapper<u32> {
 
 The `"debug_checks"` feature enables additional checks,
 all of which cause panics when it'd have otherwise been Undefined Behavior
-(caused by unsound `unsafe impl`s or calling `unsafe` constructor functions).
+(caused by unsound `unsafe impl`s or calling `unsafe` constructor functions),
+which means that there is a bug in some unsafe code somewhere.
 
-### Size checks
-
-Functions that transmute values check that the value doesn't change size when transmuted.
-
-Functions that transmute references check that referent (the `T` in `&T`)
-doesn't change size when transmuted.
-
-Macros that transmute references check that reference doesn't change size when transmuted
-(ie: transmuting `&[u8]` to `&u8`).
-Macros have weaker checking than functions because they allow references to `!Sized` types
-(eg: `str`, `[u8]`, `dyn Trait`),
-if you're only casting references to `Sized` types it's better to use the function equivalents.
-
-### Alignment checks
-
-All the *functions* in the [`wrapper`] module check that the alignment of the
-`Inner` type parameter is the same as the `Outer` type parameter,
-in addition to the size checks described in the previous section.
-
-### Contiguous checks
-
-The `from_*` functions in the [`contiguous`] module check that the
-`min_value` of the passed-in `IsContiguous` is less than its `max_value`.
+The precise checks are left unspecified so that they can change at any time.
 
 # Features
 

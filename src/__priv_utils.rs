@@ -2,6 +2,7 @@
 
 use core::mem::ManuallyDrop;
 
+// allows transmuting between arbitrary Sized types.
 #[repr(C)]
 pub(crate) union Transmuter<F, T> {
     pub(crate) from: ManuallyDrop<F>,
@@ -14,6 +15,8 @@ pub(crate) union TransmuterFromCopy<F: Copy, T> {
     pub(crate) to: ManuallyDrop<T>,
 }
 
+// For dereferencing raw pointers,
+// since `&*raw_ptr` doesn't work in const contexts yet.
 #[repr(C)]
 pub(crate) union PtrToRef<'a, P: ?Sized> {
     pub(crate) ptr: *const P,
