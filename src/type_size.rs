@@ -56,7 +56,7 @@ macro_rules! TypeSize {
 ///
 /// ```rust
 /// use constmuck::map_bound;
-/// use constmuck::{IsPod, IsZeroable, TypeSize, zeroed, zeroed_array};
+/// use constmuck::{IsPod, IsZeroable, TypeSize, zeroed_ts, zeroed_array_ts};
 ///
 /// use std::num::NonZeroU8;
 ///
@@ -66,7 +66,7 @@ macro_rules! TypeSize {
 ///     // The type annotation is just for the reader
 ///     let bound: TypeSize<T, IsZeroable<T>, SIZE> =
 ///         map_bound!(bound, |x| x.is_zeroable);
-///     (zeroed(bound), zeroed_array(bound))
+///     (zeroed_ts(bound), zeroed_array_ts(bound))
 /// }
 ///
 /// const PAIR_U8: (u8, [u8; 4]) = zeroed_pair(TypeSize!(u8));
@@ -214,7 +214,7 @@ impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
     /// compose `TypeSize` with `Is*::new_unchecked`.
     ///
     /// ```rust
-    /// use constmuck::{IsZeroable, TypeSize, zeroed};
+    /// use constmuck::{IsZeroable, TypeSize, zeroed_ts};
     ///
     /// fn main() {
     ///     const NEW: Foo = Foo::new();
@@ -230,7 +230,7 @@ impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
     ///         // safety: this type knows that all its fields are zeroable right now,
     ///         // but it doesn't impl Zeroable to be able to add nonzeroable fields.
     ///         let iz = unsafe{ IsZeroable::<Self>::new_unchecked() };
-    ///         zeroed(TypeSize!(Self).with_bounds(iz))
+    ///         zeroed_ts(TypeSize!(Self).with_bounds(iz))
     ///     }
     /// }
     ///
@@ -275,7 +275,7 @@ impl<B, T, const SIZE: usize> TypeSize<T, B, SIZE> {
 }
 
 impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
-    /// Equivalent to [`copying::repeat`](crate::copying::repeat)
+    /// Equivalent to [`copying::repeat_ts`](crate::copying::repeat_ts)
     /// but allows passing the length of the retuned array.
     ///
     /// Creates a `[T; ARR_LEN]` by copying from a `&T`
@@ -295,12 +295,12 @@ impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
     /// ```
     #[inline(always)]
     pub const fn repeat<const LEN: usize>(self, reff: &T) -> [T; LEN] {
-        crate::copying::repeat(reff, self)
+        crate::copying::repeat_ts(reff, self)
     }
 }
 
 impl<T, const SIZE: usize> TypeSize<T, IsZeroable<T>, SIZE> {
-    /// Equivalent to [`constmuck::zeroed_array`](crate::zeroed_array)
+    /// Equivalent to [`constmuck::zeroed_array_ts`](crate::zeroed_array_ts)
     /// but allows passing the length of the retuned array.
     ///
     /// For safely getting a [`std::mem::zeroed`](core::mem::zeroed) `[T; N]`.
@@ -310,7 +310,7 @@ impl<T, const SIZE: usize> TypeSize<T, IsZeroable<T>, SIZE> {
     /// # Example
     ///
     /// ```rust
-    /// use constmuck::{TypeSize, zeroed_array};
+    /// use constmuck::TypeSize;
     ///
     /// const BYTES: &[u8] = &TypeSize!(u8).zeroed_array::<2>();
     /// const CHARS: &[char] = &TypeSize!(char).zeroed_array::<4>();
@@ -322,6 +322,6 @@ impl<T, const SIZE: usize> TypeSize<T, IsZeroable<T>, SIZE> {
     /// ```
     #[inline(always)]
     pub const fn zeroed_array<const LEN: usize>(self) -> [T; LEN] {
-        crate::zeroed_array(self)
+        crate::zeroed_array_ts(self)
     }
 }

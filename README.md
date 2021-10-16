@@ -135,10 +135,13 @@ The precise checks are left unspecified so that they can change at any time.
 These are the features of this crate:
 
 - `"derive"`(disabled by default):
-enables `bytemuck`'s `"derive"` feature and reexports its derives.
+Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 
 - `"debug_checks"`(disabled by default):
 Enables [`additional checks`](#additional-checks)
+
+- `"rust_stable"`(disabled by default):
+Enables all items and functionality that requires stable Rust versions after 1.56.0.
 
 # No-std support
 
@@ -147,6 +150,9 @@ Enables [`additional checks`](#additional-checks)
 # Minimum Supported Rust Version
 
 `constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
+
+Uou can use the `"rust_stable"` crate feature to get
+all items and functionality that requires stable Rust versions after 1.56.0.
 
 # Plans
 

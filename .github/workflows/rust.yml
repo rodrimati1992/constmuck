@@ -13,7 +13,7 @@ jobs:
       max-parallel: 2
       matrix:
         # remember to use 1.56.0 here when available.
-        rust: [nightly]
+        rust: [beta, nightly]
 
     steps:
     - uses: actions/checkout@v2
@@ -38,8 +38,8 @@ jobs:
         
         cd "${{github.workspace}}/"
         cargo build --features "derive"
-        cargo test 
-        cargo test --features "debug_checks"        
+        cargo test
+        cargo test --features " debug_checks"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -52,7 +52,7 @@ jobs:
 
         cargo clean 
 
-        cargo miri test  
+        cargo miri test
         cargo miri test --features "debug_checks"
 
         env MIRIFLAGS="-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \

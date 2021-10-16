@@ -20,6 +20,7 @@ include = [
 [features]
 derive = ["bytemuck/derive", "syn"]
 debug_checks = ["constmuck_internal/debug_checks"]
+rust_stable = []
 
 [dev-dependencies]
 static_assertions = "1.1"

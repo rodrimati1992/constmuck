@@ -27,15 +27,15 @@ use crate::TypeSize;
 /// use constmuck::{IsZeroable, TypeSize};
 ///
 /// const FOO: IsZeroable<u32> = IsZeroable!();
-/// assert_eq!(constmuck::zeroed(TypeSize!(u32).with_bounds(FOO)), 0u32);
-/// // alternatively, the typical way to call `constmuck::zeroed`.
-/// assert_eq!(constmuck::zeroed(TypeSize!(u32)), 0u32);
+/// assert_eq!(constmuck::zeroed_ts(TypeSize!(u32).with_bounds(FOO)), 0u32);
+/// // alternatively, the typical way to call `constmuck::zeroed_ts`.
+/// assert_eq!(constmuck::zeroed_ts(TypeSize!(u32)), 0u32);
 ///
 ///
 /// const BAR: IsZeroable<u8> = IsZeroable!(u8);
-/// assert_eq!(constmuck::zeroed_array(TypeSize!(u8).with_bounds(BAR)), [0u8; 4]);
-/// // alternatively, the typical way to call `constmuck::zeroed_array`.
-/// assert_eq!(constmuck::zeroed_array(TypeSize!(u8)), [0u8; 4]);
+/// assert_eq!(constmuck::zeroed_array_ts(TypeSize!(u8).with_bounds(BAR)), [0u8; 4]);
+/// // alternatively, the typical way to call `constmuck::zeroed_array_ts`.
+/// assert_eq!(constmuck::zeroed_array_ts(TypeSize!(u8)), [0u8; 4]);
 ///
 /// ```
 ///
@@ -55,7 +55,7 @@ mod __ {
 
     /// Encodes a `T:`[`Zeroable`] bound as a value.
     ///
-    /// Related: the [`zeroed`] and [`zeroed_array`] functions.
+    /// Related: the [`zeroed_ts`] and [`zeroed_array_ts`] functions.
     ///
     /// [`Zeroable`]: trait@Zeroable
     pub struct IsZeroable<T> {
@@ -118,13 +118,23 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
 ///
 /// This function requires that `T` implements [`Zeroable`].
 ///
+/// # Suffix
+///
+/// This has a `_ts` suffix to allow eventually adding
+/// ```rust
+/// # use constmuck::IsZeroable;
+/// const fn zeroed<T>(bounds: IsZeroable<T>) -> T
+/// # {loop{}}
+/// ```
+/// when it's possible to implement without unstable features.
+///
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{TypeSize, zeroed};
+/// use constmuck::{TypeSize, zeroed_ts};
 ///
-/// const BYTES: [u8; 4] = zeroed(TypeSize!([u8; 4]));
-/// const CHARS: [char; 4] = zeroed(TypeSize!([char; 4]));
+/// const BYTES: [u8; 4] = zeroed_ts(TypeSize!([u8; 4]));
+/// const CHARS: [char; 4] = zeroed_ts(TypeSize!([char; 4]));
 ///
 /// assert_eq!(BYTES, [0, 0, 0, 0]);
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
@@ -132,7 +142,7 @@ impl<T: Zeroable> crate::Infer for IsZeroable<T> {
 /// ```
 ///
 /// [`Zeroable`]: trait@Zeroable
-pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SIZE>) -> T {
+pub const fn zeroed_ts<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SIZE>) -> T {
     // safety:
     // `IsZeroable<T>` guarantees that `std::mem::zeroed::<T>` is sound to call.
     //
@@ -149,18 +159,28 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 /// To specify the length of the returned array, [`TypeSize::zeroed_array`]
 /// can be used instead.
 ///
+/// # Suffix
+///
+/// This has a `_ts` suffix to allow eventually adding
+/// ```rust
+/// # use constmuck::IsZeroable;
+/// const fn zeroed_array<T, const LEN: usize>(bounds: IsZeroable<T>) -> [T; LEN]
+/// # {loop{}}
+/// ```
+/// when it's possible to implement without unstable features.
+///
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{TypeSize, zeroed_array};
+/// use constmuck::{TypeSize, zeroed_array_ts};
 ///
-/// const BYTES: [u8; 2] = zeroed_array(TypeSize!(u8));
+/// const BYTES: [u8; 2] = zeroed_array_ts(TypeSize!(u8));
 /// assert_eq!(BYTES, [0, 0]);
 /// // using `TypeSize::zeroed_array` to pass the length of the returned array.
 /// assert_eq!(TypeSize!(u8).zeroed_array::<2>(), [0, 0]);
 ///
 ///
-/// const CHARS: [char; 4] = zeroed_array(TypeSize!(char));
+/// const CHARS: [char; 4] = zeroed_array_ts(TypeSize!(char));
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
 /// // using `TypeSize::zeroed_array` to pass the length of the returned array.
 /// assert_eq!(TypeSize!(char).zeroed_array::<4>(), ['\0', '\0', '\0', '\0']);
@@ -168,7 +188,7 @@ pub const fn zeroed<T, const SIZE: usize>(_bounds: TypeSize<T, IsZeroable<T>, SI
 /// ```
 ///
 /// [`Zeroable`]: trait@Zeroable
-pub const fn zeroed_array<T, const SIZE: usize, const LEN: usize>(
+pub const fn zeroed_array_ts<T, const SIZE: usize, const LEN: usize>(
     _bounds: TypeSize<T, IsZeroable<T>, SIZE>,
 ) -> [T; LEN] {
     if crate::__priv_utils::SizeIsStride::<T, LEN>::V {
