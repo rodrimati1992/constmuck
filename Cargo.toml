@@ -22,6 +22,9 @@ derive = ["bytemuck/derive", "syn"]
 debug_checks = ["constmuck_internal/debug_checks"]
 rust_stable = []
 
+# private feature
+ui_tests = []
+
 [dev-dependencies]
 static_assertions = "1.1"
 trybuild = "1.0"

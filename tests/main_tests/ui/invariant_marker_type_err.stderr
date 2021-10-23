@@ -6,7 +6,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsContiguous<&'static T, _>`
               found struct `IsContiguous<&'a T, _>`
-note: the lifetime `'a` as defined on the function body at 10:21...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:10:21
    |
 10 | fn is_contiguous_as<'a, T>(x: IsContiguous<&'a T, u8>) -> IsContiguous<&'static T, u8> {
@@ -21,7 +21,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsContiguous<&'a T, _>`
               found struct `IsContiguous<&'static T, _>`
-note: the lifetime `'a` as defined on the function body at 13:21...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:13:21
    |
 13 | fn is_contiguous_sa<'a, T>(x: IsContiguous<&'static T, u8>) -> IsContiguous<&'a T, u8> {
@@ -36,7 +36,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsCopy<&'static T>`
               found struct `IsCopy<&'a T>`
-note: the lifetime `'a` as defined on the function body at 17:15...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:17:15
    |
 17 | fn is_copy_as<'a, T>(x: IsCopy<&'a T>) -> IsCopy<&'static T> {
@@ -51,7 +51,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsCopy<&'a T>`
               found struct `IsCopy<&'static T>`
-note: the lifetime `'a` as defined on the function body at 20:15...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:20:15
    |
 20 | fn is_copy_sa<'a, T>(x: IsCopy<&'static T>) -> IsCopy<&'a T> {
@@ -66,7 +66,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsPod<&'static T>`
               found struct `IsPod<&'a T>`
-note: the lifetime `'a` as defined on the function body at 24:14...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:24:14
    |
 24 | fn is_pod_as<'a, T>(x: IsPod<&'a T>) -> IsPod<&'static T> {
@@ -81,7 +81,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsPod<&'a T>`
               found struct `IsPod<&'static T>`
-note: the lifetime `'a` as defined on the function body at 27:14...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:27:14
    |
 27 | fn is_pod_sa<'a, T>(x: IsPod<&'static T>) -> IsPod<&'a T> {
@@ -96,7 +96,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsTransparentWrapper<&'static T, _>`
               found struct `IsTransparentWrapper<&'a T, _>`
-note: the lifetime `'a` as defined on the function body at 31:32...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:31:32
    |
 31 | fn is_transparent_wrapper_aasa<'a, T>(
@@ -111,7 +111,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsTransparentWrapper<&'a T, _>`
               found struct `IsTransparentWrapper<&'static T, _>`
-note: the lifetime `'a` as defined on the function body at 36:32...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:36:32
    |
 36 | fn is_transparent_wrapper_saaa<'a, T>(
@@ -126,7 +126,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsTransparentWrapper<_, &'static T>`
               found struct `IsTransparentWrapper<_, &'a T>`
-note: the lifetime `'a` as defined on the function body at 42:32...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:42:32
    |
 42 | fn is_transparent_wrapper_aaas<'a, T>(
@@ -141,7 +141,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsTransparentWrapper<_, &'a T>`
               found struct `IsTransparentWrapper<_, &'static T>`
-note: the lifetime `'a` as defined on the function body at 47:32...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:47:32
    |
 47 | fn is_transparent_wrapper_asaa<'a, T>(
@@ -156,7 +156,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsZeroable<&'static T>`
               found struct `IsZeroable<&'a T>`
-note: the lifetime `'a` as defined on the function body at 53:19...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:53:19
    |
 53 | fn is_zeroable_as<'a, T>(x: IsZeroable<&'a T>) -> IsZeroable<&'static T> {
@@ -171,7 +171,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `IsZeroable<&'a T>`
               found struct `IsZeroable<&'static T>`
-note: the lifetime `'a` as defined on the function body at 56:19...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:56:19
    |
 56 | fn is_zeroable_sa<'a, T>(x: IsZeroable<&'static T>) -> IsZeroable<&'a T> {
@@ -186,7 +186,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `TypeSize<&'static T, _, _>`
               found struct `TypeSize<&'a T, _, _>`
-note: the lifetime `'a` as defined on the function body at 60:17...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:60:17
    |
 60 | fn type_size_as<'a, T>(x: TypeSize<&'a T, (), 0>) -> TypeSize<&'static T, (), 0> {
@@ -201,7 +201,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `TypeSize<&'a T, _, _>`
               found struct `TypeSize<&'static T, _, _>`
-note: the lifetime `'a` as defined on the function body at 63:17...
+note: the lifetime `'a` as defined here...
   --> tests/main_tests/ui/invariant_marker_type_err.rs:63:17
    |
 63 | fn type_size_sa<'a, T>(x: TypeSize<&'static T, (), 0>) -> TypeSize<&'a T, (), 0> {
