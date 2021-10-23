@@ -12,7 +12,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        rust: [1.56.0, stable, beta, nightly]
+        rust: [1.56.0, beta, nightly]
 
     steps:
     - uses: actions/checkout@v2
