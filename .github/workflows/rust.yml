@@ -35,12 +35,12 @@ jobs:
 
         cargo test --features "debug_checks derive ui_tests"
 
-        cargo update -Z minimal-versions
+        # cargo update -Z minimal-versions
         
-        cd "${{github.workspace}}/"
-        cargo build --features "derive"
-        cargo test
-        cargo test --features " debug_checks"
+        # cd "${{github.workspace}}/"
+        # cargo build --features "derive"
+        # cargo test
+        # cargo test --features " debug_checks"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
