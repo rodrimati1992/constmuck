@@ -4,7 +4,7 @@ use constmuck::{copying, infer, zeroed, zeroed_array, TypeSize};
 
 #[test]
 fn test_copy() {
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     {
         must_panic(|| unsafe {
             let _ = copying::copy(
@@ -28,7 +28,7 @@ fn test_copy() {
 
 #[test]
 fn test_repeat() {
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     {
         must_panic(|| unsafe {
             let _: [_; 2] = copying::repeat(
@@ -82,7 +82,7 @@ fn zeroable_test() {
     case! {u32, 0u32, [0, 1, 2, 3]}
     case! {*const u32, 0 as *const u32, [0, 1, 2, 3]}
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     {
         must_panic(|| unsafe {
             let _ = zeroed(TypeSize::<u64, _, 1>::new_unchecked().with_bounds(infer!()));

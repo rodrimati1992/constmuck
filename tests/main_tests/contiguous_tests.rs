@@ -21,7 +21,7 @@ unsafe impl Contiguous for Tiny {
     const MAX_VALUE: i8 = 2;
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[repr(i32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Wrong {
@@ -30,7 +30,7 @@ enum Wrong {
     P1 = 1,
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 unsafe impl Contiguous for Wrong {
     type Int = i16;
 
@@ -52,12 +52,12 @@ fn contiguous_accessors() {
     }
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[repr(transparent)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 struct SwappedLimits(u8);
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 unsafe impl Contiguous for SwappedLimits {
     type Int = i8;
 
@@ -65,7 +65,7 @@ unsafe impl Contiguous for SwappedLimits {
     const MAX_VALUE: i8 = 0;
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[test]
 fn swapped_limits() {
     macro_rules! make_ic {
@@ -100,7 +100,7 @@ fn custom_type_tests() {
         assert_eq!(FromInteger(variant as i8, infer!()).call(), Some(variant));
     }
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         macro_rules! make_ic {
             ($ty:ty) => {

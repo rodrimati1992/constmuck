@@ -376,7 +376,7 @@ pub const fn into_integer<T, IntRepr>(value: T, _bounds: &IsContiguous<T, IntRep
 ///
 /// ```
 pub const fn from_u8<T>(integer: u8, bounds: IsContiguous<T, u8>) -> Option<T> {
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     #[allow(unconditional_panic)]
     if bounds.min_value > bounds.max_value {
         let x = 0;
@@ -434,7 +434,7 @@ macro_rules! declare_from_integer_fns {
         /// [at the ones for `from_u8`](self::from_u8#examples).
         ///
         pub const fn $fn_name<T>(integer: $Int, bounds: IsContiguous<T, $Int>) -> Option<T> {
-            #[cfg(feature = "debug_checks")]
+            #[cfg(debug_assertions)]
             #[allow(unconditional_panic)]
             if bounds.min_value > bounds.max_value {
                 let x = 0;

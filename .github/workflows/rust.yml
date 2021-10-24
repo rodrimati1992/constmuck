@@ -22,10 +22,13 @@ jobs:
         cargo update
           
         cd "${{github.workspace}}/"
+
+        env CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=true  cargo build 
+        env CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=false cargo build 
         cargo build --features "derive"
-        cargo test 
+        env CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=true  cargo test --features "__testdev"
+        env CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=false cargo test --features "__testnodev"
         cargo test --features "derive"
-        cargo test --features "debug_checks derive"
 
     - uses: actions/checkout@v2
     - name: ci-nighly
@@ -33,14 +36,13 @@ jobs:
       run: |
         rustup override set ${{ matrix.rust }}
 
-        cargo test --features "debug_checks derive ui_tests"
+        cargo test --features "derive ui_tests"
 
         # cargo update -Z minimal-versions
         
         # cd "${{github.workspace}}/"
         # cargo build --features "derive"
         # cargo test
-        # cargo test --features " debug_checks"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -53,8 +55,9 @@ jobs:
 
         cargo clean 
 
-        cargo miri test
-        cargo miri test --features "debug_checks"
+        env "CARGO_PROFILE_DEBUG_DEBUG_ASSERTIONS=true" \
+            cargo miri test --features="__testdev"
 
-        env MIRIFLAGS="-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
-            cargo miri test  --features "debug_checks"
+        env "CARGO_PROFILE_DEBUG_DEBUG_ASSERTIONS=true \
+            MIRIFLAGS=-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
+            cargo miri test --features="__testdev"

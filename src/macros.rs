@@ -1,4 +1,4 @@
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 macro_rules! __check_same_alignment {
     ($from:ty, $to:ty) => (
         if core::mem::align_of::<$from>() != core::mem::align_of::<$to>() {
@@ -9,12 +9,12 @@ macro_rules! __check_same_alignment {
     )
 }
 
-#[cfg(not(feature = "debug_checks"))]
+#[cfg(not(debug_assertions))]
 macro_rules! __check_same_alignment {
     ($from:ty, $to:ty) => {};
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 macro_rules! __check_size {
     ($from:ty, $to:ty) => (
         if core::mem::size_of::<$from>() != core::mem::size_of::<$to>() {
@@ -25,7 +25,7 @@ macro_rules! __check_size {
     )
 }
 
-#[cfg(not(feature = "debug_checks"))]
+#[cfg(not(debug_assertions))]
 macro_rules! __check_size {
     ($from:ty, $to:ty) => {};
 }

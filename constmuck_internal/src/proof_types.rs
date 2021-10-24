@@ -28,7 +28,7 @@ impl<A: ?Sized, B: ?Sized> Clone for TransparentWrapperProof<A, B> {
 
 
 #[doc(hidden)]
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[macro_export]
 macro_rules! __check_size {
     ($transparent_wrapper_proof:expr) => (
@@ -40,13 +40,13 @@ macro_rules! __check_size {
     )
 }
 
-#[cfg(not(feature = "debug_checks"))]
+#[cfg(not(debug_assertions))]
 #[macro_export]
 macro_rules! __check_size {
     ($transparent_wrapper_proof:expr) => ()
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[doc(hidden)]
 impl<Outer: ?Sized, Inner: ?Sized> TransparentWrapperProof<Outer, Inner> {
     const NOT_SAME_SIZE: bool =

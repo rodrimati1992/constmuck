@@ -16,7 +16,6 @@ include = [
 ]
 
 [features]
-debug_checks = []
 
 [dependencies.bytemuck]
 version = "1.7.2"

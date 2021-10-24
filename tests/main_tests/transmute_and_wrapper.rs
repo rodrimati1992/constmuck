@@ -58,7 +58,7 @@ fn peel_test() {
         ["hello", "world"]
     );
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         must_panic(|| drop(peel(Wrap("baz"), ITW::<_, u8>::new_unchecked()))).unwrap();
     }
@@ -80,7 +80,7 @@ fn peel_ref_test() {
     test_fn_or_macro! {/*fn*/}
     test_fn_or_macro! {/*macro*/ !}
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         must_panic(|| drop(peel_ref(&Wrap("baz"), ITW::<_, u8>::new_unchecked()))).unwrap();
         must_panic(|| {
@@ -100,7 +100,7 @@ fn peel_slice_test() {
     );
     assert_eq!(peel_slice(&[123, 456].map(Wrap), infer!()), &[123, 456]);
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         must_panic(|| drop(peel_slice(&[Wrap("baz")], ITW::<_, u8>::new_unchecked()))).unwrap();
     }
@@ -118,7 +118,7 @@ fn wrap_test() {
         ["hello", "world"].map(Wrap)
     );
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         must_panic(|| drop(wrap(10, ITW::<Wrap<u8>, u16>::new_unchecked()))).unwrap();
     }
@@ -140,7 +140,7 @@ fn wrap_ref_test() {
     test_fn_or_macro! {/*fn*/}
     test_fn_or_macro! {/*macro*/ !}
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         must_panic(|| drop(wrap_ref(&10, ITW::<Wrap<u8>, u16>::new_unchecked()))).unwrap();
 
@@ -164,7 +164,7 @@ fn wrap_slice_test() {
         &[123, 456].map(Wrap)
     );
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         must_panic(|| drop(wrap_slice(&[10], ITW::<Wrap<u8>, u16>::new_unchecked()))).unwrap();
     }

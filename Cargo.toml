@@ -19,8 +19,11 @@ include = [
 
 [features]
 derive = ["bytemuck/derive", "syn"]
-debug_checks = ["constmuck_internal/debug_checks"]
-rust_stable = []
+rust_latest_stable = []
+
+#private features
+__testdev = []
+__testnodev = []
 
 # private feature
 ui_tests = []

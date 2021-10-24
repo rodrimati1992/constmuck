@@ -131,12 +131,20 @@
 //!
 //! # Additional checks
 //!
-//! The `"debug_checks"` feature enables additional checks,
+//! Additional checks are enabled in debug builds,
 //! all of which cause panics when it'd have otherwise been Undefined Behavior
 //! (caused by unsound `unsafe impl`s or calling `unsafe` constructor functions),
 //! which means that there is a bug in some unsafe code somewhere.
 //!
 //! The precise checks are left unspecified so that they can change at any time.
+//!
+//! These checks are disabled by default in release builds,
+//! to enable them you can use this in your Cargo.toml:
+//!
+//! ```toml
+//! [profile.release.package.constmuck]
+//! debug-assertions = true
+//! ```
 //!
 //! # Features
 //!
@@ -145,11 +153,9 @@
 //! - `"derive"`(disabled by default):
 //! Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 //!
-//! - `"debug_checks"`(disabled by default):
-//! Enables [`additional checks`](#additional-checks)
-//!
-//! - `"rust_stable"`(disabled by default):
+//! - `"rust_latest_stable"`(disabled by default):
 //! Enables all items and functionality that requires stable Rust versions after 1.56.0.
+//! Currently doesn't enable any other feature.
 //!
 //! # No-std support
 //!
@@ -159,7 +165,7 @@
 //!
 //! `constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
 //!
-//! Uou can use the `"rust_stable"` crate feature to get
+//! You can use the `"rust_latest_stable"` crate feature to get
 //! all items and functionality that requires stable Rust versions after 1.56.0.
 //!
 //! [`bytemuck`]: bytemuck
