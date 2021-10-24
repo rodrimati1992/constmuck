@@ -1,6 +1,6 @@
 [package]
 name = "constmuck_internal"
-version = "1.0.0-gamma0"
+version = "0.3.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
 license = "Zlib"

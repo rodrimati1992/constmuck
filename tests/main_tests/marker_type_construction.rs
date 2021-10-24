@@ -49,7 +49,7 @@ fn is_copy_construction() {
     assert_not_impl_all! {IsCopy<NoTraits>: Infer}
     assert_not_impl_all! {IsCopy<OnlyClone>: Infer}
 
-    // remove this if you find a way to implement `copying::copy_ts` that is sound
+    // remove this if you find a way to implement `copying::copy` that is sound
     // with references.
     assert_not_impl_all! {IsCopy<&u32>: Infer}
     assert_not_impl_all! {IsCopy<*const u32>: Infer}

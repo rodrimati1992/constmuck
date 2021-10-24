@@ -33,16 +33,16 @@ use crate::TypeSize;
 /// use constmuck::{IsCopy, TypeSize, copying};
 ///
 /// const FOO: IsCopy<u32> = IsCopy!();
-/// assert_eq!(copying::copy_ts(&100u32, TypeSize!(u32).with_bounds(FOO)), 100);
-/// // the typical way to call `copying::copy_ts`.
-/// assert_eq!(copying::copy_ts(&100u32, TypeSize!(u32)), 100);
+/// assert_eq!(copying::copy(&100u32, TypeSize!(u32).with_bounds(FOO)), 100);
+/// // the typical way to call `copying::copy`.
+/// assert_eq!(copying::copy(&100u32, TypeSize!(u32)), 100);
 ///
 ///
 /// const BAR: IsCopy<[u8; 4]> = IsCopy!([u8; 4]);
 /// let arr = [3, 5, 8, 13];
-/// assert_eq!(copying::copy_ts(&arr, TypeSize!([u8; 4]).with_bounds(BAR)), arr);
-/// // the typical way to call `copying::copy_ts`.
-/// assert_eq!(copying::copy_ts(&arr, TypeSize!([u8; 4])), arr);
+/// assert_eq!(copying::copy(&arr, TypeSize!([u8; 4]).with_bounds(BAR)), arr);
+/// // the typical way to call `copying::copy`.
+/// assert_eq!(copying::copy(&arr, TypeSize!([u8; 4])), arr);
 ///
 ///
 /// ```
@@ -142,16 +142,6 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 /// Requires that `T` implements `Copy + Pod`
 /// (see [`IsCopy`](struct@crate::IsCopy) docs for why it requires `Pod`)
 ///
-/// # Suffix
-///
-/// This has a `_ts` suffix to allow eventually adding
-/// ```rust
-/// # use constmuck::IsCopy;
-/// const fn copy<T>(reff: &T, bounds: IsCopy<T>) -> T
-/// # {loop{}}
-/// ```
-/// when it's possible to implement without unstable features.
-///
 /// # Example
 ///
 /// Making a `pair` function.
@@ -164,7 +154,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 ///     reff: &T,
 ///     bounds: TypeSize<T, IsCopy<T>, SIZE>
 /// ) -> [T; 2] {
-///     [copying::copy_ts(reff, bounds), copying::copy_ts(reff, bounds)]
+///     [copying::copy(reff, bounds), copying::copy(reff, bounds)]
 /// }
 ///
 /// const PAIR_U8: [u8; 2] = pair(&128, TypeSize!(u8));
@@ -172,7 +162,7 @@ impl<T: crate::Pod> crate::Infer for IsCopy<T> {
 /// assert_eq!(PAIR_U8, [128, 128]);
 ///
 /// ```
-pub const fn copy_ts<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<T>, SIZE>) -> T {
+pub const fn copy<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<T>, SIZE>) -> T {
     // safety:
     // `IsCopy<T>` guarantees that `T` is safe to copy using
     // an intermediate `MaybeUninit<[u8; std::mem::size_of::<T>()]>`,
@@ -197,22 +187,12 @@ pub const fn copy_ts<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<
 /// To specify the length of the returned array,
 /// [`TypeSize::repeat`] can be used instead.
 ///
-/// # Suffix
-///
-/// This has a `_ts` suffix to allow eventually adding
-/// ```rust
-/// # use constmuck::IsCopy;
-/// const fn repeat<T, const ARR_LEN: usize>(reff: &T, bounds: IsCopy<T>) -> [T; ARR_LEN]
-/// # {loop{}}
-/// ```
-/// when it's possible to implement without unstable features.
-///
 /// # Example
 ///
 /// ```rust
 /// use constmuck::{TypeSize, copying};
 ///
-/// const PAIR: [[u8; 2]; 2] = copying::repeat_ts(&[3, 5], TypeSize!([u8; 2]));
+/// const PAIR: [[u8; 2]; 2] = copying::repeat(&[3, 5], TypeSize!([u8; 2]));
 ///
 /// assert_eq!(PAIR, [[3, 5], [3, 5]]);
 ///
@@ -220,7 +200,7 @@ pub const fn copy_ts<T, const SIZE: usize>(reff: &T, bounds: TypeSize<T, IsCopy<
 /// assert_eq!(TypeSize!([u8; 2]).repeat::<2>(&[3, 5]), [[3, 5], [3, 5]]);
 ///
 /// ```
-pub const fn repeat_ts<T, const SIZE: usize, const ARR_LEN: usize>(
+pub const fn repeat<T, const SIZE: usize, const ARR_LEN: usize>(
     reff: &T,
     bounds: TypeSize<T, IsCopy<T>, SIZE>,
 ) -> [T; ARR_LEN] {
@@ -228,7 +208,7 @@ pub const fn repeat_ts<T, const SIZE: usize, const ARR_LEN: usize>(
         crate::__priv_utils::SizeIsStride::<T, ARR_LEN>::panic();
     }
 
-    // safety: same as `copying::copy_ts`
+    // safety: same as `copying::copy`
     unsafe {
         __priv_transmute_from_copy!(
             [MaybeUninit<[u8; SIZE]>; ARR_LEN],

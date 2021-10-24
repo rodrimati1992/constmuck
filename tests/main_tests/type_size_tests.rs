@@ -1,6 +1,6 @@
 use super::test_utils::must_panic;
 
-use constmuck::{cast, copying, infer, map_bound, zeroed_ts, IsCopy, IsPod, IsZeroable, TypeSize};
+use constmuck::{cast, copying, infer, map_bound, zeroed, IsCopy, IsPod, IsZeroable, TypeSize};
 
 #[test]
 fn map_bound_test() {
@@ -10,11 +10,11 @@ fn map_bound_test() {
     assert_eq!(cast::<u32, i32>(100, (*bound.bounds(), infer!())), 100);
 
     assert_eq!(
-        copying::copy_ts(&12345u32, map_bound!(bound, |x| x.is_copy)),
+        copying::copy(&12345u32, map_bound!(bound, |x| x.is_copy)),
         12345
     );
 
-    assert_eq!(zeroed_ts(map_bound!(bound, |x| x.is_zeroable)), 0u32);
+    assert_eq!(zeroed(map_bound!(bound, |x| x.is_zeroable)), 0u32);
 }
 
 #[test]
@@ -27,14 +27,14 @@ fn new_unchecked_test() {
         let ts = TypeSize::<WrapNI<u32>, _, 4>::new_unchecked()
             .with_bounds(IsZeroable::<WrapNI<u32>>::new_unchecked());
 
-        assert_eq!(zeroed_ts(ts), WrapNI(0u32));
+        assert_eq!(zeroed(ts), WrapNI(0u32));
     }
     unsafe {
         const STR_SIZE: usize = std::mem::size_of::<&str>();
         let ts = TypeSize::<WrapNI<&str>, _, STR_SIZE>::new_unchecked()
             .with_bounds(IsCopy::<WrapNI<&str>>::new_unchecked());
 
-        assert_eq!(copying::copy_ts(&WrapNI("hello"), ts), WrapNI("hello"));
+        assert_eq!(copying::copy(&WrapNI("hello"), ts), WrapNI("hello"));
     }
 }
 #[test]
@@ -62,13 +62,13 @@ fn bound_manip() {
     let _: TypeSize<u32, (), 4> = bound.split().1;
 
     assert_eq!(
-        copying::copy_ts(&12345u32, TypeSize!(u32).with_bounds(infer!())),
+        copying::copy(&12345u32, TypeSize!(u32).with_bounds(infer!())),
         12345
     );
     let _: TypeSize<u32, (), 4> = TypeSize!(u32).with_bounds(());
     let _: TypeSize<u32, IsPod<u64>, 4> = TypeSize!(u32).with_bounds(IsPod::NEW);
 
-    assert_eq!(zeroed_ts(map_bound!(bound, |x| x.is_zeroable)), 0u32);
+    assert_eq!(zeroed(map_bound!(bound, |x| x.is_zeroable)), 0u32);
 
-    assert_eq!(zeroed_ts(bound.set_bounds(IsZeroable::NEW)), 0u32);
+    assert_eq!(zeroed(bound.set_bounds(IsZeroable::NEW)), 0u32);
 }
