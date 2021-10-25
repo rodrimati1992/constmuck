@@ -175,8 +175,7 @@ impl<T: Pod> crate::Infer for IsPod<T> {
 pub const fn cast<T, U>(from: T, _bounds: (IsPod<T>, IsPod<U>)) -> U {
     unsafe {
         if mem::size_of::<T>() != mem::size_of::<U>() {
-            let x = mem::size_of::<T>();
-            let _: () = [/* the size of T and U is not the same */][x];
+            crate::__priv_utils::unequal_size_panic(mem::size_of::<T>(), mem::size_of::<U>())
         }
 
         // safety: the `_bounds` parameter guarantees that both `T` and `U`
@@ -257,12 +256,13 @@ pub const fn cast_ref_alt<T, U>(from: &T, bounds: (IsPod<T>, IsPod<U>)) -> &U {
     match try_cast_ref_alt(from, bounds) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
-            let x = mem::size_of::<T>();
-            [/* the alignment of T is larger than U */][x]
+            crate::__priv_utils::incompatible_alignment_panic(
+                mem::align_of::<T>(),
+                mem::align_of::<U>(),
+            )
         }
         Err(PodCastError::SizeMismatch | _) => {
-            let x = mem::size_of::<T>();
-            [/* the size of T and U is not the same */][x]
+            crate::__priv_utils::unequal_size_panic(mem::size_of::<T>(), mem::size_of::<U>())
         }
     }
 }

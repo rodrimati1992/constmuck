@@ -379,8 +379,20 @@ pub const fn from_u8<T>(integer: u8, bounds: IsContiguous<T, u8>) -> Option<T> {
     #[cfg(debug_assertions)]
     #[allow(unconditional_panic)]
     if bounds.min_value > bounds.max_value {
-        let x = 0;
-        let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
+        crate::panic_! {
+            {
+                let x = 0;
+                let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
+            }
+            {
+                crate::const_panic::concat_panic!{
+                    "\nbounds.min_value: ",
+                    bounds.min_value,
+                    " is larger than bounds.max_value: ",
+                    bounds.max_value,
+                }
+            }
+        }
     }
 
     if bounds.min_value <= integer && integer <= bounds.max_value {
@@ -437,8 +449,20 @@ macro_rules! declare_from_integer_fns {
             #[cfg(debug_assertions)]
             #[allow(unconditional_panic)]
             if bounds.min_value > bounds.max_value {
-                let x = 0;
-                let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
+                crate::panic_!{
+                    {
+                        let x = 0;
+                        let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
+                    }
+                    {
+                        crate::const_panic::concat_panic!{
+                            "\nbounds.min_value: ",
+                            bounds.min_value,
+                            " is larger than bounds.max_value: ",
+                            bounds.max_value,
+                        }
+                    }
+                }
             }
 
             if bounds.min_value <= integer && integer <= bounds.max_value {

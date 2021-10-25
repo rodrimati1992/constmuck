@@ -225,3 +225,8 @@ pub mod __ {
     pub use core::mem::size_of;
     pub use core::ops::Range;
 }
+
+use constmuck_internal::panic_;
+
+#[cfg(feature = "rust_1_57")]
+use constmuck_internal::const_panic;

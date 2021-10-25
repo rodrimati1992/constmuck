@@ -52,6 +52,83 @@ impl<T, const LEN: usize> SizeIsStride<T, LEN> {
     }
 }
 
+#[cfg_attr(feature = "rust_1_57", track_caller)]
+#[allow(unused_variables)]
+#[cold]
+#[inline(never)]
+pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
+    crate::panic_! {
+        {
+            [(/* expected transmute not to change the size */)][size_of_t];
+            loop{}
+        }
+        {
+            crate::const_panic::concat_panic!{
+                "\nexpected transmute not to change the size,",
+                " size goes from: ", size_of_t,
+                " to: ", size_of_u,
+            }
+        }
+    }
+}
+
+#[cfg_attr(feature = "rust_1_57", track_caller)]
+#[allow(unused_variables)]
+#[cold]
+#[inline(never)]
+pub(crate) const fn transmute_unequal_align_panic(align_of_t: usize, align_of_u: usize) -> ! {
+    crate::panic_! {
+        {
+            [(/* expected transmute not to change the alignment */)][align_of_t];
+            loop{}
+        }
+        {
+            crate::const_panic::concat_panic!{
+                "\nexpected transmute not to change alignment,",
+                " alignment goes from: ", align_of_t,
+                " to: ", align_of_u,
+            }
+        }
+    }
+}
+
+#[cfg_attr(feature = "rust_1_57", track_caller)]
+#[allow(unused_variables)]
+#[cold]
+#[inline(never)]
+pub(crate) const fn unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
+    crate::panic_! {
+        {
+            [/* the size of T and U is not the same */][size_of_t]
+        }
+        {
+            crate::const_panic::concat_panic!{
+                "\nthe size of T and U is not the same",
+                "\nsize_of::<T>(): ", size_of_t,
+                "\nsize_of::<U>(): ", size_of_u,
+            }
+        }
+    }
+}
+#[cfg_attr(feature = "rust_1_57", track_caller)]
+#[allow(unused_variables)]
+#[cold]
+#[inline(never)]
+pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: usize) -> ! {
+    crate::panic_! {
+        {
+            [/* the alignment of T is lower than U */][align_of_t]
+        }
+        {
+            crate::const_panic::concat_panic!{
+                "\nThe alignment of T is lower than U",
+                "\nalign_of::<T>(): ", align_of_t,
+                "\nalign_of::<U>(): ", align_of_u,
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

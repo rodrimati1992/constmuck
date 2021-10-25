@@ -1,32 +1,34 @@
 #[cfg(debug_assertions)]
-macro_rules! __check_same_alignment {
-    ($from:ty, $to:ty) => (
-        if core::mem::align_of::<$from>() != core::mem::align_of::<$to>() {
-            let align_of_from = core::mem::align_of::<$from>();
-            [(/* expected transmute not to change the size */)][align_of_from];
-            loop{}
+macro_rules! __check_size {
+    ($from:ty, $to:ty) => {
+        if core::mem::size_of::<$from>() != core::mem::size_of::<$to>() {
+            crate::__priv_utils::transmute_unequal_size_panic(
+                core::mem::size_of::<$from>(),
+                core::mem::size_of::<$to>(),
+            )
         }
-    )
+    };
 }
 
 #[cfg(not(debug_assertions))]
-macro_rules! __check_same_alignment {
+macro_rules! __check_size {
     ($from:ty, $to:ty) => {};
 }
 
 #[cfg(debug_assertions)]
-macro_rules! __check_size {
-    ($from:ty, $to:ty) => (
-        if core::mem::size_of::<$from>() != core::mem::size_of::<$to>() {
-            let size_of_from = core::mem::size_of::<$from>();
-            [(/* expected transmute not to change the size */)][size_of_from];
-            loop{}
+macro_rules! __check_same_alignment {
+    ($from:ty, $to:ty) => {
+        if core::mem::align_of::<$from>() != core::mem::align_of::<$to>() {
+            crate::__priv_utils::transmute_unequal_align_panic(
+                core::mem::align_of::<$from>(),
+                core::mem::align_of::<$to>(),
+            )
         }
-    )
+    };
 }
 
 #[cfg(not(debug_assertions))]
-macro_rules! __check_size {
+macro_rules! __check_same_alignment {
     ($from:ty, $to:ty) => {};
 }
 

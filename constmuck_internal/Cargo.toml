@@ -16,6 +16,12 @@ include = [
 ]
 
 [features]
+rust_1_57 = ["const_panic"]
+
+[dependencies.const_panic]
+version = "0.1"
+optional = true
+default_features = false
 
 [dependencies.bytemuck]
 version = "1.7.2"

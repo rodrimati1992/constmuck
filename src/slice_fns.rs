@@ -83,12 +83,13 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &
     match try_cast_slice_alt(from, bounds) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
-            let x = mem::size_of::<T>();
-            [/* the alignment of T is larger than U */][x]
+            crate::__priv_utils::incompatible_alignment_panic(
+                mem::align_of::<T>(),
+                mem::align_of::<U>(),
+            )
         }
         Err(PodCastError::SizeMismatch | _) => {
-            let x = mem::size_of::<T>();
-            [/* the size of T and U is not the same */][x]
+            crate::__priv_utils::unequal_size_panic(mem::size_of::<T>(), mem::size_of::<U>())
         }
     }
 }

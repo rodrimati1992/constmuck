@@ -193,9 +193,21 @@ impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
         if mem::size_of::<T>() == SIZE {
             Self::__UNCHECKED_UNIT
         } else {
-            #[allow(non_snake_case)]
-            let size_of_T = mem::size_of::<T>();
-            [/* size_of::<T>() does not equal SIZE */][size_of_T]
+            crate::panic_! {
+                {
+                    #[allow(non_snake_case)]
+                    let size_of_T = mem::size_of::<T>();
+                    [/* size_of::<T>() does not equal SIZE */][size_of_T]
+                }
+                {
+                    crate::const_panic::concat_panic!{
+                        "\nsize_of::<T>(): ",
+                        mem::size_of::<T>(),
+                        " does not equal SIZE: ",
+                        SIZE,
+                    }
+                }
+            }
         }
     }
 }
