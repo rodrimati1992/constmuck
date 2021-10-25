@@ -7,7 +7,7 @@ use core::marker::PhantomData;
 
 #[macro_export]
 macro_rules! wrapper_inner {
-    ($reff:expr, $is_tw:expr, $XRef:ident) => {
+    ($reff:expr, $is_tw:expr, $panic:ident, $XRef:ident) => {
         // using a match so that this macro can be used with references to temporaries
         match ($reff, $is_tw) {
             (inner, is_wrapper) => {
@@ -19,7 +19,7 @@ macro_rules! wrapper_inner {
                     )
                 );
 
-                $crate::__check_size!{ass.1.0}
+                $crate::__check_size!{ass.1.0, $panic}
 
                 $crate::CastedWrapperPtrToRef{
                     // see comment on CastedWrapperPtr struct for why this is casted twice
@@ -34,14 +34,14 @@ macro_rules! wrapper_inner {
 #[macro_export]
 macro_rules! wrapper_wrap_ref {
     ($reff:expr, $is_tw:expr $(,)*) => {
-        unsafe{ $crate::wrapper_inner!($reff, $is_tw, FromInnerToOuterRef) }
+        unsafe{ $crate::wrapper_inner!($reff, $is_tw, panic_wrap, FromInnerToOuterRef) }
     };
 }
 
 #[macro_export]
 macro_rules! wrapper_peel_ref {
     ($reff:expr, $is_tw:expr $(,)*) => {
-        unsafe{ $crate::wrapper_inner!($reff, $is_tw, FromOuterToInnerRef) }
+        unsafe{ $crate::wrapper_inner!($reff, $is_tw, panic_peel, FromOuterToInnerRef) }
     };
 }
 

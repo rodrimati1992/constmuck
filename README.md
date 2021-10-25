@@ -150,6 +150,10 @@ Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 Enables all items and functionality that requires stable Rust versions after 1.56.0.
 Currently doesn't enable any other feature.
 
+- `"rust_1_57"`(disabled by default, requires Rust 1.57.0):
+Causes this crate to use the `const_panic` dependency,
+to improve the quality of panic messages.
+
 # No-std support
 
 `constmuck` is `#![no_std]`, it can be used anywhere Rust can be used.

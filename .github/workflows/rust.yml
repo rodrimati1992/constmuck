@@ -12,7 +12,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        rust: [1.56.0, beta, nightly]
+        rust: [1.56.0, stable, beta, nightly]
 
     steps:
     - uses: actions/checkout@v2
@@ -36,7 +36,7 @@ jobs:
       run: |
         rustup override set ${{ matrix.rust }}
 
-        cargo test --features "derive ui_tests"
+        cargo test --features "derive ui_tests rust_1_57"
 
         # cargo update -Z minimal-versions
         
