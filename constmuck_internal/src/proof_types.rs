@@ -42,7 +42,7 @@ macro_rules! __check_size {
 #[cfg(not(debug_assertions))]
 #[macro_export]
 macro_rules! __check_size {
-    ($transparent_wrapper_proof:expr) => ()
+    ($($args:tt)*) => ()
 }
 
 #[cfg(debug_assertions)]
