@@ -23,11 +23,11 @@ jobs:
           
         cd "${{github.workspace}}/"
 
-        env "CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=true" cargo build 
-        env "CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=false" cargo build 
+        cargo build 
+        cargo build --release
         cargo build --features "derive"
-        env "CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=true"  cargo test --features "__testdev"
-        env "CARGO_PROFILE_DEV_DEBUG_ASSERTIONS=false" cargo test --features "__testnodev"
+        cargo test --features "__testdev"
+        cargo test --features "__testnodev" --release
         cargo test --features "derive"
 
     - uses: actions/checkout@v2
@@ -55,9 +55,7 @@ jobs:
 
         cargo clean 
 
-        env "CARGO_PROFILE_DEBUG_DEBUG_ASSERTIONS=true" \
-            cargo miri test --features="__testdev"
+        cargo miri test --features="__testdev"
 
-        env "CARGO_PROFILE_DEBUG_DEBUG_ASSERTIONS=true \
-            MIRIFLAGS=-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
+        env "MIRIFLAGS=-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
             cargo miri test --features="__testdev"
