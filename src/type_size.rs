@@ -1,71 +1,78 @@
 use core::{
+    fmt::{self, Debug},
     marker::PhantomData,
     mem::{self, ManuallyDrop},
 };
 
-use crate::{ImplsCopy, ImplsZeroable, Infer};
+use crate::{Infer, IsCopy, IsZeroable};
 
-/// Constructs a [`TypeSize`].
+/// Constructs a [`TypeSize<$ty, $bounds, _>`](struct@crate::TypeSize),
 ///
-/// This implicitly constructs the `bounds` field of a `TypeSize` with [`Infer::INFER`].
+/// Uses the [`Infer`] trait to construct a `$bounds`.
+///
+/// The `$bounds` type argument is optional, defaulting to being inferred.
 ///
 /// # Example
 ///
 /// Making a `oned` function
 ///
 /// ```rust
-/// use constmuck::{ImplsPod, TypeSize};
-/// use constmuck::{infer, type_size};
+/// use constmuck::{IsPod, TypeSize};
 ///
-/// pub const fn oned<T, const SIZE: usize>(bound: TypeSize<ImplsPod<T>, T, SIZE>) -> T {
+/// pub const fn oned<T, const SIZE: usize>(bound: TypeSize<T, IsPod<T>, SIZE>) -> T {
 ///     constmuck::cast::<[u8; SIZE], T>(
 ///         [1; SIZE],
-///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
+///         // `IsPod!()` here constructs an `IsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.into_bounds()` extracts the `bounds` field, which is `ImplsPod<T>` here.
-///         (infer!(), bound.into_bounds())
+///         // `bound.into_bounds()` extracts the `bounds` field, which is `IsPod<T>` here.
+///         (IsPod!(), bound.into_bounds())
 ///     )
 /// }
 ///
-/// const U64: u64 = oned(type_size!(u64));
-/// const ONES: [u8; 5] = oned(type_size!([u8; 5]));
+/// const U64: u64 = oned(TypeSize!(u64));
+///
+/// // Passing the `$bounds` type argument explicitly
+/// const ONES: [u8; 5] = oned(TypeSize!([u8; 5], IsPod<[u8; 5]>));
 ///
 /// assert_eq!(U64, 0x01_01_01_01_01_01_01_01);
 /// assert_eq!(ONES, [1, 1, 1, 1, 1]);
 ///
 /// ```
 #[macro_export]
-macro_rules! type_size {
-    ($ty:ty) => {
-        $crate::TypeSize::<_, $ty, { $crate::__::size_of::<$ty>() }>::__13878307735224946849NEW__
+macro_rules! TypeSize {
+    ($ty:ty $(,)*) => {
+        $crate::TypeSize::<$ty, _, { $crate::__::size_of::<$ty>() }>::__13878307735224946849NEW__
+    };
+    ($ty:ty, $bounds:ty $(,)*) => {
+        $crate::TypeSize::<$ty, $bounds, {$crate::__::size_of::<$ty>()}>::__13878307735224946849NEW__
     };
 }
 
-/// Maps the bound field of a [`TypeSize`]
+/// Maps the bound field of a [`TypeSize`](struct@crate::TypeSize).
 ///
 /// # Example
 ///
 /// Making a function to repeat a zeroed value, with stronger requirements than it needs.
 ///
 /// ```rust
-/// use constmuck::{map_bound, type_size};
-/// use constmuck::{ImplsPod, ImplsZeroable, TypeSize, zeroed, zeroed_array};
+/// use constmuck::map_bound;
+/// use constmuck::{IsPod, IsZeroable, TypeSize, zeroed, zeroed_array};
 ///
 /// use std::num::NonZeroU8;
 ///
 /// pub const fn zeroed_pair<T, const SIZE: usize, const LEN: usize>(
-///     bound: TypeSize<ImplsPod<T>, T, SIZE>,
+///     bound: TypeSize<T, IsPod<T>, SIZE>,
 /// ) -> (T, [T; LEN]) {
 ///     // The type annotation is just for the reader
-///     let bound: TypeSize<ImplsZeroable<T>, T, SIZE> =
-///         map_bound!(bound, |x| x.impls_zeroable);
+///     let bound: TypeSize<T, IsZeroable<T>, SIZE> =
+///         map_bound!(bound, |x| x.is_zeroable);
 ///     (zeroed(bound), zeroed_array(bound))
 /// }
 ///
-/// const PAIR_U8: (u8, [u8; 4]) = zeroed_pair(type_size!(u8));
+/// const PAIR_U8: (u8, [u8; 4]) = zeroed_pair(TypeSize!(u8));
 ///
 /// const PAIR_NONE: (Option<NonZeroU8>, [Option<NonZeroU8>; 2]) =
-///     zeroed_pair(type_size!(Option<NonZeroU8>));
+///     zeroed_pair(TypeSize!(Option<NonZeroU8>));
 ///
 /// assert_eq!(PAIR_U8, (0, [0, 0, 0, 0]));
 ///
@@ -76,63 +83,74 @@ macro_rules! type_size {
 macro_rules! map_bound {
     ($this:expr, |$bound:ident| $returned:expr $(,)*) => {{
         let ($bound, this) = $crate::TypeSize::split($this);
-        this.with_bound($returned)
+        this.with_bounds($returned)
     }};
     ($this:expr, | $($anything:tt)* ) => {
         compile_error!("expected a closure")
     };
     ($this:expr, $function:expr $(,)*) => {{
         let (bound, this) = $crate::TypeSize::split($this);
-        this.with_bound($function(bound))
+        this.with_bounds($function(bound))
     }};
 }
 
-/// For passing a type along with its size, constructible with the [`type_size`] macro.
+/// For passing a type along with its size and additional bounds.
 ///
 /// The `B` (bounds) type parameter can be any type that implements [`Infer`],
-/// and is implicitly constructed by the [`type_size`] macro.
+/// and is implicitly constructed by the [`TypeSize`] macro.
 ///
 /// # Example
 ///
 /// Making a `max_bit_pattern` function
 ///
 /// ```rust
-/// use constmuck::{ImplsPod, TypeSize};
-/// use constmuck::{infer, type_size};
+/// use constmuck::{IsPod, TypeSize};
 ///
-/// pub const fn max_bit_pattern<T, const SIZE: usize>(bound: TypeSize<ImplsPod<T>, T, SIZE>) -> T {
-///     constmuck::cast::<[u8; SIZE], T>(
+/// pub const fn max_bit_pattern<T, const SIZE: usize>(bound: TypeSize<T, IsPod<T>, SIZE>) -> T {
+///     constmuck::cast(
 ///         [u8::MAX; SIZE],
-///         // `infer!()` here constructs an `ImplsPod<[u8; SIZE]>`
+///         // `IsPod!()` here constructs an `IsPod<[u8; SIZE]>`
 ///         //
-///         // `bound.bounds()` here returns a `&ImplsPod<T>`.
-///         (infer!(), *bound.bounds())
+///         // `bound.into_bounds()` here returns a `IsPod<T>`.
+///         (IsPod!(), bound.into_bounds())
 ///     )
 /// }
 ///
-/// const U64: u64 = max_bit_pattern(type_size!(u64));
-/// const U8S: [u8; 5] = max_bit_pattern(type_size!([u8; 5]));
-/// const I8S: [i8; 5] = max_bit_pattern(type_size!([i8; 5]));
+/// const U64: u64 = max_bit_pattern(TypeSize!(u64));
+/// const U8S: [u8; 5] = max_bit_pattern(TypeSize!([u8; 5]));
+/// const I8S: [i8; 5] = max_bit_pattern(TypeSize!([i8; 5]));
 ///
 /// assert_eq!(U64, u64::MAX);
 /// assert_eq!(U8S, [u8::MAX; 5]);
 /// assert_eq!(I8S, [-1i8; 5]);
 ///
 /// ```
-pub struct TypeSize<B, T, const SIZE: usize> {
+///
+/// [`TypeSize`]: macro@crate::TypeSize
+pub struct TypeSize<T, B, const SIZE: usize> {
     bounds: ManuallyDrop<B>,
-    _private: PhantomData<T>,
+    // The lifetime of `T` is invariant,
+    // just in case that it's unsound for lifetimes to be co/contravariant.
+    _private: PhantomData<fn(T) -> T>,
 }
 
-impl<B: Copy, T, const SIZE: usize> Copy for TypeSize<B, T, SIZE> {}
+impl<T, B: Debug, const SIZE: usize> Debug for TypeSize<T, B, SIZE> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TypeSize")
+            .field("bounds", &self.bounds)
+            .finish()
+    }
+}
 
-impl<B: Copy, T, const SIZE: usize> Clone for TypeSize<B, T, SIZE> {
+impl<T, B: Copy, const SIZE: usize> Copy for TypeSize<T, B, SIZE> {}
+
+impl<T, B: Copy, const SIZE: usize> Clone for TypeSize<T, B, SIZE> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<B: Infer, T, const SIZE: usize> TypeSize<B, T, SIZE> {
+impl<T, B: Infer, const SIZE: usize> TypeSize<T, B, SIZE> {
     #[doc(hidden)]
     pub const __13878307735224946849NEW__: Self = {
         if mem::size_of::<T>() != SIZE {
@@ -146,19 +164,24 @@ impl<B: Infer, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     };
 }
 
-const UNIT_MD: ManuallyDrop<()> = ManuallyDrop::new(());
+impl<T, B, const SIZE: usize> TypeSize<T, B, SIZE> {
+    const __GHOST: PhantomData<fn(T) -> T> = PhantomData;
+}
 
-impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
+impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
+    const __UNCHECKED_UNIT: Self = Self {
+        bounds: ManuallyDrop::new(()),
+        _private: PhantomData,
+    };
+
     /// Constructs a bound-less `TypeSize`.
     ///
     /// # Safety
     ///
     /// You must ensure that `std::mem::size_of::<T>()` equals the `SIZE` const argument.
+    #[inline(always)]
     pub const unsafe fn new_unchecked() -> Self {
-        Self {
-            bounds: UNIT_MD,
-            _private: PhantomData,
-        }
+        Self::__UNCHECKED_UNIT
     }
 
     /// Constructs a bound-less `TypeSize`.
@@ -168,33 +191,42 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
     /// Panics if `std::mem::size_of::<T>()` does not equal the `SIZE` const argument.
     pub const fn new_panicking() -> Self {
         if mem::size_of::<T>() == SIZE {
-            Self {
-                bounds: UNIT_MD,
-                _private: PhantomData,
-            }
+            Self::__UNCHECKED_UNIT
         } else {
-            #[allow(non_snake_case)]
-            let size_of_T = mem::size_of::<T>();
-            [/* size_of::<T>() does not equal SIZE */][size_of_T]
+            crate::panic_! {
+                {
+                    #[allow(non_snake_case)]
+                    let size_of_T = mem::size_of::<T>();
+                    [/* size_of::<T>() does not equal SIZE */][size_of_T]
+                }
+                {
+                    crate::const_panic::concat_panic!{
+                        "\nsize_of::<T>(): ",
+                        mem::size_of::<T>(),
+                        " does not equal SIZE: ",
+                        SIZE,
+                    }
+                }
+            }
         }
     }
 }
 
-impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
+impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
     /// Sets the bounds field of a bound-less `TypeSize`.
     ///
     /// # Leaking
     ///
     /// Note that `B` is expected not to own memory,
-    /// dropping a `TypeSize<B, _, _>` will leak any resources it owns.
+    /// dropping a `TypeSize<_, B, _>` will leak any resources it owns.
     ///
     /// # Example
     ///
     /// This example demonstrates how `with_bounds` can be used to
-    /// compose `TypeSize` with `Impls*::new_unchecked`.
+    /// compose `TypeSize` with `Is*::new_unchecked`.
     ///
     /// ```rust
-    /// use constmuck::{ImplsZeroable, type_size, zeroed};
+    /// use constmuck::{IsZeroable, TypeSize, zeroed};
     ///
     /// fn main() {
     ///     const NEW: Foo = Foo::new();
@@ -209,35 +241,35 @@ impl<T, const SIZE: usize> TypeSize<(), T, SIZE> {
     ///     pub const fn new() -> Self {
     ///         // safety: this type knows that all its fields are zeroable right now,
     ///         // but it doesn't impl Zeroable to be able to add nonzeroable fields.
-    ///         let iz = unsafe{ ImplsZeroable::<Self>::new_unchecked() };
-    ///         zeroed(type_size!(Self).with_bound(iz))
+    ///         let iz = unsafe{ IsZeroable::<Self>::new_unchecked() };
+    ///         zeroed(TypeSize!(Self).with_bounds(iz))
     ///     }
     /// }
     ///
     /// ```
-    pub const fn with_bound<B>(self, bounds: B) -> TypeSize<B, T, SIZE> {
+    pub const fn with_bounds<B>(self, bounds: B) -> TypeSize<T, B, SIZE> {
         TypeSize {
             bounds: ManuallyDrop::new(bounds),
-            _private: PhantomData,
+            _private: Self::__GHOST,
         }
     }
 }
 
-impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
+impl<B, T, const SIZE: usize> TypeSize<T, B, SIZE> {
     /// Replaces the bounds field with `bounds`.
     ///
     /// # Leaking
     ///
     /// Note that `V` is expected not to own memory,
-    /// dropping a `TypeSize<V, _, _>` will leak any resources it owns.
-    pub const fn set_bound<V>(self, bounds: V) -> TypeSize<V, T, SIZE> {
+    /// dropping a `TypeSize<_, V, _>` will leak any resources it owns.
+    pub const fn set_bounds<V>(self, bounds: V) -> TypeSize<T, V, SIZE> {
         TypeSize {
             bounds: ManuallyDrop::new(bounds),
-            _private: PhantomData,
+            _private: Self::__GHOST,
         }
     }
 
-    /// Gets a reference to the bounds field.
+    /// Accessor for the bounds field.
     pub const fn bounds(&self) -> &B {
         crate::__priv_utils::manuallydrop_as_inner(&self.bounds)
     }
@@ -248,27 +280,27 @@ impl<B, T, const SIZE: usize> TypeSize<B, T, SIZE> {
     }
 
     /// Splits this `TypeSize` into its bounds field, and a bound-less `TypeSize`.
-    pub const fn split(self) -> (B, TypeSize<(), T, SIZE>) {
+    pub const fn split(self) -> (B, TypeSize<T, (), SIZE>) {
         let bounds = ManuallyDrop::into_inner(self.bounds);
         (bounds, TypeSize::__13878307735224946849NEW__)
     }
 }
 
-impl<T, const SIZE: usize> TypeSize<ImplsCopy<T>, T, SIZE> {
+impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
     /// Equivalent to [`copying::repeat`](crate::copying::repeat)
     /// but allows passing the length of the retuned array.
     ///
     /// Creates a `[T; ARR_LEN]` by copying from a `&T`
     ///
     /// Requires that `T` implements `Copy + Pod`
-    /// (see [`ImplsCopy`] docs for why it requires `Pod`)
+    /// (see [`IsCopy`](struct@crate::IsCopy) docs for why it requires `Pod`)
     ///
     /// # Example
     ///
     /// ```rust
-    /// use constmuck::type_size;
+    /// use constmuck::TypeSize;
     ///
-    /// const PAIR: &[u128] = &type_size!(u128).repeat::<2>(&300);
+    /// const PAIR: &[u128] = &TypeSize!(u128).repeat::<2>(&300);
     ///
     /// assert_eq!(PAIR, &[300, 300]);
     ///
@@ -279,7 +311,7 @@ impl<T, const SIZE: usize> TypeSize<ImplsCopy<T>, T, SIZE> {
     }
 }
 
-impl<T, const SIZE: usize> TypeSize<ImplsZeroable<T>, T, SIZE> {
+impl<T, const SIZE: usize> TypeSize<T, IsZeroable<T>, SIZE> {
     /// Equivalent to [`constmuck::zeroed_array`](crate::zeroed_array)
     /// but allows passing the length of the retuned array.
     ///
@@ -290,10 +322,10 @@ impl<T, const SIZE: usize> TypeSize<ImplsZeroable<T>, T, SIZE> {
     /// # Example
     ///
     /// ```rust
-    /// use constmuck::{zeroed_array, type_size};
+    /// use constmuck::TypeSize;
     ///
-    /// const BYTES: &[u8] = &type_size!(u8).zeroed_array::<2>();
-    /// const CHARS: &[char] = &type_size!(char).zeroed_array::<4>();
+    /// const BYTES: &[u8] = &TypeSize!(u8).zeroed_array::<2>();
+    /// const CHARS: &[char] = &TypeSize!(char).zeroed_array::<4>();
     ///
     /// assert_eq!(BYTES, [0, 0]);
     /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);

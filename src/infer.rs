@@ -1,26 +1,73 @@
-/// For constructing types that implement [`Infer`], this includes `Impls*` types.
+/// For constructing types that implement [`Infer`], this includes `Is*` types.
+///
+/// This is best used when the constructed type can be inferred.
+///
+/// The type argument (`$ty`) is optional, inferred when not passed.
+///
+/// # Alternatives
+///
+/// `constmuck` types have their own macros for constructing them,
+/// which are more concise with explicit type arguments,
+/// and help type inference.
+///
+/// These are the macros:
+///
+/// - [`IsContiguous`](macro@crate::IsContiguous):
+/// Constructs an [`IsContiguous`](struct@crate::IsContiguous) type.
+///
+/// - [`IsCopy`](macro@crate::IsCopy):
+/// Constructs an [`IsCopy`](struct@crate::IsCopy) type.
+///
+/// - [`IsPod`](macro@crate::IsPod):
+/// Constructs an [`IsPod`](struct@crate::IsPod) type.
+///
+/// - [`IsTW`](macro@crate::IsTW):
+/// Constructs an [`IsTransparentWrapper`](struct@crate::IsTransparentWrapper) type.
+///
+/// - [`IsZeroable`](macro@crate::IsZeroable):
+/// Constructs an [`IsZeroable`](struct@crate::IsZeroable) type.
+///
+/// - [`TypeSize`](macro@crate::TypeSize):
+/// Constructs an [`TypeSize`](struct@crate::TypeSize) type.
+///
 ///
 /// # Example
 ///
+/// ### Basic
+///
 /// ```rust
-/// use constmuck::{cast, infer};
-/// use constmuck::{ImplsPod, ImplsTransparentWrapper};
+/// use constmuck::{infer, wrapper};
+///
+/// use std::num::Wrapping as W;
+///
+/// const FOO: &[W<u8>] = wrapper::wrap_slice(&[3, 2, 1, 0], infer!());
+/// assert_eq!(FOO, [W(3), W(2), W(1), W(0)]);
+///
+/// let bar = wrapper::peel_slice::<W<u8>, u8>(FOO, infer!());
+/// assert_eq!(bar, [3, 2, 1, 0]);
+///
+///
+/// ```
+///
+/// ### Tuple
+///
+/// `infer` can contruct tuples of types that implement [`Infer`].
+///
+/// ```rust
+/// use constmuck::infer;
+/// use constmuck::{IsPod, IsTW, IsTransparentWrapper};
 ///
 /// use std::num::Wrapping;
 ///
-/// const ARR: [u8; 4] = cast([-3i8, -2, -1, 0], infer!());
-/// assert_eq!(ARR, [253, 254, 255, 0]);
+/// const fn requires_2_bounds<O, I>(_bounds: (IsPod<I>, IsTransparentWrapper<O, I>)) {}
 ///
-/// const fn requires_pod<T>(_bounds: ImplsPod<T>) {}
-/// requires_pod::<u32>(infer!());
-/// // the same as the above call
-/// requires_pod(infer!(ImplsPod<u32>));
+/// requires_2_bounds::<Wrapping<u32>, u32>(infer!());
 ///
-/// const fn requires_2_bounds<T, U>(_bounds: (ImplsPod<T>, ImplsTransparentWrapper<U, T>)) {}
-/// requires_2_bounds::<u32, Wrapping<u32>>(infer!());
 /// // the same as the above call
-/// requires_2_bounds(infer!((ImplsPod<u32>, ImplsTransparentWrapper<Wrapping<u32>, u32>)));
-///  
+/// requires_2_bounds(infer!((IsPod<u32>, IsTransparentWrapper<Wrapping<u32>, u32>)));
+///
+/// // using more specific macros
+/// requires_2_bounds((IsPod!(u32), IsTW!(Wrapping<u32>, u32)));
 /// ```
 #[macro_export]
 macro_rules! infer {
@@ -32,29 +79,32 @@ macro_rules! infer {
     };
 }
 
-/// For constructing `Impls*` types (values that represent trait bounds),
+/// For constructing `Is*` types (values that represent trait bounds),
 /// and tuples of them.
 ///
-/// For a more concise way to write to `Infer::INFER`, there's the [`infer`] macro.
+/// For a more concise way to write [`Infer::INFER`], there's the [`infer`] macro.
 ///
 /// # Example
 ///
+/// ### Basic
+///
+/// This example demonstrates how you can use the `INFER` associated constant
+/// instead of using the [`infer`] macro.
+///
 /// ```rust
-/// use constmuck::cast;
-/// use constmuck::{Infer, ImplsPod, ImplsTransparentWrapper};
+/// use constmuck::{cast, wrapper};
+/// use constmuck::{Infer};
 ///
 /// use std::num::Wrapping;
 ///
-/// const ARR: [i8; 3] = cast([3u8, 5, u8::MAX - 1], Infer::INFER);
-/// assert_eq!(ARR, [3, 5, -2]);
-///
-/// const fn requires_pod<T>(_bounds: ImplsPod<T>) {}
-/// requires_pod::<u32>(Infer::INFER);
-///
-/// const fn requires_2_bounds<T, U>(_bounds: (ImplsPod<T>, ImplsTransparentWrapper<U, T>)) {}
-/// requires_2_bounds::<u32, Wrapping<u32>>(Infer::INFER);
+/// const FOO: [i8; 3] = cast([3u8, 5, u8::MAX - 1], Infer::INFER);
+/// assert_eq!(FOO, [3, 5, -2]);
+///  
+/// const BAR: &[Wrapping<i8>] = wrapper::wrap_slice(&[13, 21, 34], Infer::INFER);
+/// assert_eq!(BAR, &[Wrapping(13), Wrapping(21), Wrapping(34)]);
 ///  
 /// ```
+///  
 pub trait Infer: Sized + Copy {
     /// Constructs this type.
     const INFER: Self;

@@ -12,8 +12,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        # remember to use 1.56.0 here when available.
-        rust: [nightly]
+        rust: [1.56.0, beta, nightly]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,9 +22,13 @@ jobs:
         cargo update
           
         cd "${{github.workspace}}/"
+
+        cargo build 
+        cargo build --release
         cargo build --features "derive"
-        cargo test 
-        cargo test --features "debug_checks"
+        cargo test --features "__testdev"
+        cargo test --features "__testnodev" --release
+        cargo test --features "derive"
 
     - uses: actions/checkout@v2
     - name: ci-nighly
@@ -33,12 +36,13 @@ jobs:
       run: |
         rustup override set ${{ matrix.rust }}
 
-        cargo update -Z minimal-versions
+        cargo test --features "derive ui_tests rust_1_57"
+
+        # cargo update -Z minimal-versions
         
-        cd "${{github.workspace}}/"
-        cargo build --features "derive"
-        cargo test 
-        cargo test --features "debug_checks"        
+        # cd "${{github.workspace}}/"
+        # cargo build --features "derive"
+        # cargo test
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -51,8 +55,7 @@ jobs:
 
         cargo clean 
 
-        cargo miri test  
-        cargo miri test --features "debug_checks"
+        cargo miri test --features="__testdev"
 
-        env MIRIFLAGS="-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
-            cargo miri test  --features "debug_checks"
+        env "MIRIFLAGS=-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
+            cargo miri test --features="__testdev"

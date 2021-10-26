@@ -1,0 +1,7 @@
+error[E0759]: `reff` has lifetime `'a` but it needs to satisfy a `'static` lifetime requirement
+ --> tests/main_tests/ui/peel_ref_fn_ty_err.rs:5:14
+  |
+4 | const fn foo<'a>(reff: &'a Wrapping<&'a u8>) -> &'a &'static u8 {
+  |                        -------------------- this data with lifetime `'a`...
+5 |     peel_ref(reff, constmuck::IsTW!())
+  |              ^^^^ ...is captured here, requiring it to live as long as `'static`

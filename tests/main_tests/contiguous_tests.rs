@@ -2,7 +2,7 @@ use super::test_utils::must_panic;
 
 use constmuck::{
     contiguous::{self, FromInteger},
-    infer, Contiguous, ImplsContiguous,
+    infer, Contiguous, IsContiguous,
 };
 
 #[repr(i8)]
@@ -21,7 +21,7 @@ unsafe impl Contiguous for Tiny {
     const MAX_VALUE: i8 = 2;
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[repr(i32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Wrong {
@@ -30,7 +30,7 @@ enum Wrong {
     P1 = 1,
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 unsafe impl Contiguous for Wrong {
     type Int = i16;
 
@@ -41,23 +41,23 @@ unsafe impl Contiguous for Wrong {
 #[test]
 fn contiguous_accessors() {
     {
-        let ic = ImplsContiguous::<Tiny, i8>::NEW;
+        let ic = IsContiguous::<Tiny, i8>::NEW;
         assert_eq!(ic.min_value(), &-1);
         assert_eq!(ic.max_value(), &2);
     }
     {
-        let ic = ImplsContiguous::<u32, u32>::NEW;
+        let ic = IsContiguous::<u32, u32>::NEW;
         assert_eq!(ic.min_value(), &0);
         assert_eq!(ic.max_value(), &u32::MAX);
     }
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[repr(transparent)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 struct SwappedLimits(u8);
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 unsafe impl Contiguous for SwappedLimits {
     type Int = i8;
 
@@ -65,18 +65,18 @@ unsafe impl Contiguous for SwappedLimits {
     const MAX_VALUE: i8 = 0;
 }
 
-#[cfg(feature = "debug_checks")]
+#[cfg(debug_assertions)]
 #[test]
 fn swapped_limits() {
     macro_rules! make_ic {
         ($ty:ty) => {
-            ImplsContiguous::<SwappedLimits, $ty>::new_unchecked(
+            IsContiguous::<SwappedLimits, $ty>::new_unchecked(
                 SwappedLimits::MIN_VALUE as _,
                 SwappedLimits::MAX_VALUE as _,
             )
         };
     }
-    let ic = ImplsContiguous::<SwappedLimits, _>::NEW;
+    let ic = IsContiguous::<SwappedLimits, _>::NEW;
     assert_eq!(ic.min_value(), &2);
     assert_eq!(ic.max_value(), &0);
 
@@ -100,11 +100,11 @@ fn custom_type_tests() {
         assert_eq!(FromInteger(variant as i8, infer!()).call(), Some(variant));
     }
 
-    #[cfg(feature = "debug_checks")]
+    #[cfg(debug_assertions)]
     unsafe {
         macro_rules! make_ic {
             ($ty:ty) => {
-                ImplsContiguous::<Wrong, $ty>::new_unchecked((Wrong::N1 as $ty).min(0), 1)
+                IsContiguous::<Wrong, $ty>::new_unchecked((Wrong::N1 as $ty).min(0), 1)
             };
         }
         // making sure to test u8 since `from_u8` is manually written,
@@ -112,7 +112,7 @@ fn custom_type_tests() {
         must_panic(|| drop(contiguous::from_u8::<Wrong>(0, make_ic!(u8)))).unwrap();
         must_panic(|| drop(contiguous::from_i8::<Wrong>(0, make_ic!(i8)))).unwrap();
         must_panic(|| drop(contiguous::from_i16::<Wrong>(0, make_ic!(i16)))).unwrap();
-        must_panic(|| drop(contiguous::into_integer(Wrong::Z, make_ic!(i16)))).unwrap();
+        must_panic(|| drop(contiguous::into_integer(Wrong::Z, &make_ic!(i16)))).unwrap();
     }
 }
 
@@ -133,7 +133,7 @@ fn convert_to_nonzero() {
                 assert_eq!($from_fn(n, infer!()), Some(nz));
                 assert_eq!(FromInteger(n, infer!()).call(), Some(nz));
 
-                assert_eq!(contiguous::into_integer(nz, infer!()), n);
+                assert_eq!(contiguous::into_integer(nz, &infer!()), n);
             }
             let zero: $Int = 0;
             assert_eq!($from_fn::<$NonZero>(zero, infer!()), None);

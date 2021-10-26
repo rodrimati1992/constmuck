@@ -1,0 +1,12 @@
+error[E0759]: `reff` has lifetime `'a` but it needs to satisfy a `'static` lifetime requirement
+ --> tests/main_tests/ui/peel_ref_macro_lt_err.rs:5:5
+  |
+4 | const fn foo<'a>(reff: &'a Wrapping<u8>) -> &'static u8 {
+  |                        ---------------- this data with lifetime `'a`...
+5 |     peel_ref!(reff, constmuck::IsTW!())
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |     |
+  |     ...is captured here...
+  |     ...and is required to live as long as `'static` here
+  |
+  = note: this error originates in the macro `$crate::wrapper_inner` (in Nightly builds, run with -Z macro-backtrace for more info)
