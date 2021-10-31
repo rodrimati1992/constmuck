@@ -175,3 +175,4 @@ This will require adding an opt-in feature.
 [`contiguous`]: https://docs.rs/constmuck/*/constmuck/contiguous/index.html
 [`wrapper`]: https://docs.rs/constmuck/*/constmuck/wrapper/index.html
 
+ 
