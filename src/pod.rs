@@ -6,7 +6,7 @@ use core::{
 
 use bytemuck::{Pod, PodCastError};
 
-use crate::{IsCopy, IsZeroable};
+use crate::IsCopy;
 
 /// Constructs an [`IsPod<$T>`](struct@crate::IsPod),
 /// requires `$T:`[`Pod`](trait@Pod).
@@ -83,7 +83,6 @@ mod __ {
         /// All types that are [`Pod`](trait@Pod) are [`Copy`]
         pub is_copy: IsCopy<T>,
         /// All types that are [`Pod`](trait@Pod) are [`Zeroable`](trait@bytemuck::Zeroable)
-        pub is_zeroable: IsZeroable<T>,
         // The lifetime of `T` is invariant,
         // just in case that it's unsound for lifetimes to be co/contravariant.
         _private: PhantomData<fn(T) -> T>,
@@ -110,7 +109,6 @@ mod __ {
         /// macros to construct `IsPod` arguments.
         pub const NEW: Self = Self {
             is_copy: IsCopy::NEW,
-            is_zeroable: IsZeroable::NEW,
             _private: PhantomData,
         };
     }
@@ -119,7 +117,6 @@ mod __ {
         const __NEW_UNCHECKED__: Self = unsafe {
             Self {
                 is_copy: IsCopy::new_unchecked(),
-                is_zeroable: IsZeroable::new_unchecked(),
                 _private: PhantomData,
             }
         };

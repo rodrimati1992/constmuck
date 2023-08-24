@@ -4,7 +4,7 @@ use core::{
     mem::{self, ManuallyDrop},
 };
 
-use crate::{Infer, IsCopy, IsZeroable};
+use crate::{Infer, IsCopy};
 
 /// Constructs a [`TypeSize<$ty, $bounds, _>`](struct@crate::TypeSize),
 ///
@@ -308,32 +308,5 @@ impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
     #[inline(always)]
     pub const fn repeat<const LEN: usize>(self, reff: &T) -> [T; LEN] {
         crate::copying::repeat(reff, self)
-    }
-}
-
-impl<T, const SIZE: usize> TypeSize<T, IsZeroable<T>, SIZE> {
-    /// Equivalent to [`constmuck::zeroed_array`](crate::zeroed_array)
-    /// but allows passing the length of the retuned array.
-    ///
-    /// For safely getting a [`std::mem::zeroed`](core::mem::zeroed) `[T; N]`.
-    ///
-    /// This function requires that `T` implements [`Zeroable`](bytemuck::Zeroable).
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use constmuck::TypeSize;
-    ///
-    /// const BYTES: &[u8] = &TypeSize!(u8).zeroed_array::<2>();
-    /// const CHARS: &[char] = &TypeSize!(char).zeroed_array::<4>();
-    ///
-    /// assert_eq!(BYTES, [0, 0]);
-    /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
-    ///
-    ///
-    /// ```
-    #[inline(always)]
-    pub const fn zeroed_array<const LEN: usize>(self) -> [T; LEN] {
-        crate::zeroed_array(self)
     }
 }

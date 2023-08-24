@@ -221,7 +221,7 @@ pub use crate::{
     slice_fns::{byte_array_of, cast_slice_alt, try_cast_slice_alt},
     type_size::TypeSize,
     wrapper::is_tw::IsTransparentWrapper,
-    zeroable::{zeroed, zeroed_array, IsZeroable},
+    zeroable::zeroed,
 };
 
 #[doc(hidden)]
