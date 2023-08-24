@@ -1,9 +1,6 @@
 #![allow(missing_debug_implementations)]
 
-use core::{
-    marker::PhantomData,
-    mem::{size_of, ManuallyDrop},
-};
+use core::mem::ManuallyDrop;
 
 use crate::const_panic::{FmtArg as FA, PanicVal as PV};
 
@@ -28,22 +25,6 @@ pub union ManuallyDropAsInner<'a, T> {
 
 pub(crate) const fn manuallydrop_as_inner<T>(outer: &ManuallyDrop<T>) -> &T {
     unsafe { ManuallyDropAsInner { outer }.inner }
-}
-
-// checking that the size of an array is just `size_of::<T>() * LEN`
-//
-pub(crate) struct SizeIsStride<T, const LEN: usize>(PhantomData<fn() -> T>);
-
-impl<T, const LEN: usize> SizeIsStride<T, LEN> {
-    pub(crate) const V: bool = { size_of::<[T; LEN]>() != size_of::<T>() * LEN };
-
-    #[cold]
-    #[inline(never)]
-    #[allow(unconditional_panic)]
-    pub(crate) const fn panic() -> ! {
-        let x = 0;
-        [/* uh oh, size != stride */][x]
-    }
 }
 
 #[cold]

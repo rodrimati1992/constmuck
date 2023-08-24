@@ -1,5 +1,3 @@
-use super::test_utils::must_panic;
-
 use constmuck::zeroed;
 
 #[test]

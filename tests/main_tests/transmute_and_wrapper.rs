@@ -1,4 +1,4 @@
-use super::test_utils::{must_panic, Pack, Wrap};
+use super::test_utils::Wrap;
 
 use constmuck::wrapper::{peel, peel_ref, peel_slice, wrap, wrap_ref, wrap_slice};
 

@@ -167,7 +167,7 @@
 //!
 //! # Minimum Supported Rust Version
 //!
-//! `constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
+//! `constmuck` requires Rust 1.64.0.
 //!
 //! You can use the `"rust_latest_stable"` crate feature to get
 //! all items and functionality that requires stable Rust versions after 1.56.0.
@@ -191,8 +191,6 @@ pub struct ReadmeTest;
 #[macro_use]
 mod macros;
 
-pub mod copying;
-
 pub mod contiguous;
 
 mod infer;
@@ -215,10 +213,9 @@ pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zero
 
 pub use crate::{
     contiguous::is_contiguous::IsContiguous,
-    copying::is_copy::IsCopy,
     infer::Infer,
-    pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, IsPod},
-    slice_fns::{byte_array_of, cast_slice_alt, try_cast_slice_alt},
+    pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt},
+    slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
     type_size::TypeSize,
     zeroable::zeroed,
 };

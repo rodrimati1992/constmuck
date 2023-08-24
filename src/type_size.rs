@@ -4,7 +4,7 @@ use core::{
     mem::{self, ManuallyDrop},
 };
 
-use crate::{Infer, IsCopy};
+use crate::Infer;
 
 /// Constructs a [`TypeSize<$ty, $bounds, _>`](struct@crate::TypeSize),
 #[macro_export]
@@ -143,14 +143,5 @@ impl<B, T, const SIZE: usize> TypeSize<T, B, SIZE> {
     pub const fn split(self) -> (B, TypeSize<T, (), SIZE>) {
         let bounds = ManuallyDrop::into_inner(self.bounds);
         (bounds, TypeSize::__13878307735224946849NEW__)
-    }
-}
-
-impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
-    /// Equivalent to [`copying::repeat`](crate::copying::repeat)
-    /// but allows passing the length of the retuned array.
-    #[inline(always)]
-    pub const fn repeat<const LEN: usize>(self, reff: &T) -> [T; LEN] {
-        crate::copying::repeat(reff, self)
     }
 }

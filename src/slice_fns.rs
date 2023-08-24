@@ -1,58 +1,29 @@
-use core::mem::{self, MaybeUninit};
+use core::mem;
 
-use bytemuck::PodCastError;
-
-use crate::{IsCopy, IsPod, TypeSize};
+use bytemuck::{AnyBitPattern, NoUninit, PodCastError};
 
 /// Casts `&T` to `&[u8; SIZE]`
-///
-/// Requires `T` to implement [`Pod`](trait@bytemuck::Pod).
-///
-/// `SIZE` is guaranteed to be the size of `T` by the `TypeSize` argument.
 ///
 /// # Example
 ///
 /// ```rust
-/// use constmuck::{TypeSize, byte_array_of};
+/// use constmuck::bytes_of;
 ///
-/// const ARRAY: &[u8; 4] = byte_array_of(&123456789, TypeSize!(u32));
-/// const BYTES: &[u8] = byte_array_of(&987654321, TypeSize!(u32));
+/// const BYTES: &[u8] = bytes_of(&987654321u32);
 ///
-/// assert_eq!(*ARRAY, 123456789u32.to_ne_bytes());
 /// assert_eq!(*BYTES, 987654321u32.to_ne_bytes());
 /// ```
-pub const fn byte_array_of<T, const SIZE: usize>(
-    bytes: &T,
-    _bounds: TypeSize<T, IsPod<T>, SIZE>,
-) -> &[u8; SIZE] {
-    // safety:
-    // `TypeSize` guarantees that `size_of::<T>() == SIZE`
-    //
-    // `IsPod` guarantees that the type doesn't have any padding,
-    // and allows any bit pattern,
-    unsafe { __priv_transmute_ref!(T, [u8; SIZE], bytes) }
-}
-
-// Internal helper function for use in copying a Copy type.
-//
-// Once it's possible to copy generic types without using an intermediate
-// `MaybeUninit<[u8; SIZE]>` this function will be deleted.
-pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
-    bytes: &T,
-    _bounds: TypeSize<T, IsCopy<T>, SIZE>,
-) -> &MaybeUninit<[u8; SIZE]> {
-    // safety:
-    // `IsCopy<T>` guarantees that `T` is safe to copy using
-    // an intermediate `MaybeUninit<[u8; std::mem::size_of::<T>()]>`.
-    //
-    // `TypeSize<T, _, SIZE>` guarantees that `T` is `SIZE` bytes large
-    //
-    unsafe { __priv_transmute_ref!(T, MaybeUninit<[u8; SIZE]>, bytes) }
+pub const fn bytes_of<T>(bytes: &T) -> &[u8]
+where
+    T: NoUninit,
+{
+    // safety: `T: NoUninit` guarantees that T doesn't have any padding or uninit bytes,
+    unsafe {
+        core::slice::from_raw_parts(bytes as *const T as *const u8, core::mem::size_of::<T>())
+    }
 }
 
 /// Casts `&[T]` to `&[U]`
-///
-/// Requires both `T` and `U` to implement [`Pod`](trait@bytemuck::Pod).
 ///
 /// # Panics
 ///
@@ -70,17 +41,21 @@ pub(crate) const fn maybe_uninit_bytes_of<T, const SIZE: usize>(
 ///
 /// ```
 /// use constmuck::PodCastError;
-/// use constmuck::{cast_slice_alt, infer};
+/// use constmuck::cast_slice_alt;
 ///
 /// type Res<T> = Result<T, PodCastError>;
 ///
-/// const I8S: &[i8] = cast_slice_alt(&[100u8, 254, 255], infer!());
+/// const I8S: &[i8] = cast_slice_alt(&[100u8, 254, 255]);
 ///
 /// assert_eq!(*I8S, [100, -2, -1]);
 ///
 /// ```
-pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &[U] {
-    match try_cast_slice_alt(from, bounds) {
+pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
+where
+    T: NoUninit,
+    U: AnyBitPattern,
+{
+    match try_cast_slice_alt(from) {
         Ok(x) => x,
         Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned) => {
             crate::__priv_utils::incompatible_alignment_panic(
@@ -95,8 +70,6 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &
 }
 
 /// Tries to cast `&[T]` to `&[U]`
-///
-/// Requires both `T` and `U` to implement [`Pod`](trait@bytemuck::Pod).
 ///
 /// # Errors
 ///
@@ -122,21 +95,22 @@ pub const fn cast_slice_alt<T, U>(from: &[T], bounds: (IsPod<T>, IsPod<U>)) -> &
 ///
 /// ```
 /// use constmuck::PodCastError;
-/// use constmuck::{infer, try_cast_slice_alt};
+/// use constmuck::try_cast_slice_alt;
 ///
 /// type Res<T> = Result<T, PodCastError>;
 ///
-/// const I8S: Res<&[i8]> = try_cast_slice_alt(&[100u8, 254, 255], infer!());
-/// const ERR_SIZE : Res<&[u8]> = try_cast_slice_alt(&[0u16], infer!());
+/// const I8S: Res<&[i8]> = try_cast_slice_alt(&[100u8, 254, 255]);
+/// const ERR_SIZE : Res<&[u8]> = try_cast_slice_alt(&[0u16]);
 ///
 /// assert_eq!(I8S, Ok(&[100i8, -2, -1][..]));
 /// assert_eq!(ERR_SIZE, Err(PodCastError::SizeMismatch));
 ///
 /// ```
-pub const fn try_cast_slice_alt<T, U>(
-    from: &[T],
-    _bounds: (IsPod<T>, IsPod<U>),
-) -> Result<&[U], PodCastError> {
+pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+where
+    T: NoUninit,
+    U: AnyBitPattern,
+{
     unsafe {
         if mem::align_of::<T>() < mem::align_of::<U>() {
             Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)
