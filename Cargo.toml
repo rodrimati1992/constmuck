@@ -1,9 +1,9 @@
 [package]
 name = "constmuck"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
-rust-version = "1.56.0"
+rust-version = "1.61.0"
 license = "Zlib"
 description = "const-equivalents of bytemuck functions, and more"
 documentation = "https://docs.rs/constmuck/"
@@ -19,8 +19,7 @@ include = [
 ]
 
 [features]
-derive = ["bytemuck/derive", "syn"]
-rust_1_57 = ["constmuck_internal/rust_1_57"]
+derive = ["bytemuck/derive"]
 rust_latest_stable = []
 
 #private features
@@ -40,15 +39,10 @@ features = ["rust_1_56"]
 default-features = false
 
 [dependencies.constmuck_internal]
-version = "=0.3.0"
+version = "=0.4.0"
 path = "./constmuck_internal"
 
 [dependencies.bytemuck]
 version = "1.7.2"
 features = ["min_const_generics"]
 default-features = false
-
-# for making minimum version testing pass
-[dependencies.syn]
-version = "1.0.76"
-optional = true

@@ -379,20 +379,14 @@ pub const fn from_u8<T>(integer: u8, bounds: IsContiguous<T, u8>) -> Option<T> {
     #[cfg(debug_assertions)]
     #[allow(unconditional_panic)]
     if bounds.min_value > bounds.max_value {
-        crate::panic_! {
-            {
-                let x = 0;
-                let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
-            }
-            {
-                crate::const_panic::concat_panic!{
-                    "\nbounds.min_value: ",
-                    bounds.min_value,
-                    " is larger than bounds.max_value: ",
-                    bounds.max_value,
-                }
-            }
-        }
+        use crate::const_panic::{FmtArg as FA, PanicVal as PV};
+
+        crate::const_panic::concat_panic(&[&[
+            PV::write_str("\nbounds.min_value: "),
+            PV::from_u8(bounds.min_value, FA::DEBUG),
+            PV::write_str(" is larger than bounds.max_value: "),
+            PV::from_u8(bounds.max_value, FA::DEBUG),
+        ]])
     }
 
     if bounds.min_value <= integer && integer <= bounds.max_value {
@@ -449,20 +443,14 @@ macro_rules! declare_from_integer_fns {
             #[cfg(debug_assertions)]
             #[allow(unconditional_panic)]
             if bounds.min_value > bounds.max_value {
-                crate::panic_!{
-                    {
-                        let x = 0;
-                        let _: () = [/* bounds.min_value is larger than bounds.max_value */][x];
-                    }
-                    {
-                        crate::const_panic::concat_panic!{
-                            "\nbounds.min_value: ",
-                            bounds.min_value,
-                            " is larger than bounds.max_value: ",
-                            bounds.max_value,
-                        }
-                    }
-                }
+                use crate::const_panic::{FmtArg as FA, PanicVal as PV, StdWrapper as SW};
+
+                crate::const_panic::concat_panic(&[&[
+                    PV::write_str("\nbounds.min_value: "),
+                    SW(&bounds.min_value).to_panicval(FA::DEBUG),
+                    PV::write_str(" is larger than bounds.max_value: "),
+                    SW(&bounds.max_value).to_panicval(FA::DEBUG),
+                ]])
             }
 
             if bounds.min_value <= integer && integer <= bounds.max_value {

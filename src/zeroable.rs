@@ -46,7 +46,7 @@ pub const fn zeroed<T: Zeroable>() -> T {
                 }
             )else*
             else {
-                use crate::const_panic::{concat_panic, FmtArg as FA, PanicVal as PV};
+                use crate::const_panic::{FmtArg as FA, PanicVal as PV};
 
                 crate::const_panic::concat_panic(&[&[
                     PV::write_str("\n`constmuck::zeroed` can only instantiate types up to "),
@@ -75,5 +75,10 @@ pub const fn zeroed<T: Zeroable>() -> T {
 //
 // `std::mem::size_of::<T>()` must be less than or equal to `SJZE`.
 const unsafe fn zeroed_with_size<T: Zeroable, const SIZE: usize>() -> T {
-    __priv_transmute! {[u8; SIZE], T, [0u8; SIZE]}
+    core::mem::ManuallyDrop::into_inner(
+        crate::__priv_utils::Transmuter {
+            from: core::mem::ManuallyDrop::new([0u8; SIZE]),
+        }
+        .to,
+    )
 }

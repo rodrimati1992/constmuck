@@ -2,7 +2,7 @@ use std::num::Wrapping;
 
 use static_assertions::{assert_impl_one, assert_not_impl_all};
 
-use constmuck::{Infer, IsContiguous, IsCopy, IsPod, IsTransparentWrapper, IsZeroable, TypeSize};
+use constmuck::{Infer, IsContiguous, IsCopy, IsPod, TypeSize};
 
 struct NoTraits;
 
@@ -62,26 +62,6 @@ fn is_pod_construction() {
 
     assert_impl_one! {IsPod<u32>: Infer}
     assert_not_impl_all! {IsPod<NoTraits>: Infer}
-}
-
-#[test]
-fn is_transparent_wrapper_construction() {
-    assert_type_name(IsTransparentWrapper::<Wrapping<u32>, u32>::NEW, "Is");
-    assert_type_name(IsTransparentWrapper::<Wrapping<u32>, u64>::NEW, "Unit");
-    assert_type_name(IsTransparentWrapper::<NoTraits, NoTraits>::NEW, "Unit");
-
-    assert_impl_one!(IsTransparentWrapper<Wrapping<u32>, u32>: Infer);
-    assert_not_impl_all!(IsTransparentWrapper<Wrapping<u32>, u64>: Infer);
-    assert_not_impl_all!(IsTransparentWrapper<NoTraits, NoTraits>: Infer);
-}
-
-#[test]
-fn is_zeroable_construction() {
-    assert_type_name(IsZeroable::<u32>::NEW, "Is");
-    assert_type_name(IsZeroable::<NoTraits>::NEW, "Unit");
-
-    assert_impl_one! {IsZeroable<u32>: Infer}
-    assert_not_impl_all! {IsZeroable<NoTraits>: Infer}
 }
 
 #[test]

@@ -1,8 +1,9 @@
 [package]
 name = "constmuck_internal"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
+rust-version = "1.61.0"
 license = "Zlib"
 description = "internal implementation detail of constmuck, all of this is unstable"
 documentation = "https://docs.rs/constmuck/"
@@ -15,12 +16,8 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
-[features]
-rust_1_57 = ["const_panic"]
-
 [dependencies.const_panic]
-version = "0.1"
-optional = true
+version = "0.2"
 default_features = false
 
 [dependencies.bytemuck]

@@ -70,10 +70,7 @@ macro_rules! __priv_transmute_from_copy {
 macro_rules! __priv_transmute_ref {
     ($from:ty, $to:ty, $reference:expr) => {{
         __check_size! {$from, $to}
-        crate::__priv_utils::PtrToRef::<$to> {
-            ptr: $reference as *const $from as *const $to,
-        }
-        .reff
+        &*($reference as *const $from as *const $to)
     }};
 }
 
@@ -88,9 +85,6 @@ macro_rules! __priv_transmute_ref {
 macro_rules! __priv_transmute_slice {
     ($from:ty, $to:ty, $reference:expr) => {{
         __check_size! {$from, $to}
-        crate::__priv_utils::PtrToRef::<[$to]> {
-            ptr: $reference as *const [$from] as *const [$to],
-        }
-        .reff
+        &*($reference as *const [$from] as *const [$to])
     }};
 }

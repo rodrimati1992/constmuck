@@ -78,7 +78,7 @@
 //!
 //! ```rust
 //!
-//! use constmuck::{IsTW, TransparentWrapper};
+//! use constmuck::{TransparentWrapper};
 //!
 //! fn main() {
 //!     const SLICE: &[u32] = &[3, 5, 8, 13, 21];
@@ -103,7 +103,7 @@
 //! impl<T> SliceWrapper<T> {
 //!     // Using `constmuck` allows safely defining this function as a `const fn`
 //!     pub const fn new(reff: &[T]) -> &Self {
-//!         constmuck::wrapper::wrap_ref!(reff, IsTW!())
+//!         constmuck::wrapper::wrap_ref!(reff)
 //!     }
 //! }
 //!
@@ -220,7 +220,6 @@ pub use crate::{
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, IsPod},
     slice_fns::{byte_array_of, cast_slice_alt, try_cast_slice_alt},
     type_size::TypeSize,
-    wrapper::is_tw::IsTransparentWrapper,
     zeroable::zeroed,
 };
 
@@ -230,7 +229,4 @@ pub mod __ {
     pub use core::ops::Range;
 }
 
-use constmuck_internal::panic_;
-
-#[cfg(feature = "rust_1_57")]
 use constmuck_internal::const_panic;

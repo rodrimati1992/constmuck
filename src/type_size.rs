@@ -7,37 +7,6 @@ use core::{
 use crate::{Infer, IsCopy};
 
 /// Constructs a [`TypeSize<$ty, $bounds, _>`](struct@crate::TypeSize),
-///
-/// Uses the [`Infer`] trait to construct a `$bounds`.
-///
-/// The `$bounds` type argument is optional, defaulting to being inferred.
-///
-/// # Example
-///
-/// Making a `oned` function
-///
-/// ```rust
-/// use constmuck::{IsPod, TypeSize};
-///
-/// pub const fn oned<T, const SIZE: usize>(bound: TypeSize<T, IsPod<T>, SIZE>) -> T {
-///     constmuck::cast::<[u8; SIZE], T>(
-///         [1; SIZE],
-///         // `IsPod!()` here constructs an `IsPod<[u8; SIZE]>`
-///         //
-///         // `bound.into_bounds()` extracts the `bounds` field, which is `IsPod<T>` here.
-///         (IsPod!(), bound.into_bounds())
-///     )
-/// }
-///
-/// const U64: u64 = oned(TypeSize!(u64));
-///
-/// // Passing the `$bounds` type argument explicitly
-/// const ONES: [u8; 5] = oned(TypeSize!([u8; 5], IsPod<[u8; 5]>));
-///
-/// assert_eq!(U64, 0x01_01_01_01_01_01_01_01);
-/// assert_eq!(ONES, [1, 1, 1, 1, 1]);
-///
-/// ```
 #[macro_export]
 macro_rules! TypeSize {
     ($ty:ty $(,)*) => {
@@ -49,36 +18,6 @@ macro_rules! TypeSize {
 }
 
 /// Maps the bound field of a [`TypeSize`](struct@crate::TypeSize).
-///
-/// # Example
-///
-/// Making a function to repeat a zeroed value, with stronger requirements than it needs.
-///
-/// ```rust
-/// use constmuck::map_bound;
-/// use constmuck::{IsPod, IsZeroable, TypeSize, zeroed, zeroed_array};
-///
-/// use std::num::NonZeroU8;
-///
-/// pub const fn zeroed_pair<T, const SIZE: usize, const LEN: usize>(
-///     bound: TypeSize<T, IsPod<T>, SIZE>,
-/// ) -> (T, [T; LEN]) {
-///     // The type annotation is just for the reader
-///     let bound: TypeSize<T, IsZeroable<T>, SIZE> =
-///         map_bound!(bound, |x| x.is_zeroable);
-///     (zeroed(bound), zeroed_array(bound))
-/// }
-///
-/// const PAIR_U8: (u8, [u8; 4]) = zeroed_pair(TypeSize!(u8));
-///
-/// const PAIR_NONE: (Option<NonZeroU8>, [Option<NonZeroU8>; 2]) =
-///     zeroed_pair(TypeSize!(Option<NonZeroU8>));
-///
-/// assert_eq!(PAIR_U8, (0, [0, 0, 0, 0]));
-///
-/// assert_eq!(PAIR_NONE, (None, [None, None]));
-///
-/// ```
 #[macro_export]
 macro_rules! map_bound {
     ($this:expr, |$bound:ident| $returned:expr $(,)*) => {{
@@ -95,38 +34,6 @@ macro_rules! map_bound {
 }
 
 /// For passing a type along with its size and additional bounds.
-///
-/// The `B` (bounds) type parameter can be any type that implements [`Infer`],
-/// and is implicitly constructed by the [`TypeSize`] macro.
-///
-/// # Example
-///
-/// Making a `max_bit_pattern` function
-///
-/// ```rust
-/// use constmuck::{IsPod, TypeSize};
-///
-/// pub const fn max_bit_pattern<T, const SIZE: usize>(bound: TypeSize<T, IsPod<T>, SIZE>) -> T {
-///     constmuck::cast(
-///         [u8::MAX; SIZE],
-///         // `IsPod!()` here constructs an `IsPod<[u8; SIZE]>`
-///         //
-///         // `bound.into_bounds()` here returns a `IsPod<T>`.
-///         (IsPod!(), bound.into_bounds())
-///     )
-/// }
-///
-/// const U64: u64 = max_bit_pattern(TypeSize!(u64));
-/// const U8S: [u8; 5] = max_bit_pattern(TypeSize!([u8; 5]));
-/// const I8S: [i8; 5] = max_bit_pattern(TypeSize!([i8; 5]));
-///
-/// assert_eq!(U64, u64::MAX);
-/// assert_eq!(U8S, [u8::MAX; 5]);
-/// assert_eq!(I8S, [-1i8; 5]);
-///
-/// ```
-///
-/// [`TypeSize`]: macro@crate::TypeSize
 pub struct TypeSize<T, B, const SIZE: usize> {
     bounds: ManuallyDrop<B>,
     // The lifetime of `T` is invariant,
@@ -193,60 +100,13 @@ impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
         if mem::size_of::<T>() == SIZE {
             Self::__UNCHECKED_UNIT
         } else {
-            crate::panic_! {
-                {
-                    #[allow(non_snake_case)]
-                    let size_of_T = mem::size_of::<T>();
-                    [/* size_of::<T>() does not equal SIZE */][size_of_T]
-                }
-                {
-                    crate::const_panic::concat_panic!{
-                        "\nsize_of::<T>(): ",
-                        mem::size_of::<T>(),
-                        " does not equal SIZE: ",
-                        SIZE,
-                    }
-                }
-            }
+            panic!()
         }
     }
 }
 
 impl<T, const SIZE: usize> TypeSize<T, (), SIZE> {
     /// Sets the bounds field of a bound-less `TypeSize`.
-    ///
-    /// # Leaking
-    ///
-    /// Note that `B` is expected not to own memory,
-    /// dropping a `TypeSize<_, B, _>` will leak any resources it owns.
-    ///
-    /// # Example
-    ///
-    /// This example demonstrates how `with_bounds` can be used to
-    /// compose `TypeSize` with `Is*::new_unchecked`.
-    ///
-    /// ```rust
-    /// use constmuck::{IsZeroable, TypeSize, zeroed};
-    ///
-    /// fn main() {
-    ///     const NEW: Foo = Foo::new();
-    ///     
-    ///     assert_eq!(NEW, Foo(0, 0, 0));
-    /// }
-    ///
-    /// #[derive(Debug, PartialEq)]
-    /// pub struct Foo(u8, u16, u32);
-    ///
-    /// impl Foo {
-    ///     pub const fn new() -> Self {
-    ///         // safety: this type knows that all its fields are zeroable right now,
-    ///         // but it doesn't impl Zeroable to be able to add nonzeroable fields.
-    ///         let iz = unsafe{ IsZeroable::<Self>::new_unchecked() };
-    ///         zeroed(TypeSize!(Self).with_bounds(iz))
-    ///     }
-    /// }
-    ///
-    /// ```
     pub const fn with_bounds<B>(self, bounds: B) -> TypeSize<T, B, SIZE> {
         TypeSize {
             bounds: ManuallyDrop::new(bounds),
@@ -289,22 +149,6 @@ impl<B, T, const SIZE: usize> TypeSize<T, B, SIZE> {
 impl<T, const SIZE: usize> TypeSize<T, IsCopy<T>, SIZE> {
     /// Equivalent to [`copying::repeat`](crate::copying::repeat)
     /// but allows passing the length of the retuned array.
-    ///
-    /// Creates a `[T; ARR_LEN]` by copying from a `&T`
-    ///
-    /// Requires that `T` implements `Copy + Pod`
-    /// (see [`IsCopy`](struct@crate::IsCopy) docs for why it requires `Pod`)
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use constmuck::TypeSize;
-    ///
-    /// const PAIR: &[u128] = &TypeSize!(u128).repeat::<2>(&300);
-    ///
-    /// assert_eq!(PAIR, &[300, 300]);
-    ///
-    /// ```
     #[inline(always)]
     pub const fn repeat<const LEN: usize>(self, reff: &T) -> [T; LEN] {
         crate::copying::repeat(reff, self)
