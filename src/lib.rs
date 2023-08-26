@@ -205,10 +205,14 @@ mod zeroable;
 pub mod __priv_utils;
 
 #[doc(no_inline)]
-pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
+pub use bytemuck::{
+    self, AnyBitPattern, Contiguous, NoUninit, Pod, PodCastError, TransparentWrapper, Zeroable,
+};
 
 pub use crate::{
-    pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt},
+    pod::{
+        cast, cast_ref_alt, pod_read_unaligned, try_cast, try_cast_ref_alt, try_pod_read_unaligned,
+    },
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
     zeroable::zeroed,
 };

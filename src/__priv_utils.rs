@@ -4,6 +4,10 @@ use core::mem::ManuallyDrop;
 
 use crate::const_panic::{FmtArg as FA, PanicVal as PV};
 
+#[repr(packed)]
+#[derive(Copy, Clone)]
+pub(crate) struct Packed<T>(pub(crate) T);
+
 // allows transmuting between arbitrary Sized types.
 #[repr(C)]
 pub(crate) union Transmuter<F, T> {
@@ -62,6 +66,19 @@ pub(crate) const fn unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! 
         PV::from_usize(size_of_u, FA::DEBUG),
     ]])
 }
+
+#[cold]
+#[inline(never)]
+pub(crate) const fn unequal_bytes_size_panic(size_of_slice: usize, size_of_t: usize) -> ! {
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nthe size of `T` and the slice is not the same"),
+        PV::write_str("\nslice length: "),
+        PV::from_usize(size_of_slice, FA::DEBUG),
+        PV::write_str("\nsize_of::<T>(): "),
+        PV::from_usize(size_of_t, FA::DEBUG),
+    ]])
+}
+
 #[cold]
 #[inline(never)]
 pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: usize) -> ! {

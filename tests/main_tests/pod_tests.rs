@@ -73,3 +73,35 @@ fn try_cast_slice_alt_test() {
     );
     assert_eq!(tcsa::<u32, i32>(&[u32::MAX, 4]), Ok(&[-1i32, 4][..]),);
 }
+
+#[test]
+fn pod_read_unaligned_test() {
+    use constmuck::pod_read_unaligned;
+
+    let arr = [3, 5, 8, 13];
+    assert_eq!(pod_read_unaligned::<u32>(&arr), u32::from_ne_bytes(arr));
+
+    must_panic(|| pod_read_unaligned::<u32>(&[1; 0])).unwrap();
+    must_panic(|| pod_read_unaligned::<u32>(&[1; 1])).unwrap();
+    must_panic(|| pod_read_unaligned::<u32>(&[1; 2])).unwrap();
+    must_panic(|| pod_read_unaligned::<u32>(&[1; 3])).unwrap();
+    assert_eq!(pod_read_unaligned::<u32>(&[1; 4]), 0x01_01_01_01u32);
+    must_panic(|| pod_read_unaligned::<u32>(&[1; 5])).unwrap();
+    must_panic(|| pod_read_unaligned::<u32>(&[1; 6])).unwrap();
+}
+
+#[test]
+fn try_pod_read_unaligned_test() {
+    use constmuck::try_pod_read_unaligned as tpru;
+
+    let arr = [3, 5, 8, 13];
+    assert_eq!(tpru::<u32>(&arr).unwrap(), u32::from_ne_bytes(arr));
+
+    assert_eq!(tpru::<u32>(&[1; 0]).unwrap_err(), SizeMismatch);
+    assert_eq!(tpru::<u32>(&[1; 1]).unwrap_err(), SizeMismatch);
+    assert_eq!(tpru::<u32>(&[1; 2]).unwrap_err(), SizeMismatch);
+    assert_eq!(tpru::<u32>(&[1; 3]).unwrap_err(), SizeMismatch);
+    assert_eq!(tpru::<u32>(&[1; 4]).unwrap(), 0x01_01_01_01u32);
+    assert_eq!(tpru::<u32>(&[1; 5]).unwrap_err(), SizeMismatch);
+    assert_eq!(tpru::<u32>(&[1; 6]).unwrap_err(), SizeMismatch);
+}

@@ -2,6 +2,8 @@ use core::mem;
 
 use bytemuck::{AnyBitPattern, NoUninit, PodCastError};
 
+use crate::__priv_utils::Packed;
+
 /// Casts `T` into `U`
 ///
 /// # Panics
@@ -55,7 +57,7 @@ where
 ///
 ///
 /// ```
-pub const fn try_cast<T, U>(from: T) -> Result<U, crate::PodCastError>
+pub const fn try_cast<T, U>(from: T) -> Result<U, PodCastError>
 where
     T: NoUninit,
     U: AnyBitPattern,
@@ -67,7 +69,7 @@ where
             // They are both guaranteed the same size in this branch.
             Ok(__priv_transmute!(T, U, from))
         } else {
-            Err(bytemuck::PodCastError::SizeMismatch)
+            Err(PodCastError::SizeMismatch)
         }
     }
 }
@@ -150,7 +152,7 @@ where
 /// assert_eq!(ERR_ALIGN, Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned));
 ///
 /// ```
-pub const fn try_cast_ref_alt<T, U>(from: &T) -> Result<&U, crate::PodCastError>
+pub const fn try_cast_ref_alt<T, U>(from: &T) -> Result<&U, PodCastError>
 where
     T: NoUninit,
     U: AnyBitPattern,
@@ -168,5 +170,63 @@ where
             // and T is at least as aligned as U.
             Ok(__priv_transmute_ref!(T, U, from))
         }
+    }
+}
+
+/// Reads a `T`  out of a byte slice.
+///
+/// # Panic
+///
+/// This panics if `size_of::<T>() != bytes.len()`
+///
+/// # Example
+///
+/// ```rust
+/// use constmuck::{pod_read_unaligned, AnyBitPattern};
+///
+/// #[repr(C)]
+/// # #[derive(Debug, PartialEq, Copy, Clone)]
+/// # /*
+/// #[derive(Debug, PartialEq, Copy, Clone, AnyBitPattern)]
+/// # */
+/// struct Foo(u16, u16);
+/// #
+/// # unsafe impl bytemuck::Zeroable for Foo {}
+/// # unsafe impl bytemuck::AnyBitPattern for Foo {}
+///
+/// const FOO: Foo = {
+///     let number = u32::from_be_bytes([0xDe, 0x11, 0x0_B, 0x0b]);
+///     pod_read_unaligned(&number.to_ne_bytes())
+/// };
+///
+/// assert_eq!(FOO, Foo(0xB0b, 0xDe11));
+///
+/// ```
+pub const fn pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> T {
+    match try_pod_read_unaligned(bytes) {
+        Ok(x) => x,
+        Err(PodCastError::SizeMismatch | _) => {
+            crate::__priv_utils::unequal_bytes_size_panic(bytes.len(), core::mem::size_of::<T>())
+        }
+    }
+}
+
+/// Reads a `T`  out of a byte slice.
+///
+/// # Errors
+///
+/// This returns `Err(PodCastError::SizeMismatch)` if
+/// `size_of::<T>() != bytes.len()`
+///
+// dunno what a good example for this would be
+pub const fn try_pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> Result<T, PodCastError> {
+    if core::mem::size_of::<T>() == bytes.len() {
+        // SAFETY: the slice is as large as `T`,
+        //         and `Packed` does not have alignment requirements.
+        let packed = unsafe { *bytes.as_ptr().cast::<Packed<T>>() };
+
+        Ok(packed.0)
+    } else {
+        Err(PodCastError::SizeMismatch)
     }
 }
