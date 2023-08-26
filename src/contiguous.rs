@@ -50,7 +50,7 @@
 
 use bytemuck::Contiguous;
 
-use typewit::TypeEq;
+use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq, TypeWitnessTypeArg};
 
 use crate::const_panic::PanicVal;
 
@@ -100,10 +100,7 @@ macro_rules! declare_from_int_fns {
         /// [`from_integer`] function supports.
         ///
         /// This trait can only be implemented in `constmuck`.
-        pub trait Integer: Copy + typewit::HasTypeWitness<IntegerWit<Self>> {
-            #[doc(hidden)]
-            const __WIT: IntegerWit<Self>;
-        }
+        pub trait Integer: Copy + HasTypeWitness<IntegerWit<Self>> {}
 
         #[allow(missing_debug_implementations)]
         #[doc(hidden)]
@@ -114,11 +111,17 @@ macro_rules! declare_from_int_fns {
             )*
         }
 
+        impl<W> TypeWitnessTypeArg for IntegerWit<W> {
+            type Arg = W;
+        }
+
         $(
-            impl Integer for $Int {
+            impl MakeTypeWitness for IntegerWit<$Int> {
                 #[doc(hidden)]
-                const __WIT: IntegerWit<Self> = IntegerWit::$variant(TypeEq::NEW);
+                const MAKE: Self = IntegerWit::$variant(TypeEq::NEW);
             }
+
+            impl Integer for $Int {}
         )*
 
         #[cold]
@@ -206,7 +209,7 @@ macro_rules! declare_from_int_fns {
         where
             T::Int: Integer
         {
-            match <T::Int as Integer>::__WIT {
+            match <T::Int>::WITNESS {
                 $(
                     IntegerWit::$variant(te) => {
                         let integer = te.to_right(integer);

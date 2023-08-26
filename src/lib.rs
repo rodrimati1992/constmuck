@@ -193,13 +193,9 @@ mod macros;
 
 pub mod contiguous;
 
-mod infer;
-
 mod pod;
 
 mod slice_fns;
-
-mod type_size;
 
 pub mod wrapper;
 
@@ -212,10 +208,8 @@ pub mod __priv_utils;
 pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
 
 pub use crate::{
-    infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt},
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
-    type_size::TypeSize,
     zeroable::zeroed,
 };
 
