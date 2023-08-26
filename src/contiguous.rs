@@ -1,42 +1,42 @@
 //! Functions for converting types that implement [`Contiguous`]
 //! into and from their integer representation.
 //!
-//! Related: the [`IsContiguous`](struct@IsContiguous) type.
-//!
 //! # Example
 //!
 //! Converting an enum both from and into an integer.
 //!
 //! ```rust
-//! use constmuck::{Contiguous, IsContiguous, contiguous, infer};
+//! use constmuck::{Contiguous, contiguous};
 //!
 //! #[repr(u32)]
-//! #[derive(Debug, PartialEq, Copy, Clone)]
+//! # #[derive(Debug, PartialEq, Copy, Clone)]
+//! # /*
+//! #[derive(Debug, PartialEq, Contiguous, Copy, Clone)]
+//! # */
 //! enum Side {
 //!     Front = 0,
 //!     Back = 1,
 //!     Sides = 2,
 //! }
-//!
-//! unsafe impl Contiguous for Side {
-//!    type Int = u32;
-//!
-//!    const MIN_VALUE: u32 = 0;
-//!    const MAX_VALUE: u32 = 2;
-//! }
+//! # unsafe impl Contiguous for Side {
+//! #    type Int = u32;
+//! #
+//! #    const MIN_VALUE: u32 = 0;
+//! #    const MAX_VALUE: u32 = 2;
+//! # }
 //!
 //! const SIDE_INTS: [u32; 3] = [
-//!     contiguous::into_integer(Side::Front, &infer!()),
-//!     contiguous::into_integer(Side::Back, &infer!()),
-//!     contiguous::into_integer(Side::Sides, &infer!()),
+//!     contiguous::into_integer(Side::Front),
+//!     contiguous::into_integer(Side::Back),
+//!     contiguous::into_integer(Side::Sides),
 //! ];
 //! assert_eq!(SIDE_INTS, [0, 1, 2]);
 //!
 //! const SIDE_OPTS: [Option<Side>; 4] = [
-//!     contiguous::from_u32(0, infer!()),
-//!     contiguous::from_u32(1, IsContiguous!()),
-//!     contiguous::from_u32(2, IsContiguous!(Side)),
-//!     contiguous::from_u32(3, IsContiguous!(Side, u32)),
+//!     contiguous::from_integer(0),
+//!     contiguous::from_integer(1),
+//!     contiguous::from_integer::<Side>(2),
+//!     contiguous::from_integer::<Side>(3),
 //! ];
 //!
 //! assert_eq!(
@@ -48,477 +48,211 @@
 //! ```
 //!
 
-/// Constructs an [`IsContiguous<$T, $IntRepr>`](struct@IsContiguous),
-/// requires `$T:`[`Contiguous`](trait@bytemuck::Contiguous)`<Int = $IntRepr>`.
-///
-/// This has two optional type arguments (`$T` and `$IntRepr`) that default to
-/// infering the type if not passed.
-///
-/// # Example
-///
-/// ```rust
-/// use constmuck::{IsContiguous, contiguous};
-///
-/// use std::num::NonZeroU8;
-///
-/// // The three lines below are equivalent.
-/// const FOO: IsContiguous<NonZeroU8, u8> = IsContiguous!();
-/// const BAR: IsContiguous<NonZeroU8, u8> = IsContiguous!(NonZeroU8);
-/// const BAZ: IsContiguous<NonZeroU8, u8> = IsContiguous!(NonZeroU8, u8);
-///
-/// assert_eq!(contiguous::from_u8(0, FOO), None);
-/// assert_eq!(contiguous::from_u8(0, BAR), None);
-/// assert_eq!(contiguous::from_u8(0, BAZ), None);
-/// assert_eq!(contiguous::from_u8(1, BAZ), Some(NonZeroU8::new(1).unwrap()));
-///
-/// assert_eq!(contiguous::into_integer(NonZeroU8::new(1).unwrap(), &FOO), 1u8);
-///
-///
-/// ```
-#[macro_export]
-macro_rules! IsContiguous {
-    () => {
-        <$crate::IsContiguous<_, _> as $crate::Infer>::INFER
-    };
-    ($T:ty $(,)*) => {
-        <$crate::IsContiguous<$T, _> as $crate::Infer>::INFER
-    };
-    ($T:ty, $IntRepr:ty $(,)*) => {
-        <$crate::IsContiguous<$T, $IntRepr> as $crate::Infer>::INFER
-    };
-}
-
 use bytemuck::Contiguous;
 
-use core::{
-    fmt::{self, Debug},
-    marker::PhantomData,
-};
+use typewit::TypeEq;
 
-#[doc(no_inline)]
-pub use crate::IsContiguous;
+use crate::const_panic::PanicVal;
 
-pub(crate) mod is_contiguous {
-    use super::*;
-
-    /// Encodes a `T:`[`Contiguous`](trait@Contiguous)`<Int = IntRepr>` bound as a value.
-    ///
-    /// This also stores the [minimum](Self::min_value) and [maximum](Self::max_value)
-    /// values of the integer represetantion.
-    ///
-    /// Related: the [`contiguous`](crate::contiguous) module.
-    pub struct IsContiguous<T, IntRepr> {
-        pub(super) min_value: IntRepr,
-        pub(super) max_value: IntRepr,
-        // The lifetime of `T` is invariant,
-        // just in case that it's unsound for lifetimes to be co/contravariant.
-        _private: PhantomData<fn(T, IntRepr) -> (T, IntRepr)>,
-    }
-
-    impl<T, IntRepr: Debug> Debug for IsContiguous<T, IntRepr> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.debug_struct("IsContiguous")
-                .field("min_value", &self.min_value)
-                .field("max_value", &self.max_value)
-                .finish()
-        }
-    }
-
-    impl<T, IntRepr: Copy> Copy for IsContiguous<T, IntRepr> {}
-
-    impl<T, IntRepr: Clone> Clone for IsContiguous<T, IntRepr> {
-        fn clone(&self) -> Self {
-            Self {
-                min_value: self.min_value.clone(),
-                max_value: self.max_value.clone(),
-                _private: PhantomData,
-            }
-        }
-    }
-
-    impl<T: Contiguous> IsContiguous<T, T::Int> {
-        /// Constructs an `IsContiguous`
-        ///
-        /// You can also use the [`IsContiguous`](macro@IsContiguous) or [`infer`] macros
-        /// to construct `IsContiguous` arguments.
-        pub const NEW: Self = Self {
-            min_value: T::MIN_VALUE,
-            max_value: T::MAX_VALUE,
-            _private: PhantomData,
-        };
-    }
-
-    impl<T, IntRepr> IsContiguous<T, IntRepr> {
-        const __PHANTOM__: PhantomData<fn(T, IntRepr) -> (T, IntRepr)> = PhantomData;
-
-        /// Constructs an `IsContiguous` without checking that `T` implements
-        /// [`Contiguous<Int = IntRepr>`](bytemuck::Contiguous)
-        ///
-        /// # Safety
-        ///
-        /// You must ensure that `T` follows the
-        /// [safety requirements of `Contiguous`](bytemuck::Contiguous#safety),
-        /// `<T as Contiguous>::Int` is `IntRepr`,
-        /// `min_value` equals `<T as Contiguous>::MIN_VALUE`,
-        /// and `max_value` equals `<T as Contiguous>::MAX_VALUE`.
-        ///
-        ///
-        /// # Example
-        ///
-        /// ```rust
-        /// use constmuck::{IsContiguous, contiguous};
-        ///
-        /// use std::num::Wrapping;
-        ///
-        /// let ic = unsafe { IsContiguous::<Wrapping<u8>, u8>::new_unchecked(10, 20) };
-        ///
-        /// assert_eq!(contiguous::from_u8(9, ic), None);
-        /// assert_eq!(contiguous::from_u8(10, ic), Some(Wrapping(10)));
-        /// assert_eq!(contiguous::from_u8(20, ic), Some(Wrapping(20)));
-        /// assert_eq!(contiguous::from_u8(21, ic), None);
-        ///
-        /// assert_eq!(contiguous::into_integer(Wrapping(11), &ic), 11);
-        /// assert_eq!(contiguous::into_integer(Wrapping(15), &ic), 15);
-        ///
-        ///
-        /// ```
-        pub const unsafe fn new_unchecked(min_value: IntRepr, max_value: IntRepr) -> Self {
-            Self {
-                min_value,
-                max_value,
-                _private: Self::__PHANTOM__,
-            }
-        }
-    }
-    impl<T, IntRepr> IsContiguous<T, IntRepr> {
-        /// Gets the minimum value of `T`'s integer representation
-        ///
-        /// # Example
-        ///
-        /// ```rust
-        /// use constmuck::IsContiguous;
-        ///
-        /// use std::num::NonZeroU8;
-        ///
-        /// {
-        ///     let ic = IsContiguous!(NonZeroU8);
-        ///     assert_eq!(ic.min_value(), &1);
-        /// }
-        /// {
-        ///     let ic = IsContiguous!(u16);
-        ///     assert_eq!(ic.min_value(), &0);
-        /// }
-        /// ```
-        #[inline(always)]
-        pub const fn min_value(&self) -> &IntRepr {
-            &self.min_value
-        }
-
-        /// Gets the maximum value of `T`'s integer representation
-        ///
-        /// # Example
-        ///
-        /// ```rust
-        /// use constmuck::IsContiguous;
-        ///
-        /// use std::num::NonZeroU16;
-        ///
-        /// {
-        ///     let ic = IsContiguous!(NonZeroU16);
-        ///     assert_eq!(ic.max_value(), &u16::MAX);
-        /// }
-        /// {
-        ///     let ic = IsContiguous!(u8);
-        ///     assert_eq!(ic.max_value(), &u8::MAX);
-        /// }
-        /// ```
-        #[inline(always)]
-        pub const fn max_value(&self) -> &IntRepr {
-            &self.max_value
-        }
-    }
-}
-
-impl<T: Contiguous> crate::Infer for IsContiguous<T, T::Int> {
-    const INFER: Self = Self::NEW;
-}
-
-/// Converts `value: T` into `IntRepr` (its integer representation).
-///
-/// Requires that `T` implements [`Contiguous<Int = IntRepr>`](bytemuck::Contiguous)
-///
-/// # By-reference `IsContiguous` argument
-///
-/// This takes an [`IsContiguous`](struct@IsContiguous)
-/// by reference, to allow calling this function in a
-/// function generic over the integer representation
-/// (eg: `const fn foo<T, I>(bound: &IsContiguous<T, I>, `)
-/// multiple times.
-///
-/// The `constmuck::contiguous::from_*`
-/// functions have a concrete integer representation they deal with,
-/// which means the `IsContiguous` type they take implements `Copy`,
-/// and can be passed by value multiple times.
+/// Converts `value: T` into `<T as Contiguous>::Int` (its integer representation).
 ///
 /// # Example
 ///
 /// ```
-/// use constmuck::{Contiguous, IsContiguous, contiguous, infer};
+/// use constmuck::{Contiguous, contiguous};
 ///
 /// #[repr(i8)]
-/// #[derive(Debug, PartialEq, Copy, Clone)]
+/// # #[derive(Debug, PartialEq, Copy, Clone)]
+/// # /*
+/// #[derive(Debug, PartialEq, Contiguous, Copy, Clone)]
+/// # */
 /// enum Order {
 ///     FrontToBack = 10,
 ///     BackToFront = 11,
 ///     RightToLeft = 12,
 ///     LeftToRight = 13,
 /// }
+/// # unsafe impl Contiguous for Order {
+/// #    type Int = i8;
+/// #
+/// #    const MIN_VALUE: i8 = 10;
+/// #    const MAX_VALUE: i8 = 13;
+/// # }
 ///
-/// unsafe impl Contiguous for Order {
-///    type Int = i8;
-///
-///    const MIN_VALUE: i8 = 10;
-///    const MAX_VALUE: i8 = 13;
-/// }
-///
-///
-/// const FTB: i8 = contiguous::into_integer(Order::FrontToBack, &infer!());
-/// assert_eq!(FTB, 10);
-///
-/// const BTF: i8 = contiguous::into_integer(Order::BackToFront, &IsContiguous!());
-/// assert_eq!(BTF, 11);
-///
-/// const RTL: i8 = contiguous::into_integer(Order::RightToLeft, &IsContiguous!(Order));
-/// assert_eq!(RTL, 12);
-///
-/// const LTR: i8 = contiguous::into_integer(Order::LeftToRight, &IsContiguous!(Order, i8));
-/// assert_eq!(LTR, 13);
-///
+/// const _ASSERTS: () = {
+///     assert!(contiguous::into_integer(Order::FrontToBack) == 10_i8);
+///     assert!(contiguous::into_integer(Order::BackToFront) == 11_i8);
+///     assert!(contiguous::into_integer(Order::RightToLeft) == 12_i8);
+///     assert!(contiguous::into_integer(Order::LeftToRight) == 13_i8);
+/// };
 /// ```
 ///
 #[inline(always)]
-pub const fn into_integer<T, IntRepr>(value: T, _bounds: &IsContiguous<T, IntRepr>) -> IntRepr {
+pub const fn into_integer<T: Contiguous>(value: T) -> T::Int {
     // safety:
-    // `_bounds: &IsContiguous<T, IntRepr>` guarantees that `T` is represented as
-    // an `IntRepr`,
-    unsafe { __priv_transmute!(T, IntRepr, value) }
+    // `T: Contiguous` guarantees that `T` is represented as a `T::Int`,
+    unsafe { __priv_transmute!(T, T::Int, value) }
 }
 
-/// Converts `integer: u8` to `T` if it's between the minimum and maximum values for `T`,
-/// otherwise returns `None`.
-///
-/// Requires that `T` implements [`Contiguous<Int = u8>`](bytemuck::Contiguous)
-///
-/// # Examples
-///
-/// ### `NonZeroU8`
-///
-/// ```rust
-/// use constmuck::{IsContiguous, contiguous, infer};
-///
-/// use std::num::NonZeroU8;
-///
-/// const ZERO: Option<NonZeroU8> = contiguous::from_u8(0, infer!());
-/// assert_eq!(ZERO, None);
-///
-/// const ONE: Option<NonZeroU8> = contiguous::from_u8(1, IsContiguous!());
-/// assert_eq!(ONE, NonZeroU8::new(1));
-///
-/// const HUNDRED: Option<NonZeroU8> = contiguous::from_u8(100, IsContiguous!(NonZeroU8));
-/// assert_eq!(HUNDRED, NonZeroU8::new(100));
-///
-/// ```
-///
-/// ### Custom type
-///
-/// ```rust
-/// use constmuck::{Contiguous, IsContiguous, contiguous, infer};
-///
-/// #[repr(u8)]
-/// #[derive(Debug, PartialEq, Copy, Clone)]
-/// enum Direction {
-///     Up = 10,
-///     Down = 11,
-///     Left = 12,
-///     Right = 13,
-/// }
-///
-/// unsafe impl Contiguous for Direction {
-///    type Int = u8;
-///
-///    const MIN_VALUE: u8 = 10;
-///    const MAX_VALUE: u8 = 13;
-/// }
-///
-///
-/// const NONE0: Option<Direction> = contiguous::from_u8(0, infer!());
-/// assert_eq!(NONE0, None);
-///
-/// const NONE9: Option<Direction> = contiguous::from_u8(9, infer!());
-/// assert_eq!(NONE9, None);
-///
-/// const UP: Option<Direction> = contiguous::from_u8(10, infer!());
-/// assert_eq!(UP, Some(Direction::Up));
-///
-/// const DOWN: Option<Direction> = contiguous::from_u8(11, IsContiguous!());
-/// assert_eq!(DOWN, Some(Direction::Down));
-///
-/// // Passing the `Direction` type argument is required,
-/// // since any type can `ìmpl PartialEq<Foo> for Direction`.
-/// let left = contiguous::from_u8(12, IsContiguous!(Direction));
-/// assert_eq!(left, Some(Direction::Left));
-///
-/// let right = contiguous::from_u8(13, IsContiguous!(Direction, u8));
-/// assert_eq!(right, Some(Direction::Right));
-///
-/// const NONE14: Option<Direction> = contiguous::from_u8(14, IsContiguous!());
-/// assert_eq!(NONE14, None);
-///
-/// ```
-pub const fn from_u8<T>(integer: u8, bounds: IsContiguous<T, u8>) -> Option<T> {
-    #[cfg(debug_assertions)]
-    #[allow(unconditional_panic)]
-    if bounds.min_value > bounds.max_value {
-        use crate::const_panic::{FmtArg as FA, PanicVal as PV};
-
-        crate::const_panic::concat_panic(&[&[
-            PV::write_str("\nbounds.min_value: "),
-            PV::from_u8(bounds.min_value, FA::DEBUG),
-            PV::write_str(" is larger than bounds.max_value: "),
-            PV::from_u8(bounds.max_value, FA::DEBUG),
-        ]])
-    }
-
-    if bounds.min_value <= integer && integer <= bounds.max_value {
-        // safety:
-        // `bounds: IsContiguous<T, u8>` guarantees that `T` is represented as a `u8`,
-        // and is valid for all values between `bounds.min_value` and
-        // `bounds.max_value` inclusive.
-        unsafe { Some(__priv_transmute_from_copy!(u8, T, integer)) }
-    } else {
-        None
-    }
-}
-
-macro_rules! declare_from_integer_fns {
-    ($(($fn_name:ident, $Int:ident))*) => (
-        declare_from_integer_fns!{
-            @inner
-            $((
-                $fn_name,
-                $Int,
-                concat!(
-                    "Converts `ìnteger: ", stringify!($Int), "` to `T` if it's between ",
-                    "the minimum and maximum values for `T`, otherwise returns `None`.\n\n",
-                    "Requires that `T` implements [`Contiguous<Int = ", stringify!($Int),
-                    ">`](bytemuck::Contiguous)"
-                )
-            ))*
+macro_rules! declare_from_int_fns {
+    ($(($fn_name:ident, $variant:ident, $Int:ident))*) => (
+        /// Marker trait for the integer types that the
+        /// [`from_integer`] function supports.
+        ///
+        /// This trait can only be implemented in `constmuck`.
+        pub trait Integer: Copy + typewit::HasTypeWitness<IntegerWit<Self>> {
+            #[doc(hidden)]
+            const __WIT: IntegerWit<Self>;
         }
-    );
-    (@inner $(($fn_name:ident, $Int:ident, $shared_doc:expr))*)=>{
+
+        #[allow(missing_debug_implementations)]
+        #[doc(hidden)]
+        #[non_exhaustive]
+        pub enum IntegerWit<W> {
+            $(
+                $variant(TypeEq<W, $Int>),
+            )*
+        }
+
         $(
-            impl<T> FromInteger<T, $Int> {
-                #[doc = $shared_doc]
-                #[inline(always)]
-                pub const fn call(self) -> Option<T> {
-                    $fn_name(self.0, self.1)
-                }
+            impl Integer for $Int {
+                #[doc(hidden)]
+                const __WIT: IntegerWit<Self> = IntegerWit::$variant(TypeEq::NEW);
             }
         )*
 
-        $(
-            declare_from_integer_fns!{@free_fn $fn_name, $Int, $shared_doc}
-        )*
-    };
-    (@free_fn from_u8, $Int:ident, $shared_doc:expr)=>{};
-    (@free_fn $fn_name:ident, $Int:ident, $shared_doc:expr)=>{
-        #[doc = $shared_doc]
+        #[cold]
+        #[inline(never)]
+        const fn panic_impossible_bounds(min_value: PanicVal, max_value: PanicVal) -> ! {
+            crate::const_panic::concat_panic(&[&[
+                PanicVal::write_str("\nmin_value: "),
+                min_value,
+                PanicVal::write_str(" is larger than max_value: "),
+                max_value,
+            ]])
+        }
+
+        /// Converts an integer into `T` if it's between the minimum and maximum values for `T`,
+        /// otherwise returns `None`.
+        ///
         /// # Examples
         ///
-        /// For examples, you can look
-        /// [at the ones for `from_u8`](self::from_u8#examples).
+        /// ### `NonZeroU8`
         ///
-        pub const fn $fn_name<T>(integer: $Int, bounds: IsContiguous<T, $Int>) -> Option<T> {
-            #[cfg(debug_assertions)]
-            #[allow(unconditional_panic)]
-            if bounds.min_value > bounds.max_value {
-                use crate::const_panic::{FmtArg as FA, PanicVal as PV, StdWrapper as SW};
+        /// ```rust
+        /// use constmuck::contiguous;
+        ///
+        /// use std::num::NonZeroU8;
+        ///
+        /// const VALUES: [Option<NonZeroU8>; 3] = [
+        ///     contiguous::from_integer(0),
+        ///     contiguous::from_integer(1),
+        ///     contiguous::from_integer::<NonZeroU8>(100),
+        /// ];
+        ///
+        /// assert_eq!(VALUES, [
+        ///     None,
+        ///     NonZeroU8::new(1),
+        ///     NonZeroU8::new(100),
+        /// ]);
+        ///
+        /// ```
+        ///
+        /// ### Custom type
+        ///
+        /// ```rust
+        /// use constmuck::{Contiguous, contiguous};
+        ///
+        /// #[repr(u8)]
+        /// # #[derive(Debug, PartialEq, Copy, Clone)]
+        /// # /*
+        /// #[derive(Debug, PartialEq, Contiguous, Copy, Clone)]
+        /// # */
+        /// enum Direction {
+        ///     Up = 10,
+        ///     Down = 11,
+        ///     Left = 12,
+        ///     Right = 13,
+        /// }
+        /// # unsafe impl Contiguous for Direction {
+        /// #    type Int = u8;
+        /// #
+        /// #    const MIN_VALUE: u8 = 10;
+        /// #    const MAX_VALUE: u8 = 13;
+        /// # }
+        ///
+        /// const VALUES: [Option<Direction>; 7] = [
+        ///     contiguous::from_integer(0),
+        ///     contiguous::from_integer(9),
+        ///     contiguous::from_integer(10),
+        ///     contiguous::from_integer(11),
+        ///     contiguous::from_integer(12),
+        ///     contiguous::from_integer(13),
+        ///     contiguous::from_integer::<Direction>(14),
+        /// ];
+        ///
+        /// assert_eq!(VALUES, [
+        ///     None,
+        ///     None,
+        ///     Some(Direction::Up),
+        ///     Some(Direction::Down),
+        ///     Some(Direction::Left),
+        ///     Some(Direction::Right),
+        ///     None,
+        /// ]);
+        ///
+        /// ```
+        pub const fn from_integer<T: Contiguous>(integer: T::Int) -> Option<T>
+        where
+            T::Int: Integer
+        {
+            match <T::Int as Integer>::__WIT {
+                $(
+                    IntegerWit::$variant(te) => {
+                        let integer = te.to_right(integer);
+                        let min_value = te.to_right(T::MIN_VALUE);
+                        let max_value = te.to_right(T::MAX_VALUE);
 
-                crate::const_panic::concat_panic(&[&[
-                    PV::write_str("\nbounds.min_value: "),
-                    SW(&bounds.min_value).to_panicval(FA::DEBUG),
-                    PV::write_str(" is larger than bounds.max_value: "),
-                    SW(&bounds.max_value).to_panicval(FA::DEBUG),
-                ]])
+                        #[cfg(debug_assertions)]
+                        #[allow(unconditional_panic)]
+                        if min_value > max_value {
+                            use crate::const_panic::{FmtArg as FA};
+
+                            panic_impossible_bounds(
+                                PanicVal::$fn_name(min_value, FA::DEBUG),
+                                PanicVal::$fn_name(max_value, FA::DEBUG),
+                            );
+                        }
+
+                        if integer < min_value || max_value < integer {
+                            return None;
+                        }
+                    }
+                )*
             }
 
-            if bounds.min_value <= integer && integer <= bounds.max_value {
-                // safety:
-                // `bounds: IsContiguous<T, $Int>` guarantees that
-                // `T` is represented as a `$Int`, and is valid for all values between
-                // `bounds.min_value` and `bounds.max_value` inclusive.
-                unsafe { Some(__priv_transmute_from_copy!($Int, T, integer)) }
-            } else {
-                None
-            }
+            // safety:
+            // integer is between `T::MIN_VALUE` and `T::MAX_VALUE`(inclusive).
+            //
+            // `T: Contiguous` guarantees that `T` is represented as a `T::Int`,
+            // and is valid for all values between `T::MIN_VALUE` and
+            // `T::MAX_VALUE` inclusive.
+            unsafe { Some(__priv_transmute_from_copy!(T::Int, T, integer)) }
         }
-    };
+    );
 }
 
-declare_from_integer_fns! {
-    (from_i8, i8)
-    (from_i16, i16)
-    (from_i32, i32)
-    (from_i64, i64)
-    (from_i128, i128)
-    (from_isize, isize)
-    (from_u8, u8)
-    (from_u16, u16)
-    (from_u32, u32)
-    (from_u64, u64)
-    (from_u128, u128)
-    (from_usize, usize)
+declare_from_int_fns! {
+    (from_i8,    I8,    i8)
+    (from_i16,   I16,   i16)
+    (from_i32,   I32,   i32)
+    (from_i64,   I64,   i64)
+    (from_i128,  I128,  i128)
+    (from_isize, Isize, isize)
+    (from_u8,    U8,    u8)
+    (from_u16,   U16,   u16)
+    (from_u32,   U32,   u32)
+    (from_u64,   U64,   u64)
+    (from_u128,  U128,  u128)
+    (from_usize, Usize, usize)
 }
-
-/// Converts `IntRepr` to `T` if it's between the minimum and maximum values for `T`,
-/// otherwise returns `None`.
-///
-/// This is only useful over the functions in the [`contiguous`](crate::contiguous)
-/// module when one needs to select the method based on the type of the integer.
-///
-/// # Limitation
-///
-/// The concrete type of the integer must be known for the `call` method to be callable,
-/// it can't be inferred from the type that it's converted into.
-///
-/// # Example
-///
-/// ```rust
-/// use constmuck::contiguous::FromInteger;
-/// use constmuck::{IsContiguous, infer};
-///
-/// use std::num::{NonZeroU32, NonZeroUsize};
-///
-/// const ZERO_USIZE: Option<NonZeroUsize> =
-///     FromInteger(0usize, infer!()).call();
-/// assert_eq!(ZERO_USIZE, None);
-///
-/// const TWO_USIZE: Option<NonZeroUsize> =
-///     FromInteger(2usize, IsContiguous!()).call();
-/// assert_eq!(TWO_USIZE, NonZeroUsize::new(2));
-///
-///
-/// const ZERO_U64: Option<NonZeroU32> =
-///     FromInteger(0u32, IsContiguous!(NonZeroU32)).call();
-/// assert_eq!(ZERO_U64, None);
-///
-/// const ONE_U64: Option<NonZeroU32> =
-///     FromInteger(1u32, IsContiguous!(NonZeroU32, u32)).call();
-/// assert_eq!(ONE_U64, NonZeroU32::new(1));
-///
-///
-/// ```
-///
-#[allow(missing_debug_implementations)]
-pub struct FromInteger<T, IntRepr>(pub IntRepr, pub IsContiguous<T, IntRepr>);

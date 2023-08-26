@@ -23,7 +23,7 @@
 //!
 //! ```rust
 //!
-//! use constmuck::{Contiguous, infer};
+//! use constmuck::Contiguous;
 //!
 //! use konst::{array, try_opt};
 //!
@@ -59,7 +59,7 @@
 //!
 //! impl Color {
 //!     pub const fn from_int(n: u8) -> Option<Self> {
-//!         constmuck::contiguous::from_u8(n, infer!())
+//!         constmuck::contiguous::from_integer(n)
 //!     }
 //!     pub const fn from_array<const N: usize>(input: [u8; N]) -> Option<[Self; N]> {
 //!         // `try_opt` returns from `from_array` on `None`,
@@ -78,7 +78,7 @@
 //!
 //! ```rust
 //!
-//! use constmuck::{TransparentWrapper};
+//! use constmuck::TransparentWrapper;
 //!
 //! fn main() {
 //!     const SLICE: &[u32] = &[3, 5, 8, 13, 21];
@@ -212,7 +212,6 @@ pub mod __priv_utils;
 pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
 
 pub use crate::{
-    contiguous::is_contiguous::IsContiguous,
     infer::Infer,
     pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt},
     slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},

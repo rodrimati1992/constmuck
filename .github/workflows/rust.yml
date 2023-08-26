@@ -36,7 +36,7 @@ jobs:
       run: |
         rustup override set ${{ matrix.rust }}
 
-        cargo test --features "derive ui_tests rust_1_57"
+        cargo test --features "derive ui_tests"
 
         # cargo update -Z minimal-versions
         

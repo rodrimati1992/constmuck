@@ -1,9 +1,6 @@
 use super::test_utils::must_panic;
 
-use constmuck::{
-    contiguous::{self, FromInteger},
-    infer, Contiguous, IsContiguous,
-};
+use constmuck::{contiguous, Contiguous};
 
 #[repr(i8)]
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -38,142 +35,63 @@ unsafe impl Contiguous for Wrong {
     const MAX_VALUE: i16 = 1;
 }
 
-#[test]
-fn contiguous_accessors() {
-    {
-        let ic = IsContiguous::<Tiny, i8>::NEW;
-        assert_eq!(ic.min_value(), &-1);
-        assert_eq!(ic.max_value(), &2);
-    }
-    {
-        let ic = IsContiguous::<u32, u32>::NEW;
-        assert_eq!(ic.min_value(), &0);
-        assert_eq!(ic.max_value(), &u32::MAX);
-    }
-}
-
-#[cfg(debug_assertions)]
-#[repr(transparent)]
-#[derive(Debug, PartialEq, Copy, Clone)]
-struct SwappedLimits(u8);
-
-#[cfg(debug_assertions)]
-unsafe impl Contiguous for SwappedLimits {
-    type Int = i8;
-
-    const MIN_VALUE: i8 = 2;
-    const MAX_VALUE: i8 = 0;
-}
-
 #[cfg(debug_assertions)]
 #[test]
 fn swapped_limits() {
-    macro_rules! make_ic {
-        ($ty:ty) => {
-            IsContiguous::<SwappedLimits, $ty>::new_unchecked(
-                SwappedLimits::MIN_VALUE as _,
-                SwappedLimits::MAX_VALUE as _,
-            )
-        };
-    }
-    let ic = IsContiguous::<SwappedLimits, _>::NEW;
-    assert_eq!(ic.min_value(), &2);
-    assert_eq!(ic.max_value(), &0);
+    #[repr(transparent)]
+    #[derive(Debug, PartialEq, Copy, Clone)]
+    struct SwappedLimits(u8);
 
-    unsafe {
-        must_panic(|| drop(contiguous::from_i8(0, make_ic!(i8)))).unwrap();
-        must_panic(|| drop(contiguous::from_u8(0, make_ic!(u8)))).unwrap();
-        must_panic(|| drop(contiguous::from_i16(0, make_ic!(i16)))).unwrap();
-        must_panic(|| drop(contiguous::from_u16(0, make_ic!(u16)))).unwrap();
-    }
-}
+    unsafe impl Contiguous for SwappedLimits {
+        type Int = i8;
 
-#[test]
-fn custom_type_tests() {
-    for outside in (i8::MIN..=-2).chain(3..=i8::MAX) {
-        assert_eq!(contiguous::from_i8::<Tiny>(outside, infer!()), None);
-        assert_eq!(FromInteger::<Tiny, i8>(outside, infer!()).call(), None);
+        const MIN_VALUE: i8 = 2;
+        const MAX_VALUE: i8 = 0;
     }
 
-    for variant in [Tiny::N1, Tiny::Z, Tiny::P1, Tiny::P2] {
-        assert_eq!(contiguous::from_i8(variant as i8, infer!()), Some(variant));
-        assert_eq!(FromInteger(variant as i8, infer!()).call(), Some(variant));
-    }
-
-    #[cfg(debug_assertions)]
-    unsafe {
-        macro_rules! make_ic {
-            ($ty:ty) => {
-                IsContiguous::<Wrong, $ty>::new_unchecked((Wrong::N1 as $ty).min(0), 1)
-            };
-        }
-        // making sure to test u8 since `from_u8` is manually written,
-        // while the rest are macro generated
-        must_panic(|| drop(contiguous::from_u8::<Wrong>(0, make_ic!(u8)))).unwrap();
-        must_panic(|| drop(contiguous::from_i8::<Wrong>(0, make_ic!(i8)))).unwrap();
-        must_panic(|| drop(contiguous::from_i16::<Wrong>(0, make_ic!(i16)))).unwrap();
-        must_panic(|| drop(contiguous::into_integer(Wrong::Z, &make_ic!(i16)))).unwrap();
-    }
+    must_panic(|| drop(contiguous::from_integer::<SwappedLimits>(1))).unwrap();
 }
 
 #[test]
 fn convert_to_nonzero() {
     macro_rules! test_cases {
-        (
-            $(($Int:ident, $NonZero:ident, $from_fn:ident))*
-        ) => ($({
+        ( $(($Int:ident, $NonZero:ident))* ) => ($({
             use std::num::$NonZero;
-
-            use constmuck::contiguous::$from_fn;
 
             let max = $Int::MAX;
             for n in [1, 2, 3, max - 3, max - 2, max - 1, max] {
                 let nz = $NonZero::new(n).unwrap();
 
-                assert_eq!($from_fn(n, infer!()), Some(nz));
-                assert_eq!(FromInteger(n, infer!()).call(), Some(nz));
+                assert_eq!(contiguous::from_integer(n), Some(nz));
 
-                assert_eq!(contiguous::into_integer(nz, &infer!()), n);
+                assert_eq!(contiguous::into_integer(nz), n);
             }
             let zero: $Int = 0;
-            assert_eq!($from_fn::<$NonZero>(zero, infer!()), None);
-            assert_eq!(FromInteger::<$NonZero, $Int>(zero, infer!()).call(), None);
+            assert_eq!(contiguous::from_integer::<$NonZero>(zero), None);
         })*)
     }
 
     test_cases! {
-        (u8, NonZeroU8, from_u8)
-        (u16, NonZeroU16, from_u16)
-        (u32, NonZeroU32, from_u32)
-        (u64, NonZeroU64, from_u64)
-        (u128, NonZeroU128, from_u128)
-        (usize, NonZeroUsize, from_usize)
+        (u8, NonZeroU8)
+        (u16, NonZeroU16)
+        (u32, NonZeroU32)
+        (u64, NonZeroU64)
+        (u128, NonZeroU128)
+        (usize, NonZeroUsize)
     }
 }
 
 #[test]
 fn identity_conv() {
     macro_rules! test_cases {
-        (
-            $(($Int:ident, $from_fn:ident))*
-        ) => ($({
-            use constmuck::contiguous::$from_fn;
-
+        ( $($Int:ident)* ) => ($({
             let min = $Int::MIN;
             let max = $Int::MAX;
             for n in [min, min + 1, min + 2, 0, 1, 2, max - 3, max - 2, max - 1, max] {
-                assert_eq!($from_fn::<$Int>(n, infer!()), Some(n));
-                assert_eq!(FromInteger::<$Int, $Int>(n, infer!()).call(), Some(n));
+                assert_eq!(contiguous::from_integer::<$Int>(n), Some(n));
             }
         })*)
     }
 
-    test_cases! {
-        (i8, from_i8)
-        (i16, from_i16)
-        (i32, from_i32)
-        (i64, from_i64)
-        (i128, from_i128)
-        (isize, from_isize)
-    }
+    test_cases! {i8 i16 i32 i64 i128 isize}
 }

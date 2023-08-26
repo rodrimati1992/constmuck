@@ -46,3 +46,7 @@ path = "./constmuck_internal"
 version = "1.13"
 features = ["min_const_generics"]
 default-features = false
+
+[dependencies.typewit]
+version = "1.5"
+default-features = false

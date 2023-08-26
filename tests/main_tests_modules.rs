@@ -4,8 +4,8 @@ mod main_tests {
 
     mod contiguous_tests;
     mod pod_tests;
-    mod transmute_and_wrapper;
     mod ui_tests;
+    mod wrapper_tests;
     mod zeroable;
 }
 
