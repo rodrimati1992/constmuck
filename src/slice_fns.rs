@@ -2,7 +2,7 @@ use core::mem;
 
 use bytemuck::{AnyBitPattern, NoUninit, PodCastError};
 
-/// Casts `&T` to `&[u8; SIZE]`
+/// Casts `&T` to `&[u8]`
 ///
 /// # Example
 ///

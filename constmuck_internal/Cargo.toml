@@ -1,6 +1,6 @@
 [package]
 name = "constmuck_internal"
-version = "0.4.0"
+version = "1.0.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
 rust-version = "1.64.0"

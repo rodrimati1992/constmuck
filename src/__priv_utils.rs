@@ -27,10 +27,6 @@ pub union ManuallyDropAsInner<'a, T> {
     pub(crate) inner: &'a T,
 }
 
-pub(crate) const fn manuallydrop_as_inner<T>(outer: &ManuallyDrop<T>) -> &T {
-    unsafe { ManuallyDropAsInner { outer }.inner }
-}
-
 #[cold]
 #[inline(never)]
 pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {

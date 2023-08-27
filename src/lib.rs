@@ -1,5 +1,4 @@
-//! Const equivalents of many [`bytemuck`] functions,
-//! and additional functionality.
+//! Const equivalents of many [`bytemuck`] functions.
 //!
 //! `constmuck` uses `bytemuck`'s traits,
 //! any type that implements those traits can be used with the
@@ -7,9 +6,6 @@
 //!
 //! The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
 //! each one describes how it's different.
-//!
-//! This crate avoids requiring (unstable as of 2021) trait bounds in `const fn`s
-//! by using marker types to require that a trait is implemented.
 //!
 //! # Examples
 //!
@@ -109,21 +105,11 @@
 //!
 //! impl SliceWrapper<u32> {
 //!     pub const fn sum(&self) -> u64 {
-//!         let mut sum = 0;
-//!         konst::for_range!{i in 0..self.0.len() =>
-//!             sum += self.0[i] as u64;
-//!         }
-//!         sum
+//!         konst::iter::eval!(&self.0,copied(),fold(0, |l, r| l + r as u64))
 //!     }
 //!     pub const fn find_first_even(&self) -> Option<(usize, u32)> {
-//!         konst::for_range!{i in 0..self.0.len() =>
-//!             if self.0[i] % 2 == 0 {
-//!                 return Some((i, self.0[i]));
-//!             }
-//!         }
-//!         None
+//!         konst::iter::eval!(&self.0,copied(),enumerate(),find(|(i, n)| *n % 2 == 0))
 //!     }
-//!     
 //! }
 //!
 //!
@@ -153,14 +139,6 @@
 //! - `"derive"`(disabled by default):
 //! Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 //!
-//! - `"rust_latest_stable"`(disabled by default):
-//! Enables all items and functionality that requires stable Rust versions after 1.56.0.
-//! Currently doesn't enable any other feature.
-//!
-//! - `"rust_1_57"`(disabled by default, requires Rust 1.57.0):
-//! Causes this crate to use the `const_panic` dependency,
-//! to improve the quality of panic messages.
-//!
 //! # No-std support
 //!
 //! `constmuck` is `#![no_std]`, it can be used anywhere Rust can be used.
@@ -170,7 +148,7 @@
 //! `constmuck` requires Rust 1.64.0.
 //!
 //! You can use the `"rust_latest_stable"` crate feature to get
-//! all items and functionality that requires stable Rust versions after 1.56.0.
+//! all items and functionality that requires stable Rust versions after 1.64.0.
 //!
 //! [`bytemuck`]: bytemuck
 //! [`konst`]: https://docs.rs/konst/*/konst/index.html

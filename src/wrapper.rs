@@ -107,8 +107,9 @@ where
 ///
 /// assert_eq!(X.0, *"world");
 ///
-/// // passing `Foo<_>` is required because otherwise it isn't inferred
-/// assert_eq!(wrapper::wrap_ref!("huh", Foo<_>).0, *"huh");
+/// // specifying what type the macro evaluates into
+/// let foo = wrapper::wrap_ref!("huh", Foo<_>);
+/// assert_eq!(foo.0, *"huh");
 ///
 /// ```
 pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
@@ -131,7 +132,7 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 ///
 /// assert_eq!(X, [Bar("hello"), Bar("world")]);
 ///
-/// // `::<Bar<_>, _>` is required because any type can implement comparison with `Bar`.
+/// // `::<Bar<_>, _>` is required because `Bar` could be comparable with many types.
 /// assert_eq!(
 ///     wrapper::wrap_slice::<Bar<_>, _>(&["hello", "world"]),
 ///     [Bar("hello"), Bar("world")],

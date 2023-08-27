@@ -1,11 +1,11 @@
 [package]
 name = "constmuck"
-version = "0.4.0"
+version = "1.0.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
 rust-version = "1.64.0"
 license = "Zlib"
-description = "const-equivalents of bytemuck functions, and more"
+description = "const-equivalents of bytemuck functions"
 documentation = "https://docs.rs/constmuck/"
 readme="./README.md"
 keywords = ["no-std", "transmute", "casting", "const-fn"]
@@ -34,12 +34,12 @@ static_assertions = "1.1"
 trybuild = "1.0"
 
 [dev-dependencies.konst]
-version = "0.2.12"
-features = ["rust_1_56"]
+version = "0.3.6"
+features = ["iter"]
 default-features = false
 
 [dependencies.constmuck_internal]
-version = "=0.4.0"
+version = "=1.0.0"
 path = "./constmuck_internal"
 
 [dependencies.bytemuck]

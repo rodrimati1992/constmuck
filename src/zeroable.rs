@@ -1,13 +1,11 @@
 use bytemuck::Zeroable;
 
 /// Constructs a zero-initialized `T`,
-/// equivalent to [`std::mem::zeroed::<T>()`](core::mem::zeroed).
-///
-/// This function requires that `T` implements [`Zeroable`].
+/// safe equivalent to [`std::mem::zeroed::<T>()`](core::mem::zeroed).
 ///
 /// # Panics
 ///
-/// this function panics if
+/// This function panics if `size_of::<T>()` is larger than `1_048_576` bytes.
 ///
 /// # Example
 ///
@@ -21,8 +19,6 @@ use bytemuck::Zeroable;
 /// assert_eq!(CHARS, ['\0', '\0', '\0', '\0']);
 ///
 /// ```
-///
-/// [`Zeroable`]: trait@Zeroable
 pub const fn zeroed<T: Zeroable>() -> T {
     macro_rules! last {
         ($curr:tt) => { $curr };

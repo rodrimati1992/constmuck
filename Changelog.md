@@ -1,6 +1,48 @@
 This changelog is a summary of the changes made in each release.
 
-# 0.3.0
+# 1.0
+
+### 1.0.0
+
+Rewrote all functions to not take any `Is*`/`TypeSize` marker types, instead using the same trait bounds as their `bytemuck` counterparts.
+
+`zeroed` now panics if the type is larger than 1MiB.
+
+Removed these items:
+- `Infer`
+- `IsContiguous`: Macro and struct
+- `IsCopy`: macro and struct
+- `IsPod`: macro and struct
+- `IsTW`
+- `IsTransparentWrapper`
+- `IsZeroable`
+- `TypeSize`
+- `copying`: module
+- `infer`
+- `map_bound`
+- `zeroed_array`
+
+Replaced all the `contiguous::from_` functions with new `from_integer` function
+    
+Removed `FromInteger` and `IsContiguous` structs.
+    
+Added `contiguous::Integer` trait
+
+Added `pod_read_unaligned` and `try_pod_read_unaligned` functions
+
+Added reexport of `bytemuck::{ÀnyBitPattern, NoUninit}` in the root module.
+
+Increased Minimum Supported Rust Version to 1.64.0.
+
+Removed `rust_1_57` version, making all code that once required the feature unconditional.
+
+Changed `const_panic` dependency to version 0.2, enabled unconditionally.
+
+Changed `bytemuck` dependency to 1.13 version
+
+Added `typewit = 1.5` dependency
+
+# 0.3
 
 ### 0.3.0
 
