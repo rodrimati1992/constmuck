@@ -84,7 +84,7 @@ pub(crate) const fn unequal_bytes_size_panic(size_of_slice: usize, size_of_t: us
 #[track_caller]
 pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
-        PV::write_str("\nThe alignment of T is lower than U"),
+        PV::write_str("\nthe alignment of T is lower than U"),
         PV::write_str("\nalign_of::<T>(): "),
         PV::from_usize(align_of_t, FA::DEBUG),
         PV::write_str("\nalign_of::<U>(): "),

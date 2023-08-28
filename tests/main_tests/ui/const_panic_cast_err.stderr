@@ -21,7 +21,7 @@ error[E0080]: evaluation of constant value failed
    |
 12 |     constmuck::cast_ref_alt(&[0u8; 2])
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
-The alignment of T is lower than U
+the alignment of T is lower than U
 align_of::<T>(): 1
 align_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:12:5
 
@@ -66,6 +66,6 @@ error[E0080]: evaluation of constant value failed
    |
 30 |     constmuck::cast_slice_alt(&[[0u8; 2]; 3])
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
-The alignment of T is lower than U
+the alignment of T is lower than U
 align_of::<T>(): 1
 align_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:30:5

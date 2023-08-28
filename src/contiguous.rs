@@ -126,11 +126,16 @@ macro_rules! declare_from_int_fns {
 
         #[cold]
         #[inline(never)]
+        #[track_caller]
         const fn panic_impossible_bounds(min_value: PanicVal, max_value: PanicVal) -> ! {
             crate::const_panic::concat_panic(&[&[
-                PanicVal::write_str("\nmin_value: "),
+                PanicVal::write_str("\n\
+                    `T` implements `Contiguous` where \
+                    `T::MIN_VALUE` is larger than `T::MAX_VALUE`\
+                "),
+                PanicVal::write_str("\nT::MIN_VALUE: "),
                 min_value,
-                PanicVal::write_str(" is larger than max_value: "),
+                PanicVal::write_str("\nT::MAX_VALUE: "),
                 max_value,
             ]])
         }
@@ -205,6 +210,7 @@ macro_rules! declare_from_int_fns {
         /// ]);
         ///
         /// ```
+        #[track_caller]
         pub const fn from_integer<T: Contiguous>(integer: T::Int) -> Option<T>
         where
             T::Int: Integer
@@ -217,7 +223,6 @@ macro_rules! declare_from_int_fns {
                         let max_value = te.to_right(T::MAX_VALUE);
 
                         #[cfg(debug_assertions)]
-                        #[allow(unconditional_panic)]
                         if min_value > max_value {
                             use crate::const_panic::{FmtArg as FA};
 
