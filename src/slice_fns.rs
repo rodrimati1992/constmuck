@@ -50,6 +50,7 @@ where
 /// assert_eq!(*I8S, [100, -2, -1]);
 ///
 /// ```
+#[track_caller]
 pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
 where
     T: NoUninit,

@@ -29,6 +29,7 @@ pub union ManuallyDropAsInner<'a, T> {
 
 #[cold]
 #[inline(never)]
+#[track_caller]
 pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
         PV::write_str("\nexpected transmute not to change the size,"),
@@ -41,6 +42,7 @@ pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: us
 
 #[cold]
 #[inline(never)]
+#[track_caller]
 pub(crate) const fn transmute_unequal_align_panic(align_of_t: usize, align_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
         PV::write_str("\nexpected transmute not to change alignment,"),
@@ -53,9 +55,10 @@ pub(crate) const fn transmute_unequal_align_panic(align_of_t: usize, align_of_u:
 
 #[cold]
 #[inline(never)]
+#[track_caller]
 pub(crate) const fn unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
-        PV::write_str("\nthe size of T and U is not the same"),
+        PV::write_str("\nthe sizes of T and U are not the same"),
         PV::write_str("\nsize_of::<T>(): "),
         PV::from_usize(size_of_t, FA::DEBUG),
         PV::write_str("\nsize_of::<U>(): "),
@@ -65,9 +68,10 @@ pub(crate) const fn unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! 
 
 #[cold]
 #[inline(never)]
+#[track_caller]
 pub(crate) const fn unequal_bytes_size_panic(size_of_slice: usize, size_of_t: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
-        PV::write_str("\nthe size of `T` and the slice is not the same"),
+        PV::write_str("\nthe sizes of `T` and the slice are not the same"),
         PV::write_str("\nslice length: "),
         PV::from_usize(size_of_slice, FA::DEBUG),
         PV::write_str("\nsize_of::<T>(): "),
@@ -77,6 +81,7 @@ pub(crate) const fn unequal_bytes_size_panic(size_of_slice: usize, size_of_t: us
 
 #[cold]
 #[inline(never)]
+#[track_caller]
 pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
         PV::write_str("\nThe alignment of T is lower than U"),

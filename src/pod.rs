@@ -20,6 +20,7 @@ use crate::__priv_utils::Packed;
 /// assert_eq!(LE_BYTES, 0xAB1E_BEEF_u32.to_le_bytes());
 ///
 /// ```
+#[track_caller]
 pub const fn cast<T, U>(from: T) -> U
 where
     T: NoUninit,
@@ -99,6 +100,7 @@ where
 /// assert_eq!(U8[1], 0);
 ///
 /// ```
+#[track_caller]
 pub const fn cast_ref_alt<T, U>(from: &T) -> &U
 where
     T: NoUninit,
@@ -175,7 +177,7 @@ where
 
 /// Reads a `T`  out of a byte slice.
 ///
-/// # Panic
+/// # Panics
 ///
 /// This panics if `size_of::<T>() != bytes.len()`
 ///
@@ -202,6 +204,7 @@ where
 /// assert_eq!(FOO, Foo(0xB0b, 0xDe11));
 ///
 /// ```
+#[track_caller]
 pub const fn pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> T {
     match try_pod_read_unaligned(bytes) {
         Ok(x) => x,
