@@ -1,0 +1,94 @@
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+  --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:12:36
+   |
+12 |         constmuck::wrapper::wrap::<Foo<T>, T>(a),
+   |                                    ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+   |
+   = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+note: required by a bound in `constmuck::wrapper::wrap`
+  --> src/wrapper.rs:33:12
+   |
+31 | pub const fn wrap<Outer, Inner>(val: Inner) -> Outer
+   |              ---- required by a bound in this function
+32 | where
+33 |     Outer: TransparentWrapper<Inner>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap`
+
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+  --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:13:49
+   |
+13 |         <Foo<T> as TransparentWrapper<T>>::wrap(b),
+   |         --------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+  --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:22:40
+   |
+22 |         constmuck::wrapper::wrap_ref::<Foo<T>, T>(a),
+   |                                        ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+   |
+   = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+note: required by a bound in `constmuck::wrapper::wrap_ref`
+  --> src/wrapper.rs:69:12
+   |
+67 | pub const fn wrap_ref<Outer, Inner>(reff: &Inner) -> &Outer
+   |              -------- required by a bound in this function
+68 | where
+69 |     Outer: TransparentWrapper<Inner>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap_ref`
+
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+   --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:23:9
+    |
+23  |         constmuck::wrapper::wrap_ref!(b, Foo<T>, T),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+    |
+    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+note: required by a bound in `constmuck_internal::__WrapRefArgs::<'a, Outer, Inner>::__call`
+   --> constmuck_internal/src/lib.rs:103:16
+    |
+101 |     pub const unsafe fn __call(self) -> &'a Outer
+    |                         ------ required by a bound in this associated function
+102 |     where
+103 |         Outer: TransparentWrapper<Inner>
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `__WrapRefArgs::<'a, Outer, Inner>::__call`
+    = note: this error originates in the macro `$crate::wrapper_inner` which comes from the expansion of the macro `constmuck::wrapper::wrap_ref` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+  --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:24:53
+   |
+24 |         <Foo<T> as TransparentWrapper<T>>::wrap_ref(c),
+   |         ------------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+   --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:32:42
+    |
+32  |         constmuck::wrapper::wrap_slice::<Foo<T>, T>(a),
+    |                                          ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+    |
+    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+note: required by a bound in `constmuck::wrapper::wrap_slice`
+   --> src/wrapper.rs:144:12
+    |
+142 | pub const fn wrap_slice<Outer, Inner>(reff: &[Inner]) -> &[Outer]
+    |              ---------- required by a bound in this function
+143 | where
+144 |     Outer: TransparentWrapper<Inner>,
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap_slice`
+
+error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
+  --> tests/main_tests/ui/bound_wrapper_wrap_fns_err.rs:33:55
+   |
+33 |         <Foo<T> as TransparentWrapper<T>>::wrap_slice(b),
+   |         --------------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`

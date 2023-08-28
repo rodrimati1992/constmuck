@@ -1,0 +1,196 @@
+error[E0277]: the trait bound `T: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:3:29
+   |
+3  |         constmuck::bytes_of(a),
+   |         ------------------- ^ the trait `Pod` is not implemented for `T`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = note: required for `T` to implement `NoUninit`
+note: required by a bound in `constmuck::bytes_of`
+  --> src/slice_fns.rs:18:8
+   |
+16 | pub const fn bytes_of<T>(bytes: &T) -> &[u8]
+   |              -------- required by a bound in this function
+17 | where
+18 |     T: NoUninit,
+   |        ^^^^^^^^ required by this bound in `bytes_of`
+help: consider restricting type parameter `T`
+   |
+1  | fn _test_bytes_of<'a, T: constmuck::Pod>(a: &'a T, b: &'a T) -> (&'a [u8], &'a [u8]) {
+   |                        ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:4:28
+    |
+4   |         bytemuck::bytes_of(b),
+    |         ------------------ ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::bytes_of`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:170:20
+    |
+170 | pub fn bytes_of<T: NoUninit>(t: &T) -> &[u8] {
+    |                    ^^^^^^^^ required by this bound in `bytes_of`
+help: consider restricting type parameter `T`
+    |
+1   | fn _test_bytes_of<'a, T: constmuck::Pod>(a: &'a T, b: &'a T) -> (&'a [u8], &'a [u8]) {
+    |                        ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:12:35
+   |
+12 |         constmuck::cast_slice_alt(a),
+   |         ------------------------- ^ the trait `Pod` is not implemented for `T`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = note: required for `T` to implement `NoUninit`
+note: required by a bound in `cast_slice_alt`
+  --> src/slice_fns.rs:56:8
+   |
+54 | pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
+   |              -------------- required by a bound in this function
+55 | where
+56 |     T: NoUninit,
+   |        ^^^^^^^^ required by this bound in `cast_slice_alt`
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_cast_slice_alt<'a, T: constmuck::Pod, U>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+   |                              ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:12:9
+   |
+12 |         constmuck::cast_slice_alt(a),
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+   |
+   = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `cast_slice_alt`
+  --> src/slice_fns.rs:57:8
+   |
+54 | pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
+   |              -------------- required by a bound in this function
+...
+57 |     U: AnyBitPattern,
+   |        ^^^^^^^^^^^^^ required by this bound in `cast_slice_alt`
+help: consider restricting type parameter `U`
+   |
+10 | fn _test_cast_slice_alt<'a, T, U: constmuck::Pod>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+   |                                 ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:13:30
+    |
+13  |         bytemuck::cast_slice(b),
+    |         -------------------- ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::cast_slice`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:285:22
+    |
+285 | pub fn cast_slice<A: NoUninit, B: AnyBitPattern>(a: &[A]) -> &[B] {
+    |                      ^^^^^^^^ required by this bound in `cast_slice`
+help: consider restricting type parameter `T`
+    |
+10  | fn _test_cast_slice_alt<'a, T: constmuck::Pod, U>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+    |                              ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:13:9
+    |
+13  |         bytemuck::cast_slice(b),
+    |         ^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::cast_slice`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:285:35
+    |
+285 | pub fn cast_slice<A: NoUninit, B: AnyBitPattern>(a: &[A]) -> &[B] {
+    |                                   ^^^^^^^^^^^^^ required by this bound in `cast_slice`
+help: consider restricting type parameter `U`
+    |
+10  | fn _test_cast_slice_alt<'a, T, U: constmuck::Pod>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+    |                                 ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:22:39
+    |
+22  |         constmuck::try_cast_slice_alt(a).unwrap(),
+    |         ----------------------------- ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `try_cast_slice_alt`
+   --> src/slice_fns.rs:112:8
+    |
+110 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+    |              ------------------ required by a bound in this function
+111 | where
+112 |     T: NoUninit,
+    |        ^^^^^^^^ required by this bound in `try_cast_slice_alt`
+help: consider restricting type parameter `T`
+    |
+20  | fn _test_try_cast_slice_alt<'a, T: constmuck::Pod, U>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+    |                                  ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:22:9
+    |
+22  |         constmuck::try_cast_slice_alt(a).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `try_cast_slice_alt`
+   --> src/slice_fns.rs:113:8
+    |
+110 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+    |              ------------------ required by a bound in this function
+...
+113 |     U: AnyBitPattern,
+    |        ^^^^^^^^^^^^^ required by this bound in `try_cast_slice_alt`
+help: consider restricting type parameter `U`
+    |
+20  | fn _test_try_cast_slice_alt<'a, T, U: constmuck::Pod>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+    |                                     ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:23:34
+    |
+23  |         bytemuck::try_cast_slice(b).unwrap(),
+    |         ------------------------ ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::try_cast_slice`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:382:26
+    |
+382 | pub fn try_cast_slice<A: NoUninit, B: AnyBitPattern>(
+    |                          ^^^^^^^^ required by this bound in `try_cast_slice`
+help: consider restricting type parameter `T`
+    |
+20  | fn _test_try_cast_slice_alt<'a, T: constmuck::Pod, U>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+    |                                  ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_slice_cast_fn_err.rs:23:9
+    |
+23  |         bytemuck::try_cast_slice(b).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::try_cast_slice`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:382:39
+    |
+382 | pub fn try_cast_slice<A: NoUninit, B: AnyBitPattern>(
+    |                                       ^^^^^^^^^^^^^ required by this bound in `try_cast_slice`
+help: consider restricting type parameter `U`
+    |
+20  | fn _test_try_cast_slice_alt<'a, T, U: constmuck::Pod>(a: &'a [T], b: &'a [T]) -> (&'a [U], &'a [U]) {
+    |                                     ++++++++++++++++

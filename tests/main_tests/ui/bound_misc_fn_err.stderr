@@ -1,0 +1,94 @@
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_misc_fn_err.rs:3:9
+    |
+3   |         constmuck::pod_read_unaligned(a),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `T`
+    |
+    = note: required for `T` to implement `AnyBitPattern`
+note: required by a bound in `constmuck::pod_read_unaligned`
+   --> src/pod.rs:208:36
+    |
+208 | pub const fn pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> T {
+    |                                    ^^^^^^^^^^^^^ required by this bound in `pod_read_unaligned`
+help: consider restricting type parameter `T`
+    |
+1   | fn _test_pod_read_unaligned<T: constmuck::Pod>(a: &[u8], b: &[u8]) -> (T, T) {
+    |                              ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_misc_fn_err.rs:4:9
+    |
+4   |         bytemuck::pod_read_unaligned(b),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `T`
+    |
+    = note: required for `T` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::pod_read_unaligned`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:219:30
+    |
+219 | pub fn pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> T {
+    |                              ^^^^^^^^^^^^^ required by this bound in `pod_read_unaligned`
+help: consider restricting type parameter `T`
+    |
+1   | fn _test_pod_read_unaligned<T: constmuck::Pod>(a: &[u8], b: &[u8]) -> (T, T) {
+    |                              ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_misc_fn_err.rs:12:9
+    |
+12  |         constmuck::try_pod_read_unaligned(a).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `T`
+    |
+    = note: required for `T` to implement `AnyBitPattern`
+note: required by a bound in `constmuck::try_pod_read_unaligned`
+   --> src/pod.rs:225:40
+    |
+225 | pub const fn try_pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> Result<T, PodCastError> {
+    |                                        ^^^^^^^^^^^^^ required by this bound in `try_pod_read_unaligned`
+help: consider restricting type parameter `T`
+    |
+10  | fn _test_try_pod_read_unaligned<T: constmuck::Pod>(a: &[u8], b: &[u8]) -> (T, T) {
+    |                                  ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_misc_fn_err.rs:13:9
+    |
+13  |         bytemuck::try_pod_read_unaligned(b).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `T`
+    |
+    = note: required for `T` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::try_pod_read_unaligned`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:208:34
+    |
+208 | pub fn try_pod_read_unaligned<T: AnyBitPattern>(
+    |                                  ^^^^^^^^^^^^^ required by this bound in `try_pod_read_unaligned`
+help: consider restricting type parameter `T`
+    |
+10  | fn _test_try_pod_read_unaligned<T: constmuck::Pod>(a: &[u8], b: &[u8]) -> (T, T) {
+    |                                  ++++++++++++++++
+
+error[E0277]: the trait bound `T: Zeroable` is not satisfied
+  --> tests/main_tests/ui/bound_misc_fn_err.rs:22:9
+   |
+22 |         constmuck::zeroed(),
+   |         ^^^^^^^^^^^^^^^^^ the trait `Zeroable` is not implemented for `T`
+   |
+note: required by a bound in `constmuck::zeroed`
+  --> src/zeroable.rs:22:24
+   |
+22 | pub const fn zeroed<T: Zeroable>() -> T {
+   |                        ^^^^^^^^ required by this bound in `zeroed`
+help: consider restricting type parameter `T`
+   |
+20 | fn _test_zeroed<T: constmuck::Zeroable>() -> (T, T) {
+   |                  +++++++++++++++++++++
+
+error[E0277]: the trait bound `T: Zeroable` is not satisfied
+  --> tests/main_tests/ui/bound_misc_fn_err.rs:23:9
+   |
+23 |         bytemuck::Zeroable::zeroed(),
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Zeroable` is not implemented for `T`
+   |
+help: consider restricting type parameter `T`
+   |
+20 | fn _test_zeroed<T: constmuck::Zeroable>() -> (T, T) {
+   |                  +++++++++++++++++++++

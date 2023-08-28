@@ -1,0 +1,119 @@
+error[E0277]: the trait bound `U: Contiguous` is not satisfied
+   --> tests/main_tests/ui/bound_contiguous_fns_err.rs:5:9
+    |
+5   |         constmuck::contiguous::from_integer(a).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `U`
+    |
+note: required by a bound in `constmuck::contiguous::from_integer`
+   --> src/contiguous.rs:253:1
+    |
+253 | / declare_from_int_fns! {
+254 | |     (from_i8,    I8,    i8)
+255 | |     (from_i16,   I16,   i16)
+256 | |     (from_i32,   I32,   i32)
+...   |
+265 | |     (from_usize, Usize, usize)
+266 | | }
+    | |_^ required by this bound in `from_integer`
+    = note: this error originates in the macro `declare_from_int_fns` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider restricting type parameter `U`
+    |
+3   | fn _test_from_integer<T, U: bytemuck::Contiguous>(a: T, b: T) -> (U, U) {
+    |                           ++++++++++++++++++++++
+
+error[E0277]: the trait bound `U: Contiguous` is not satisfied
+ --> tests/main_tests/ui/bound_contiguous_fns_err.rs:6:9
+  |
+6 |         Contiguous::from_integer(b).unwrap(),
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `U`
+  |
+help: consider restricting type parameter `U`
+  |
+3 | fn _test_from_integer<T, U: bytemuck::Contiguous>(a: T, b: T) -> (U, U) {
+  |                           ++++++++++++++++++++++
+
+error[E0277]: the trait bound `U: Contiguous` is not satisfied
+ --> tests/main_tests/ui/bound_contiguous_fns_err.rs:6:9
+  |
+6 |         Contiguous::from_integer(b).unwrap(),
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `U`
+  |
+help: consider restricting type parameter `U`
+  |
+3 | fn _test_from_integer<T, U: bytemuck::Contiguous>(a: T, b: T) -> (U, U) {
+  |                           ++++++++++++++++++++++
+
+error[E0277]: the trait bound `U: Contiguous` is not satisfied
+ --> tests/main_tests/ui/bound_contiguous_fns_err.rs:5:45
+  |
+5 |         constmuck::contiguous::from_integer(a).unwrap(),
+  |                                             ^ the trait `Contiguous` is not implemented for `U`
+  |
+help: consider restricting type parameter `U`
+  |
+3 | fn _test_from_integer<T, U: bytemuck::Contiguous>(a: T, b: T) -> (U, U) {
+  |                           ++++++++++++++++++++++
+
+error[E0277]: the trait bound `T: Contiguous` is not satisfied
+  --> tests/main_tests/ui/bound_contiguous_fns_err.rs:12:45
+   |
+12 |         constmuck::contiguous::into_integer(a),
+   |         ----------------------------------- ^ the trait `Contiguous` is not implemented for `T`
+   |         |
+   |         required by a bound introduced by this call
+   |
+note: required by a bound in `constmuck::contiguous::into_integer`
+  --> src/contiguous.rs:91:30
+   |
+91 | pub const fn into_integer<T: Contiguous>(value: T) -> T::Int {
+   |                              ^^^^^^^^^^ required by this bound in `into_integer`
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_into_integer<T: bytemuck::Contiguous, U>(a: T, b: T) -> (U, U) {
+   |                        ++++++++++++++++++++++
+
+error[E0277]: the trait bound `T: Contiguous` is not satisfied
+  --> tests/main_tests/ui/bound_contiguous_fns_err.rs:12:9
+   |
+12 |         constmuck::contiguous::into_integer(a),
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `T`
+   |
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_into_integer<T: bytemuck::Contiguous, U>(a: T, b: T) -> (U, U) {
+   |                        ++++++++++++++++++++++
+
+error[E0277]: the trait bound `T: Contiguous` is not satisfied
+  --> tests/main_tests/ui/bound_contiguous_fns_err.rs:13:34
+   |
+13 |         Contiguous::into_integer(b),
+   |         ------------------------ ^ the trait `Contiguous` is not implemented for `T`
+   |         |
+   |         required by a bound introduced by this call
+   |
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_into_integer<T: bytemuck::Contiguous, U>(a: T, b: T) -> (U, U) {
+   |                        ++++++++++++++++++++++
+
+error[E0277]: the trait bound `T: Contiguous` is not satisfied
+  --> tests/main_tests/ui/bound_contiguous_fns_err.rs:13:9
+   |
+13 |         Contiguous::into_integer(b),
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `T`
+   |
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_into_integer<T: bytemuck::Contiguous, U>(a: T, b: T) -> (U, U) {
+   |                        ++++++++++++++++++++++
+
+error[E0277]: the trait bound `T: Contiguous` is not satisfied
+  --> tests/main_tests/ui/bound_contiguous_fns_err.rs:12:9
+   |
+12 |         constmuck::contiguous::into_integer(a),
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `T`
+   |
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_into_integer<T: bytemuck::Contiguous, U>(a: T, b: T) -> (U, U) {
+   |                        ++++++++++++++++++++++
