@@ -86,22 +86,3 @@ pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: 
         PV::from_usize(align_of_u, FA::DEBUG),
     ]])
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn manuallydrop_as_inner_test() {
-        macro_rules! case {
-            ($value:expr) => {
-                assert_eq!(manuallydrop_as_inner(&ManuallyDrop::new($value)), &$value);
-            };
-        }
-
-        case!("hello");
-        case!(100);
-        case!(true);
-        case!(false);
-    }
-}

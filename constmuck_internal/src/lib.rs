@@ -16,7 +16,7 @@ use bytemuck::TransparentWrapper;
 #[macro_export]
 macro_rules! wrapper_inner {
     (
-        $function:ident, 
+        $ArgsTy:ident, 
         $reff:expr, 
         $( $Outer:ty, [$Inner:ty, $($__0:tt)*] )?
     ) => {
@@ -24,8 +24,10 @@ macro_rules! wrapper_inner {
         match $reff {
             inner => unsafe {
                 let inner: &_ = inner;
-                let ptr: *const _ = inner;
-                $crate::$function $(::<$Outer, $Inner>)? (inner, ptr as *const _)
+                $crate::$ArgsTy $(::<$Outer, $Inner>)? {
+                    reff: inner,
+                    ptr: inner as *const _ as _,
+                }.__call()
             }
         }
     }
@@ -35,7 +37,7 @@ macro_rules! wrapper_inner {
 macro_rules! wrapper_wrap_ref {
     ($reff:expr $(, $Outer:ty $(, $Inner:ty)?)? $(,)?) => {
         $crate::wrapper_inner!(
-            __wrap_ref_helper,
+            __WrapRefArgs,
             $reff, 
             $($Outer, [$($Inner,)? _,])?
         )
@@ -46,7 +48,7 @@ macro_rules! wrapper_wrap_ref {
 macro_rules! wrapper_peel_ref {
     ($reff:expr $(, $Outer:ty $(, $Inner:ty)?)? $(,)?) => {
         $crate::wrapper_inner!(
-            __peel_ref_helper,
+            __PeelRefArgs,
             $reff, 
             $($Outer, [$($Inner,)? _,])?
         )
@@ -55,51 +57,61 @@ macro_rules! wrapper_peel_ref {
 
 ///////////////////////////
 
-/// # Safety
-/// 
-/// `ptr` must be `_reff as *const Outer as *const Inner`
 #[doc(hidden)]
-#[track_caller]
-pub const unsafe fn __peel_ref_helper<'a, Outer: ?Sized, Inner: ?Sized>(
-    _reff: &'a Outer,
-    ptr: *const Inner,
-) -> &'a Inner
-where
-    Outer: TransparentWrapper<Inner>
-{
-    #[cfg(debug_assertions)]
-    if TWHelper::<Outer, Inner>::NOT_SAME_SIZE {
-        unequal_ptr_size_panic(
-            core::mem::size_of::<*const Outer>(),
-            core::mem::size_of::<*const Inner>(),
-        )
-    }
+pub struct __PeelRefArgs<'a, Outer: ?Sized, Inner: ?Sized> {
+    pub reff: &'a Outer,
+    pub ptr: *const Inner,
+}
 
-    &*ptr
+impl<'a, Outer: ?Sized, Inner: ?Sized> __PeelRefArgs<'a, Outer, Inner> {
+    /// # Safety
+    /// 
+    /// `ptr` must be `_reff as *const Outer as *const Inner`
+    #[track_caller]
+    #[doc(hidden)]
+    pub const unsafe fn __call(self) -> &'a Inner
+    where
+        Outer: TransparentWrapper<Inner>
+    {
+        #[cfg(debug_assertions)]
+        if TWHelper::<Outer, Inner>::NOT_SAME_SIZE {
+            unequal_ptr_size_panic(
+                core::mem::size_of::<*const Outer>(),
+                core::mem::size_of::<*const Inner>(),
+            )
+        }
+
+        &*self.ptr
+    }
 }
 
 
-/// # Safety
-/// 
-/// `ptr` must be `_reff as *const Outer as *const Inner`
 #[doc(hidden)]
-#[track_caller]
-pub const unsafe fn __wrap_ref_helper<'a, Outer: ?Sized, Inner: ?Sized>(
-    _reff: &'a Inner,
-    ptr: *const Outer,
-) -> &'a Outer
-where
-    Outer: TransparentWrapper<Inner>
-{
-    #[cfg(debug_assertions)]
-    if TWHelper::<Outer, Inner>::NOT_SAME_SIZE {
-        unequal_ptr_size_panic(
-            core::mem::size_of::<*const Inner>(),
-            core::mem::size_of::<*const Outer>(),
-        )
-    }
+pub struct __WrapRefArgs<'a, Outer: ?Sized, Inner: ?Sized> {
+    pub reff: &'a Inner,
+    pub ptr: *const Outer,
+}
 
-    &*ptr
+impl<'a, Outer: ?Sized, Inner: ?Sized> __WrapRefArgs<'a, Outer, Inner> {
+    /// # Safety
+    /// 
+    /// `ptr` must be `_reff as *const Outer as *const Inner`
+    #[track_caller]
+    #[doc(hidden)]
+    pub const unsafe fn __call(self) -> &'a Outer
+    where
+        Outer: TransparentWrapper<Inner>
+    {
+        #[cfg(debug_assertions)]
+        if TWHelper::<Outer, Inner>::NOT_SAME_SIZE {
+            unequal_ptr_size_panic(
+                core::mem::size_of::<*const Inner>(),
+                core::mem::size_of::<*const Outer>(),
+            )
+        }
+
+        &*self.ptr
+    }
 }
 
 ///////////////////////////

@@ -1,7 +1,10 @@
-error[E0759]: `reff` has lifetime `'a` but it needs to satisfy a `'static` lifetime requirement
- --> tests/main_tests/ui/peel_ref_fn_ty_err.rs:5:14
+error[E0308]: mismatched types
+ --> tests/main_tests/ui/peel_ref_fn_ty_err.rs:5:5
   |
-4 | const fn foo<'a>(reff: &'a Wrapping<&'a u8>) -> &'a &'static u8 {
-  |                        -------------------- this data with lifetime `'a`...
-5 |     peel_ref(reff, constmuck::IsTW!())
-  |              ^^^^ ...is captured here, requiring it to live as long as `'static`
+4 | const fn bar(reff: &Wrapping<u8>) -> &u16 {
+  |                                      ---- expected `&u16` because of return type
+5 |     peel_ref(reff)
+  |     ^^^^^^^^^^^^^^ expected `&u16`, found `&u8`
+  |
+  = note: expected reference `&u16`
+             found reference `&u8`
