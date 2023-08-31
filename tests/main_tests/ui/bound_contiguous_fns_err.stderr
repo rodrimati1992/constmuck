@@ -5,15 +5,15 @@ error[E0277]: the trait bound `U: Contiguous` is not satisfied
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `U`
     |
 note: required by a bound in `constmuck::contiguous::from_integer`
-   --> src/contiguous.rs:253:1
+   --> src/contiguous.rs:254:1
     |
-253 | / declare_from_int_fns! {
-254 | |     (from_i8,    I8,    i8)
-255 | |     (from_i16,   I16,   i16)
-256 | |     (from_i32,   I32,   i32)
+254 | / declare_from_int_fns! {
+255 | |     (from_i8,    I8,    i8)
+256 | |     (from_i16,   I16,   i16)
+257 | |     (from_i32,   I32,   i32)
 ...   |
-265 | |     (from_usize, Usize, usize)
-266 | | }
+266 | |     (from_usize, Usize, usize)
+267 | | }
     | |_^ required by this bound in `from_integer`
     = note: this error originates in the macro `declare_from_int_fns` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider restricting type parameter `U`

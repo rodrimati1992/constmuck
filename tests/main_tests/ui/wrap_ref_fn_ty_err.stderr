@@ -6,10 +6,10 @@ error[E0277]: the trait bound `Wrapping<u8>: TransparentWrapper<u16>` is not sat
    |
    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::wrap_ref`
-  --> src/wrapper.rs:69:12
+  --> src/wrapper.rs:75:12
    |
-67 | pub const fn wrap_ref<Outer, Inner>(reff: &Inner) -> &Outer
+73 | pub const fn wrap_ref<Outer, Inner>(reff: &Inner) -> &Outer
    |              -------- required by a bound in this function
-68 | where
-69 |     Outer: TransparentWrapper<Inner>,
+74 | where
+75 |     Outer: TransparentWrapper<Inner>,
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap_ref`

@@ -22,10 +22,12 @@ Removed these items:
 - `map_bound`
 - `zeroed_array`
 
+Changed `cast_slice_alt` and `try_cast_slice_alt` to support casting between different element sizes, in the same way that `bytemuck` does.
+
 Replaced all the `contiguous::from_` functions with new `from_integer` function
-    
+
 Removed `FromInteger` and `IsContiguous` structs.
-    
+
 Added `contiguous::Integer` trait
 
 Added `pod_read_unaligned` and `try_pod_read_unaligned` functions
@@ -39,8 +41,6 @@ Removed `rust_1_57` version, making all code that once required the feature unco
 Changed `const_panic` dependency to version 0.2, enabled unconditionally.
 
 Changed `bytemuck` dependency to 1.13 version
-
-Added `typewit = 1.5` dependency
 
 # 0.3
 

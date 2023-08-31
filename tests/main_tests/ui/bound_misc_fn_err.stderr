@@ -73,9 +73,9 @@ error[E0277]: the trait bound `T: Zeroable` is not satisfied
    |         ^^^^^^^^^^^^^^^^^ the trait `Zeroable` is not implemented for `T`
    |
 note: required by a bound in `constmuck::zeroed`
-  --> src/zeroable.rs:22:24
+  --> src/zeroable.rs:23:24
    |
-22 | pub const fn zeroed<T: Zeroable>() -> T {
+23 | pub const fn zeroed<T: Zeroable>() -> T {
    |                        ^^^^^^^^ required by this bound in `zeroed`
 help: consider restricting type parameter `T`
    |

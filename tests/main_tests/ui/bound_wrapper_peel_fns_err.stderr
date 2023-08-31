@@ -1,47 +1,41 @@
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
-   --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:12:47
+   --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:12:36
     |
 12  |         constmuck::wrapper::peel::<Foo<T>, T>(a),
-    |         ------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
-    |         |
-    |         required by a bound introduced by this call
+    |                                    ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::peel`
-   --> src/wrapper.rs:170:12
+   --> src/wrapper.rs:185:12
     |
-168 | pub const fn peel<Outer, Inner>(val: Outer) -> Inner
+183 | pub const fn peel<Outer, Inner>(val: Outer) -> Inner
     |              ---- required by a bound in this function
-169 | where
-170 |     Outer: TransparentWrapper<Inner>,
+184 | where
+185 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `peel`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
-  --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:13:49
+  --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:13:10
    |
 13 |         <Foo<T> as TransparentWrapper<T>>::peel(b),
-   |         --------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
-   |         |
-   |         required by a bound introduced by this call
+   |          ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
    |
    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
-   --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:22:51
+   --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:22:40
     |
 22  |         constmuck::wrapper::peel_ref::<Foo<T>, T>(a),
-    |         ----------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
-    |         |
-    |         required by a bound introduced by this call
+    |                                        ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::peel_ref`
-   --> src/wrapper.rs:206:12
+   --> src/wrapper.rs:221:12
     |
-204 | pub const fn peel_ref<Outer, Inner>(reff: &Outer) -> &Inner
+219 | pub const fn peel_ref<Outer, Inner>(reff: &Outer) -> &Inner
     |              -------- required by a bound in this function
-205 | where
-206 |     Outer: TransparentWrapper<Inner>,
+220 | where
+221 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `peel_ref`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
@@ -62,39 +56,33 @@ note: required by a bound in `constmuck_internal::__PeelRefArgs::<'a, Outer, Inn
    = note: this error originates in the macro `$crate::wrapper_inner` which comes from the expansion of the macro `constmuck::wrapper::peel_ref` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
-  --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:24:53
+  --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:24:10
    |
 24 |         <Foo<T> as TransparentWrapper<T>>::peel_ref(c),
-   |         ------------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
-   |         |
-   |         required by a bound introduced by this call
+   |          ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
    |
    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
-   --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:32:53
+   --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:32:42
     |
 32  |         constmuck::wrapper::peel_slice::<Foo<T>, T>(a),
-    |         ------------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
-    |         |
-    |         required by a bound introduced by this call
+    |                                          ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::peel_slice`
-   --> src/wrapper.rs:278:12
+   --> src/wrapper.rs:299:12
     |
-276 | pub const fn peel_slice<Outer, Inner>(reff: &[Outer]) -> &[Inner]
+297 | pub const fn peel_slice<Outer, Inner>(reff: &[Outer]) -> &[Inner]
     |              ---------- required by a bound in this function
-277 | where
-278 |     Outer: TransparentWrapper<Inner>,
+298 | where
+299 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `peel_slice`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
-  --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:33:55
+  --> tests/main_tests/ui/bound_wrapper_peel_fns_err.rs:33:10
    |
 33 |         <Foo<T> as TransparentWrapper<T>>::peel_slice(b),
-   |         --------------------------------------------- ^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
-   |         |
-   |         required by a bound introduced by this call
+   |          ^^^^^^ the trait `TransparentWrapper<T>` is not implemented for `Foo<T>`
    |
    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`

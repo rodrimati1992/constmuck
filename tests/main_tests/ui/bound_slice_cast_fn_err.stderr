@@ -127,12 +127,12 @@ error[E0277]: the trait bound `T: Pod` is not satisfied
     |
     = note: required for `T` to implement `NoUninit`
 note: required by a bound in `try_cast_slice_alt`
-   --> src/slice_fns.rs:112:8
+   --> src/slice_fns.rs:139:8
     |
-110 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+137 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
     |              ------------------ required by a bound in this function
-111 | where
-112 |     T: NoUninit,
+138 | where
+139 |     T: NoUninit,
     |        ^^^^^^^^ required by this bound in `try_cast_slice_alt`
 help: consider restricting type parameter `T`
     |
@@ -147,12 +147,12 @@ error[E0277]: the trait bound `U: Pod` is not satisfied
     |
     = note: required for `U` to implement `AnyBitPattern`
 note: required by a bound in `try_cast_slice_alt`
-   --> src/slice_fns.rs:113:8
+   --> src/slice_fns.rs:140:8
     |
-110 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+137 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
     |              ------------------ required by a bound in this function
 ...
-113 |     U: AnyBitPattern,
+140 |     U: AnyBitPattern,
     |        ^^^^^^^^^^^^^ required by this bound in `try_cast_slice_alt`
 help: consider restricting type parameter `U`
     |

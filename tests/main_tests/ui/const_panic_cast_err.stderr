@@ -21,7 +21,7 @@ error[E0080]: evaluation of constant value failed
    |
 12 |     constmuck::cast_ref_alt(&[0u8; 2])
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
-the alignment of T is lower than U
+the alignment of `T` is lower than `U`
 align_of::<T>(): 1
 align_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:12:5
 
@@ -46,26 +46,36 @@ size_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:17:21
 error[E0080]: evaluation of constant value failed
   --> tests/main_tests/ui/const_panic_cast_err.rs:21:18
    |
-21 | const _: &[u8] = constmuck::cast_slice_alt(&[[0u8; 2]; 3]);
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
-the sizes of T and U are not the same
-size_of::<T>(): 2
+21 | const _: &[u8] = constmuck::cast_slice_alt(&[()]);
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+attempted to cast slice of zero-sized `T` to slice of non-zero-sized `U`
+size_of::<T>(): 0
 size_of::<U>(): 1', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:21:18
 
 error[E0080]: evaluation of constant value failed
-  --> tests/main_tests/ui/const_panic_cast_err.rs:22:23
+  --> tests/main_tests/ui/const_panic_cast_err.rs:22:18
    |
-22 | const _: &[[u8; 2]] = constmuck::cast_slice_alt(&[0u8; 3]);
-   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
-the sizes of T and U are not the same
+22 | const _: &[()] = constmuck::cast_slice_alt(&[0u8]);
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+attempted to cast slice of non-zero-sized `T` to slice of zero-sized `U`
 size_of::<T>(): 1
-size_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:22:23
+size_of::<U>(): 0', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:22:18
 
 error[E0080]: evaluation of constant value failed
-  --> tests/main_tests/ui/const_panic_cast_err.rs:30:5
+  --> tests/main_tests/ui/const_panic_cast_err.rs:25:23
    |
-30 |     constmuck::cast_slice_alt(&[[0u8; 2]; 3])
+25 | const _: &[[u8; 4]] = constmuck::cast_slice_alt(&[[2u8; 3]; 5]);
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+the input slice of `T` doesn't divide evenly into a slice of `U`s
+slice.len() * size_of::<T>(): 15
+size_of::<U>(): 4
+excess bytes: 3', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:25:23
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_cast_err.rs:34:5
+   |
+34 |     constmuck::cast_slice_alt(&[[0u8; 2]; 3])
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
-the alignment of T is lower than U
+the alignment of `T` is lower than `U`
 align_of::<T>(): 1
-align_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:30:5
+align_of::<U>(): 2', $DIR/tests/main_tests/ui/const_panic_cast_err.rs:34:5

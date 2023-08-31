@@ -3,7 +3,9 @@ use super::test_utils::{must_panic, Pack};
 use constmuck::{
     bytes_of, cast, cast_ref_alt, cast_slice_alt as csa, try_cast, try_cast_ref_alt,
     try_cast_slice_alt as tcsa,
-    PodCastError::{SizeMismatch, TargetAlignmentGreaterAndInputNotAligned},
+    PodCastError::{
+        OutputSliceWouldHaveSlop, SizeMismatch, TargetAlignmentGreaterAndInputNotAligned,
+    },
 };
 
 #[test]
@@ -51,22 +53,62 @@ fn try_cast_ref_alt_test() {
 
 #[test]
 fn cast_slice_alt_test() {
-    must_panic(|| csa::<u32, u16>(&[0])).unwrap();
+    // PodCastError::TargetAlignmentGreaterAndInputNotAligned
     must_panic(|| csa::<Pack<u32>, u32>(&[Pack(0)])).unwrap();
+
+    // PodCastError::SizeMismatch
+    must_panic(|| csa::<(), u8>(&[()])).unwrap();
+
+    // PodCastError::OutputSliceWouldHaveSlop
+    must_panic(|| csa::<[u8; 3], [u8; 2]>(&[[0; 3]; 5])).unwrap();
+
+    assert_eq!(
+        csa::<u32, u16>(&[0x01020304u32.to_le()]),
+        &[0x03_04, 0x01_02_u16][..]
+    );
+
     assert_eq!(
         csa::<u32, Pack<i32>>(&[u32::MAX, 1]),
         &[Pack(-1i32), Pack(1)][..]
     );
+
     assert_eq!(csa::<u32, i32>(&[u32::MAX, 2]), &[-1i32, 2][..]);
 }
 
 #[test]
 fn try_cast_slice_alt_test() {
-    assert_eq!(tcsa::<u32, u16>(&[0]), Err(SizeMismatch));
+    use std::num::Wrapping;
+    assert_eq!(tcsa::<(), Wrapping<()>>(&[()]), Ok(&[Wrapping(())][..]));
+
+    assert_eq!(tcsa::<u8, ()>(&[0u8]), Err(SizeMismatch));
+    assert_eq!(tcsa::<(), u8>(&[()]), Err(SizeMismatch));
+
+    // decreased alignment, slice's size evenly divides into new element size
+    assert_eq!(
+        tcsa::<u32, u16>(&[0x01020304u32.to_le()]),
+        Ok(&[0x03_04, 0x01_02_u16][..])
+    );
+
     assert_eq!(
         tcsa::<Pack<u32>, u32>(&[Pack(0)]),
         Err(TargetAlignmentGreaterAndInputNotAligned)
     );
+
+    assert_eq!(tcsa::<u8, Pack<u32>>(&[0; 12]), Ok(&[Pack(0u32); 3][..]));
+    assert_eq!(
+        tcsa::<u8, Pack<u32>>(&[0; 13]),
+        Err(OutputSliceWouldHaveSlop)
+    );
+    assert_eq!(
+        tcsa::<u8, Pack<u32>>(&[0; 14]),
+        Err(OutputSliceWouldHaveSlop)
+    );
+    assert_eq!(
+        tcsa::<u8, Pack<u32>>(&[0; 15]),
+        Err(OutputSliceWouldHaveSlop)
+    );
+    assert_eq!(tcsa::<u8, Pack<u32>>(&[0; 16]), Ok(&[Pack(0u32); 4][..]));
+
     assert_eq!(
         tcsa::<u32, Pack<i32>>(&[u32::MAX, 3]),
         Ok(&[Pack(-1i32), Pack(3)][..]),
