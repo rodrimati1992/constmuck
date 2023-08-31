@@ -12,11 +12,14 @@ use bytemuck::TransparentWrapper;
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Qux<T>(pub T);
-///
-/// unsafe impl<T> constmuck::TransparentWrapper<T> for Qux<T> {}
+/// #
+/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Qux<T> {}
 ///
 ///
 /// // Casting `u32` to `Qux<u32>`
@@ -41,7 +44,7 @@ where
 
 /// Casts `&Inner` to `&Outer`
 ///
-/// To cast references to `?Sized` types, you need to use the
+/// To cast references to `!Sized` types, you need to use the
 /// [`wrap_ref`](macro@crate::wrapper::wrap_ref) macro instead of this function.
 ///
 /// # Example
@@ -49,11 +52,14 @@ where
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T>(pub T);
-///
-/// unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
+/// #
+/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// // Casting `&u32` to `&Foo<u32>`
 /// const X: &Foo<u32> = wrapper::wrap_ref(&100);
@@ -79,11 +85,11 @@ where
 
 /// Casts `&Inner` to `&Outer`, allows casting between `?Sized` types.
 ///
-/// This is equivalent to a function with this signature:
+/// This macro is equivalent to a function with this signature:
 ///
 /// ```rust
 /// # use bytemuck::TransparentWrapper;
-/// pub const fn wrap_ref<Inner: ?Sized, Outer: ?Sized>(
+/// pub const fn wrap_ref<Outer: ?Sized, Inner: ?Sized>(
 ///     reff: &Inner,
 /// ) -> &Outer
 /// where
@@ -91,16 +97,22 @@ where
 /// # { loop{} }
 /// ```
 ///
+/// The optional `$Outer:ty` and `$Inner:ty` parameters correspond to the
+/// `Outer` and `Inner` type parameters, and are inferred if not passed.
+///
 /// # Example
 ///
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T: ?Sized>(pub T);
-///
-/// unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
+/// #
+/// # unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// // Casting `&str` to `&Foo<str>`
 /// const X: &Foo<str> = wrapper::wrap_ref!("world");
@@ -121,11 +133,14 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Bar<T>(pub T);
-///
-/// unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
+/// #
+/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
 ///
 /// // Casting `&[&str]` to `&[Bar<&str>]`
 /// const X: &[Bar<&str>] = wrapper::wrap_slice(&["hello", "world"]);
@@ -178,10 +193,7 @@ where
 
 /// Casts `&Outer` to `&Inner`
 ///
-/// Requires that `Outer` implements
-/// [`TransparentWrapper<Inner>`](bytemuck::TransparentWrapper)
-///
-/// To cast references to `?Sized` types, you need to use the
+/// To cast references to `!Sized` types, you need to use the
 /// [`peel_ref`](macro@crate::wrapper::peel_ref) macro instead of this function.
 ///
 /// # Example
@@ -189,11 +201,14 @@ where
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T>(pub T);
-///
-/// unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
+/// #
+/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// // Casting `&Foo<char>` to `&char`
 /// const X: &char = wrapper::peel_ref(&Foo('@'));
@@ -216,11 +231,11 @@ where
 
 /// Casts `&Outer` to `&Inner`, allows casting between `?Sized` types
 ///
-/// This is equivalent to a function with this signature:
+/// This macro is equivalent to a function with this signature:
 ///
 /// ```rust
 /// # use bytemuck::TransparentWrapper;
-/// pub const fn peel_ref<Inner: ?Sized, Outer: ?Sized>(
+/// pub const fn peel_ref<Outer: ?Sized, Inner: ?Sized>(
 ///     reff: &Outer,
 /// ) -> &Inner
 /// where
@@ -228,16 +243,22 @@ where
 /// # { loop{} }
 /// ```
 ///
+/// The optional `$Outer:ty` and `$Inner:ty` parameters correspond to the
+/// `Outer` and `Inner` type parameters, and are inferred if not passed.
+///
 /// # Example
 ///
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T: ?Sized>(pub T);
-///
-/// unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
+/// #
+/// # unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// const X: &[u8] = {
 ///     let x: &'static Foo<[u8]> = &Foo([3, 5, 8, 13]);
@@ -253,19 +274,19 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 
 /// Casts `&[Outer]` to `&[Inner]`
 ///
-/// Requires that `Outer` implements
-/// [`TransparentWrapper<Inner>`](bytemuck::TransparentWrapper)
-///
 /// # Example
 ///
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// #[derive(Debug, PartialEq)]
+/// # #[derive(Debug, PartialEq)]
+/// # /*
+/// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
+/// # */
 /// #[repr(transparent)]
 /// pub struct Bar<T>(pub T);
-///
-/// unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
+/// #
+/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
 ///
 /// // Casting `&[Bar<&str>]` to `&[&str]`
 /// const X: &[&str] = wrapper::peel_slice(&[Bar("hello"), Bar("world")]);

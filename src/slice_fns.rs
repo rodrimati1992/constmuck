@@ -40,10 +40,7 @@ where
 /// # Example
 ///
 /// ```
-/// use constmuck::PodCastError;
 /// use constmuck::cast_slice_alt;
-///
-/// type Res<T> = Result<T, PodCastError>;
 ///
 /// const I8S: &[i8] = cast_slice_alt(&[100u8, 254, 255]);
 ///
@@ -77,20 +74,20 @@ where
 /// This function returns errors in these cases:
 /// - The alignment of `T` is larger than `U`, returning a
 /// `Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)`.
-/// <br>(using this instead of `PodCastError::AlignmentMismatch` because that
-/// is not returned by [`bytemuck::try_cast_slice`])
 ///
-/// - The size of `T` is not equal to `U`, returning a `Err(PodCastError::SizeMismatch)`.
+/// - The size of either `T` or `U` is 0,
+/// returning a `Err(PodCastError::SizeMismatch)`.
+///
+/// - The size of `T` does not divide evenly into `U`,
+/// returning a `Err(PodCastError::OutputSliceWouldHaveSlop)`.
+///
 ///
 /// <span id="differences"></span>
 /// # Difference with `bytemuck`
 ///
-/// This function requires `T` to have an alignment larger or equal to `U`,
+/// This function requires `T` to have an alignment larger than or equal to `U`,
 /// while [`bytemuck::try_cast_slice`] only requires the `from` reference
 /// to happen to be aligned to `U`.
-///
-/// [`bytemuck::try_cast_slice`] allows the size of `T` to be different than `U` if
-/// it divides evenly into it, this function does not due to limitations in stable const fns.
 ///
 /// # Example
 ///

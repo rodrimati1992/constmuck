@@ -50,7 +50,7 @@
 
 use bytemuck::Contiguous;
 
-use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq, TypeWitnessTypeArg};
+use typewit::TypeEq;
 
 use crate::const_panic::PanicVal;
 
@@ -96,32 +96,29 @@ pub const fn into_integer<T: Contiguous>(value: T) -> T::Int {
 
 macro_rules! declare_from_int_fns {
     ($(($fn_name:ident, $variant:ident, $Int:ident))*) => (
-        /// Marker trait for the integer types that the
+        /// Trait for the integer types that the
         /// [`from_integer`] function supports.
         ///
         /// This trait can only be implemented in `constmuck`.
-        pub trait Integer: Copy + HasTypeWitness<IntegerWit<Self>> {}
+        pub trait Integer: Copy + 'static {
+            #[doc(hidden)]
+            const __WITNESS: __IntegerWit<Self>;
+        }
 
         #[allow(missing_debug_implementations)]
         #[doc(hidden)]
         #[non_exhaustive]
-        pub enum IntegerWit<W> {
+        pub enum __IntegerWit<W> {
             $(
                 $variant(TypeEq<W, $Int>),
             )*
         }
 
-        impl<W> TypeWitnessTypeArg for IntegerWit<W> {
-            type Arg = W;
-        }
-
         $(
-            impl MakeTypeWitness for IntegerWit<$Int> {
+            impl Integer for $Int {
                 #[doc(hidden)]
-                const MAKE: Self = IntegerWit::$variant(TypeEq::NEW);
+                const __WITNESS: __IntegerWit<$Int> = __IntegerWit::$variant(TypeEq::NEW);
             }
-
-            impl Integer for $Int {}
         )*
 
         #[cold]
@@ -140,7 +137,8 @@ macro_rules! declare_from_int_fns {
             ]])
         }
 
-        /// Converts an integer into `T` if it's between the minimum and maximum values for `T`,
+        /// Converts an integer into `T` if it's between
+        /// [`T::MIN_VALUE`] and [`T::MAX_VALUE`] inclusive,
         /// otherwise returns `None`.
         ///
         /// # Examples
@@ -210,14 +208,17 @@ macro_rules! declare_from_int_fns {
         /// ]);
         ///
         /// ```
+        ///
+        /// [`T::MIN_VALUE`]: Contiguous::MIN_VALUE
+        /// [`T::MAX_VALUE`]: Contiguous::MAX_VALUE
         #[track_caller]
         pub const fn from_integer<T: Contiguous>(integer: T::Int) -> Option<T>
         where
             T::Int: Integer
         {
-            match <T::Int>::WITNESS {
+            match <T::Int>::__WITNESS {
                 $(
-                    IntegerWit::$variant(te) => {
+                    __IntegerWit::$variant(te) => {
                         let integer = te.to_right(integer);
                         let min_value = te.to_right(T::MIN_VALUE);
                         let max_value = te.to_right(T::MAX_VALUE);

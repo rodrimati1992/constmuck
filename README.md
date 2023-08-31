@@ -109,7 +109,7 @@ impl SliceWrapper<u32> {
 
 Additional checks are enabled in debug builds,
 all of which cause panics when it'd have otherwise been Undefined Behavior
-(caused by unsound `unsafe impl`s or calling `unsafe` constructor functions),
+(caused by unsound `unsafe impl`s),
 which means that there is a bug in some unsafe code somewhere.
 
 The precise checks are left unspecified so that they can change at any time.

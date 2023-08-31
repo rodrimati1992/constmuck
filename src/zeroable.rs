@@ -5,7 +5,8 @@ use bytemuck::Zeroable;
 ///
 /// # Panics
 ///
-/// This function panics if `size_of::<T>()` is larger than `1_048_576` bytes.
+/// This function panics if `size_of::<T>()` is larger than `1_048_576` bytes,
+/// this is driven by limitations in stable `const fn`s as of 2023-08-31.
 ///
 /// # Example
 ///
@@ -33,7 +34,7 @@ pub const fn zeroed<T: Zeroable>() -> T {
                 if size <= $size_bound {
                     // safety:
                     // `IsZeroable<T>` guarantees that it's valid to produce a `T`
-                    // that is represented a all zero bytes.
+                    // that is represented as all zero bytes.
                     //
                     // `size_of::<T>() <= $size_bound` holds
                     unsafe {

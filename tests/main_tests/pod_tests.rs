@@ -91,6 +91,23 @@ fn pod_read_unaligned_test() {
 }
 
 #[test]
+fn pod_read_unaligned_large_alignment_test() {
+    use constmuck::pod_read_unaligned as pru;
+
+    #[derive(Copy, Clone)]
+    #[repr(align(16))]
+    struct Aligned(u128);
+
+    unsafe impl bytemuck::Zeroable for Aligned {}
+    unsafe impl bytemuck::Pod for Aligned {}
+
+    let num = 0x01_02_03_04_05_06_07_08_09_10_11_12_13_14_15_u128;
+
+    let aligned = pru::<Aligned>(&num.to_ne_bytes());
+    assert_eq!(aligned.0, num);
+}
+
+#[test]
 fn try_pod_read_unaligned_test() {
     use constmuck::try_pod_read_unaligned as tpru;
 
