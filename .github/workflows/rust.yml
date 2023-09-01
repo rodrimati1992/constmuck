@@ -26,8 +26,8 @@ jobs:
         cargo build 
         cargo build --features "debug_checks"
         cargo build --features "derive"
-        cargo test --features "__testdev debug_checks"
-        cargo test --features "__testnodev"
+        cargo test
+        cargo test --features "debug_checks"
         cargo test --features "derive"
 
     - uses: actions/checkout@v2
@@ -51,7 +51,7 @@ jobs:
 
         cargo clean 
 
-        cargo miri test --features="__testdev debug_checks"
+        cargo miri test --features="derive debug_checks"
 
         MIRIFLAGS="-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
-            cargo miri test --features="__testdev debug_checks"
+            cargo miri test --features="derive debug_checks"

@@ -1,7 +1,9 @@
 //! Functions for wrapping/peeling types that implement
 //! [`TransparentWrapper`](trait@TransparentWrapper).
 //!
-use bytemuck::TransparentWrapper;
+
+#[doc(no_inline)]
+pub use bytemuck::TransparentWrapper;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +28,7 @@ use bytemuck::TransparentWrapper;
 /// assert_eq!(wrapper::wrap::<Qux<_>, _>(3), Qux(3));
 ///
 /// ```
+#[track_caller]
 pub const fn wrap<Outer, Inner>(val: Inner) -> Outer
 where
     Outer: TransparentWrapper<Inner>,
@@ -60,6 +63,7 @@ where
 /// assert_eq!(wrapper::wrap_ref::<Foo<_>, _>(&100), &Foo(100));
 ///
 /// ```
+#[track_caller]
 pub const fn wrap_ref<Outer, Inner>(reff: &Inner) -> &Outer
 where
     Outer: TransparentWrapper<Inner>,
@@ -134,6 +138,7 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 /// );
 ///
 /// ```
+#[track_caller]
 pub const fn wrap_slice<Outer, Inner>(reff: &[Inner]) -> &[Outer]
 where
     Outer: TransparentWrapper<Inner>,
@@ -160,6 +165,7 @@ where
 /// assert_eq!(VALUE, 3);
 ///
 /// ```
+#[track_caller]
 pub const fn peel<Outer, Inner>(val: Outer) -> Inner
 where
     Outer: TransparentWrapper<Inner>,
@@ -191,6 +197,7 @@ where
 /// assert_eq!(X, &'@');
 ///
 /// ```
+#[track_caller]
 pub const fn peel_ref<Outer, Inner>(reff: &Outer) -> &Inner
 where
     Outer: TransparentWrapper<Inner>,
@@ -259,6 +266,7 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 /// assert_eq!(X, ["hello", "world"]);
 ///
 /// ```
+#[track_caller]
 pub const fn peel_slice<Outer, Inner>(reff: &[Outer]) -> &[Inner]
 where
     Outer: TransparentWrapper<Inner>,

@@ -8,14 +8,3 @@ mod main_tests {
     mod wrapper_tests;
     mod zeroable;
 }
-
-// for making sure that debug assertions are actually enabled <_<
-#[test]
-fn debug_flags() {
-    if cfg!(feature = "__testdev") {
-        assert!(cfg!(feature = "debug_checks"));
-    }
-    if cfg!(feature = "__testnodev") {
-        assert!(!cfg!(feature = "debug_checks"));
-    }
-}

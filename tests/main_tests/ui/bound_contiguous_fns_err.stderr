@@ -5,15 +5,15 @@ error[E0277]: the trait bound `U: Contiguous` is not satisfied
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Contiguous` is not implemented for `U`
     |
 note: required by a bound in `constmuck::contiguous::from_integer`
-   --> src/contiguous.rs:229:1
+   --> src/contiguous.rs:230:1
     |
-229 | / declare_from_int_fns! {
-230 | |     (from_i8,    I8,    i8)
-231 | |     (from_i16,   I16,   i16)
-232 | |     (from_i32,   I32,   i32)
+230 | / declare_from_int_fns! {
+231 | |     (from_i8,    I8,    i8)
+232 | |     (from_i16,   I16,   i16)
+233 | |     (from_i32,   I32,   i32)
 ...   |
-241 | |     (from_usize, Usize, usize)
-242 | | }
+242 | |     (from_usize, Usize, usize)
+243 | | }
     | |_^ required by this bound in `from_integer`
     = note: this error originates in the macro `declare_from_int_fns` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider restricting type parameter `U`
@@ -63,9 +63,9 @@ error[E0277]: the trait bound `T: Contiguous` is not satisfied
    |         required by a bound introduced by this call
    |
 note: required by a bound in `constmuck::contiguous::into_integer`
-  --> src/contiguous.rs:74:30
+  --> src/contiguous.rs:75:30
    |
-74 | pub const fn into_integer<T: Contiguous>(value: T) -> T::Int {
+75 | pub const fn into_integer<T: Contiguous>(value: T) -> T::Int {
    |                              ^^^^^^^^^^ required by this bound in `into_integer`
 help: consider restricting type parameter `T`
    |

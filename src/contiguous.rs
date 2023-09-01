@@ -39,7 +39,8 @@
 //! ```
 //!
 
-use bytemuck::Contiguous;
+#[doc(no_inline)]
+pub use bytemuck::Contiguous;
 
 use typewit::TypeEq;
 

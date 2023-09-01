@@ -4,6 +4,7 @@ use constmuck::{contiguous, Contiguous};
 
 #[repr(i8)]
 #[derive(Debug, PartialEq, Copy, Clone)]
+#[allow(dead_code)]
 enum Tiny {
     N1 = -1,
     Z = 0,
@@ -21,6 +22,7 @@ unsafe impl Contiguous for Tiny {
 #[cfg(feature = "debug_checks")]
 #[repr(i32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
+#[allow(dead_code)]
 enum Wrong {
     N1 = -1,
     Z = 0,
@@ -49,7 +51,7 @@ fn swapped_limits() {
         const MAX_VALUE: i8 = 0;
     }
 
-    must_panic(|| drop(contiguous::from_integer::<SwappedLimits>(1))).unwrap();
+    must_panic(|| contiguous::from_integer::<SwappedLimits>(1)).unwrap();
 }
 
 #[test]

@@ -6,12 +6,12 @@ error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
    |
    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::wrap`
-  --> src/wrapper.rs:31:12
+  --> src/wrapper.rs:34:12
    |
-29 | pub const fn wrap<Outer, Inner>(val: Inner) -> Outer
+32 | pub const fn wrap<Outer, Inner>(val: Inner) -> Outer
    |              ---- required by a bound in this function
-30 | where
-31 |     Outer: TransparentWrapper<Inner>,
+33 | where
+34 |     Outer: TransparentWrapper<Inner>,
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
@@ -30,12 +30,12 @@ error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
    |
    = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::wrap_ref`
-  --> src/wrapper.rs:65:12
+  --> src/wrapper.rs:69:12
    |
-63 | pub const fn wrap_ref<Outer, Inner>(reff: &Inner) -> &Outer
+67 | pub const fn wrap_ref<Outer, Inner>(reff: &Inner) -> &Outer
    |              -------- required by a bound in this function
-64 | where
-65 |     Outer: TransparentWrapper<Inner>,
+68 | where
+69 |     Outer: TransparentWrapper<Inner>,
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap_ref`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
@@ -71,12 +71,12 @@ error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::wrap_slice`
-   --> src/wrapper.rs:139:12
+   --> src/wrapper.rs:144:12
     |
-137 | pub const fn wrap_slice<Outer, Inner>(reff: &[Inner]) -> &[Outer]
+142 | pub const fn wrap_slice<Outer, Inner>(reff: &[Inner]) -> &[Outer]
     |              ---------- required by a bound in this function
-138 | where
-139 |     Outer: TransparentWrapper<Inner>,
+143 | where
+144 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `wrap_slice`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
