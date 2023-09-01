@@ -35,10 +35,7 @@
 //! }
 //!
 //! #[repr(u8)]
-//! # #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-//! # /*
 //! #[derive(Debug, PartialEq, Eq, Contiguous, Copy, Clone)]
-//! # */
 //! pub enum Color {
 //!     Red = 0,
 //!     Blue,
@@ -46,12 +43,6 @@
 //!     White,
 //!     Black,
 //! }
-//! # unsafe impl Contiguous for Color {
-//! #   type Int = u8;
-//! #
-//! #   const MIN_VALUE: u8 = 0;
-//! #   const MAX_VALUE: u8 = 4;
-//! # }
 //!
 //! impl Color {
 //!     pub const fn from_int(n: u8) -> Option<Self> {
@@ -88,14 +79,9 @@
 //! }
 //!
 //! #[repr(transparent)]
-//! # #[derive(Debug, PartialEq, Eq)]
-//! # /*
 //! #[derive(Debug, PartialEq, Eq, TransparentWrapper)]
-//! # */
 //! pub struct SliceWrapper<T>(pub [T]);
 //!
-//! # unsafe impl<T> TransparentWrapper<[T]> for SliceWrapper<T> {}
-//! #
 //! impl<T> SliceWrapper<T> {
 //!     // Using `constmuck` allows safely defining this function as a `const fn`
 //!     pub const fn new(reff: &[T]) -> &Self {

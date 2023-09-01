@@ -12,14 +12,9 @@ use bytemuck::TransparentWrapper;
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Qux<T>(pub T);
-/// #
-/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Qux<T> {}
 ///
 ///
 /// // Casting `u32` to `Qux<u32>`
@@ -52,14 +47,9 @@ where
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T>(pub T);
-/// #
-/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// // Casting `&u32` to `&Foo<u32>`
 /// const X: &Foo<u32> = wrapper::wrap_ref(&100);
@@ -105,14 +95,9 @@ where
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T: ?Sized>(pub T);
-/// #
-/// # unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// // Casting `&str` to `&Foo<str>`
 /// const X: &Foo<str> = wrapper::wrap_ref!("world");
@@ -133,14 +118,9 @@ pub use constmuck_internal::wrapper_wrap_ref as wrap_ref;
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Bar<T>(pub T);
-/// #
-/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
 ///
 /// // Casting `&[&str]` to `&[Bar<&str>]`
 /// const X: &[Bar<&str>] = wrapper::wrap_slice(&["hello", "world"]);
@@ -201,14 +181,9 @@ where
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T>(pub T);
-/// #
-/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// // Casting `&Foo<char>` to `&char`
 /// const X: &char = wrapper::peel_ref(&Foo('@'));
@@ -251,14 +226,9 @@ where
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Foo<T: ?Sized>(pub T);
-/// #
-/// # unsafe impl<T: ?Sized> constmuck::TransparentWrapper<T> for Foo<T> {}
 ///
 /// const X: &[u8] = {
 ///     let x: &'static Foo<[u8]> = &Foo([3, 5, 8, 13]);
@@ -279,14 +249,9 @@ pub use constmuck_internal::wrapper_peel_ref as peel_ref;
 /// ```rust
 /// use constmuck::wrapper;
 ///
-/// # #[derive(Debug, PartialEq)]
-/// # /*
 /// #[derive(Debug, PartialEq, constmuck::TransparentWrapper)]
-/// # */
 /// #[repr(transparent)]
 /// pub struct Bar<T>(pub T);
-/// #
-/// # unsafe impl<T> constmuck::TransparentWrapper<T> for Bar<T> {}
 ///
 /// // Casting `&[Bar<&str>]` to `&[&str]`
 /// const X: &[&str] = wrapper::peel_slice(&[Bar("hello"), Bar("world")]);

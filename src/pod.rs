@@ -187,14 +187,8 @@ where
 /// use constmuck::{pod_read_unaligned, AnyBitPattern};
 ///
 /// #[repr(C)]
-/// # #[derive(Debug, PartialEq, Copy, Clone)]
-/// # /*
 /// #[derive(Debug, PartialEq, Copy, Clone, AnyBitPattern)]
-/// # */
 /// struct Foo(u16, u16);
-/// #
-/// # unsafe impl bytemuck::Zeroable for Foo {}
-/// # unsafe impl bytemuck::AnyBitPattern for Foo {}
 ///
 /// const FOO: Foo = {
 ///     let number = u32::from_be_bytes([0xDe, 0x11, 0x0_B, 0x0b]);

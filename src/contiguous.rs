@@ -9,21 +9,12 @@
 //! use constmuck::{Contiguous, contiguous};
 //!
 //! #[repr(u32)]
-//! # #[derive(Debug, PartialEq, Copy, Clone)]
-//! # /*
 //! #[derive(Debug, PartialEq, Contiguous, Copy, Clone)]
-//! # */
 //! enum Side {
 //!     Front = 0,
 //!     Back = 1,
 //!     Sides = 2,
 //! }
-//! # unsafe impl Contiguous for Side {
-//! #    type Int = u32;
-//! #
-//! #    const MIN_VALUE: u32 = 0;
-//! #    const MAX_VALUE: u32 = 2;
-//! # }
 //!
 //! const SIDE_INTS: [u32; 3] = [
 //!     contiguous::into_integer(Side::Front),
@@ -63,22 +54,13 @@ use crate::const_panic::PanicVal;
 /// use constmuck::{Contiguous, contiguous};
 ///
 /// #[repr(i8)]
-/// # #[derive(Debug, PartialEq, Copy, Clone)]
-/// # /*
 /// #[derive(Debug, PartialEq, Contiguous, Copy, Clone)]
-/// # */
 /// enum Order {
 ///     FrontToBack = 10,
 ///     BackToFront = 11,
 ///     RightToLeft = 12,
 ///     LeftToRight = 13,
 /// }
-/// # unsafe impl Contiguous for Order {
-/// #    type Int = i8;
-/// #
-/// #    const MIN_VALUE: i8 = 10;
-/// #    const MAX_VALUE: i8 = 13;
-/// # }
 ///
 /// const _ASSERTS: () = {
 ///     assert!(contiguous::into_integer(Order::FrontToBack) == 10_i8);
@@ -172,22 +154,13 @@ macro_rules! declare_from_int_fns {
         /// use constmuck::{Contiguous, contiguous};
         ///
         /// #[repr(u8)]
-        /// # #[derive(Debug, PartialEq, Copy, Clone)]
-        /// # /*
         /// #[derive(Debug, PartialEq, Contiguous, Copy, Clone)]
-        /// # */
         /// enum Direction {
         ///     Up = 10,
         ///     Down = 11,
         ///     Left = 12,
         ///     Right = 13,
         /// }
-        /// # unsafe impl Contiguous for Direction {
-        /// #    type Int = u8;
-        /// #
-        /// #    const MIN_VALUE: u8 = 10;
-        /// #    const MAX_VALUE: u8 = 13;
-        /// # }
         ///
         /// const VALUES: [Option<Direction>; 7] = [
         ///     contiguous::from_integer(0),

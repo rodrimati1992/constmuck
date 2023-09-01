@@ -6,9 +6,9 @@ error[E0277]: the trait bound `T: Pod` is not satisfied
     |
     = note: required for `T` to implement `AnyBitPattern`
 note: required by a bound in `constmuck::pod_read_unaligned`
-   --> src/pod.rs:208:36
+   --> src/pod.rs:202:36
     |
-208 | pub const fn pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> T {
+202 | pub const fn pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> T {
     |                                    ^^^^^^^^^^^^^ required by this bound in `pod_read_unaligned`
 help: consider restricting type parameter `T`
     |
@@ -40,9 +40,9 @@ error[E0277]: the trait bound `T: Pod` is not satisfied
     |
     = note: required for `T` to implement `AnyBitPattern`
 note: required by a bound in `constmuck::try_pod_read_unaligned`
-   --> src/pod.rs:225:40
+   --> src/pod.rs:219:40
     |
-225 | pub const fn try_pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> Result<T, PodCastError> {
+219 | pub const fn try_pod_read_unaligned<T: AnyBitPattern>(bytes: &[u8]) -> Result<T, PodCastError> {
     |                                        ^^^^^^^^^^^^^ required by this bound in `try_pod_read_unaligned`
 help: consider restricting type parameter `T`
     |

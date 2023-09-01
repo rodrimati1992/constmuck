@@ -26,8 +26,6 @@ rust_latest_stable = []
 #private features
 __testdev = []
 __testnodev = []
-
-# private feature
 __ui_tests = []
 
 [dev-dependencies]
@@ -46,6 +44,11 @@ path = "./constmuck_internal"
 [dependencies.bytemuck]
 version = "1.13"
 features = ["min_const_generics"]
+default-features = false
+
+[dev-dependencies.bytemuck]
+version = "1.13"
+features = ["min_const_generics", "derive"]
 default-features = false
 
 [dependencies.typewit]

@@ -6,12 +6,12 @@ error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::peel`
-   --> src/wrapper.rs:185:12
+   --> src/wrapper.rs:165:12
     |
-183 | pub const fn peel<Outer, Inner>(val: Outer) -> Inner
+163 | pub const fn peel<Outer, Inner>(val: Outer) -> Inner
     |              ---- required by a bound in this function
-184 | where
-185 |     Outer: TransparentWrapper<Inner>,
+164 | where
+165 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `peel`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
@@ -30,12 +30,12 @@ error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::peel_ref`
-   --> src/wrapper.rs:221:12
+   --> src/wrapper.rs:196:12
     |
-219 | pub const fn peel_ref<Outer, Inner>(reff: &Outer) -> &Inner
+194 | pub const fn peel_ref<Outer, Inner>(reff: &Outer) -> &Inner
     |              -------- required by a bound in this function
-220 | where
-221 |     Outer: TransparentWrapper<Inner>,
+195 | where
+196 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `peel_ref`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
@@ -71,12 +71,12 @@ error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
     |
     = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
 note: required by a bound in `constmuck::wrapper::peel_slice`
-   --> src/wrapper.rs:299:12
+   --> src/wrapper.rs:264:12
     |
-297 | pub const fn peel_slice<Outer, Inner>(reff: &[Outer]) -> &[Inner]
+262 | pub const fn peel_slice<Outer, Inner>(reff: &[Outer]) -> &[Inner]
     |              ---------- required by a bound in this function
-298 | where
-299 |     Outer: TransparentWrapper<Inner>,
+263 | where
+264 |     Outer: TransparentWrapper<Inner>,
     |            ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `peel_slice`
 
 error[E0277]: the trait bound `Foo<T>: TransparentWrapper<T>` is not satisfied
