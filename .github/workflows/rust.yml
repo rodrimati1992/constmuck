@@ -53,5 +53,5 @@ jobs:
 
         cargo miri test --features="__testdev debug_checks"
 
-        MIRIFLAGS=-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
+        MIRIFLAGS="-Zmiri-disable-isolation -Zmiri-track-raw-pointers" \
             cargo miri test --features="__testdev debug_checks"

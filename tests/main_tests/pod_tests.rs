@@ -17,6 +17,7 @@ fn bytes_of_test() {
 
 #[test]
 fn cast_test() {
+    must_panic(|| cast::<i16, u32>(0)).unwrap();
     must_panic(|| cast::<u32, i16>(0)).unwrap();
 
     assert_eq!(cast::<u32, i32>(u32::MAX), -1i32);
@@ -24,6 +25,7 @@ fn cast_test() {
 
 #[test]
 fn try_cast_test() {
+    assert_eq!(try_cast::<u16, u32>(0), Err(SizeMismatch));
     assert_eq!(try_cast::<u32, u16>(0), Err(SizeMismatch));
     assert_eq!(try_cast::<u32, Pack<u32>>(1), Ok(Pack(1)));
     assert_eq!(try_cast::<u32, i32>(u32::MAX), Ok(-1i32));
@@ -31,6 +33,7 @@ fn try_cast_test() {
 
 #[test]
 fn cast_ref_alt_test() {
+    must_panic(|| cast_ref_alt::<u16, u32>(&0)).unwrap();
     must_panic(|| cast_ref_alt::<u32, u16>(&0)).unwrap();
     must_panic(|| cast_ref_alt::<Pack<u32>, u32>(&Pack(0))).unwrap();
     assert_eq!(cast_ref_alt::<u32, Pack<i32>>(&u32::MAX), &Pack(-1i32));
@@ -39,6 +42,7 @@ fn cast_ref_alt_test() {
 
 #[test]
 fn try_cast_ref_alt_test() {
+    assert_eq!(try_cast_ref_alt::<u16, Pack<u32>>(&0), Err(SizeMismatch));
     assert_eq!(try_cast_ref_alt::<u32, u16>(&0), Err(SizeMismatch));
     assert_eq!(
         try_cast_ref_alt::<Pack<u32>, u32>(&Pack(0)),
