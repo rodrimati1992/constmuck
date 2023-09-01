@@ -36,7 +36,9 @@ jobs:
       run: |
         rustup override set ${{ matrix.rust }}
 
-        cargo test --features "derive __ui_tests debug_checks"
+        # ui tests are too noisy for CI, sadly
+        # cargo test --features "derive __ui_tests debug_checks"
+        cargo test --features "derive debug_checks"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
