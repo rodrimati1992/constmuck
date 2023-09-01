@@ -2,7 +2,7 @@
 const _: u8 = constmuck::pod_read_unaligned(&[0u8; 2]);
 const _: u32 = constmuck::pod_read_unaligned(&[0u8; 2]);
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 const _: () = {
     #[derive(Copy, Clone)]
     #[repr(transparent)]

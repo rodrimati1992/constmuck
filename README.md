@@ -107,21 +107,10 @@ impl SliceWrapper<u32> {
 
 # Additional checks
 
-Additional checks are enabled in debug builds,
-all of which cause panics when it'd have otherwise been Undefined Behavior
-(caused by unsound `unsafe impl`s),
-which means that there is a bug in some unsafe code somewhere.
-
-The precise checks are left unspecified so that they can change at any time.
-
-These checks are disabled by default in release builds,
-to enable them you can use this in your Cargo.toml:
-
-```toml
-[profile.release.package.constmuck]
-debug-assertions = true
-```
-
+The `"debug_checks"` crate feature (which is disabled by default)
+enables additional assertions in `constmuck` functions,
+these assertions panic in some cases where unsound impls of [`bytemuck`] traits
+would have caused Undefined Behavior.
 
 # Features
 
@@ -129,6 +118,11 @@ These are the features of this crate:
 
 - `"derive"`(disabled by default):
 Enables `bytemuck`'s `"derive"` feature and reexports its derives.
+
+- `"debug_checks"`(disabled by default):
+Enables [additional safety checks](#additional-checks) for detecting some 
+Undefined Behavior.
+
 
 # No-std support
 

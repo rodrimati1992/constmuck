@@ -20,6 +20,7 @@ include = [
 
 [features]
 derive = ["bytemuck/derive"]
+debug_checks = ["constmuck_internal/debug_checks"]
 rust_latest_stable = []
 
 #private features
@@ -27,7 +28,7 @@ __testdev = []
 __testnodev = []
 
 # private feature
-ui_tests = []
+__ui_tests = []
 
 [dev-dependencies]
 static_assertions = "1.1"

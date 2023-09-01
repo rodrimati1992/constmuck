@@ -36,9 +36,11 @@ Added reexport of `bytemuck::{ÀnyBitPattern, NoUninit}` in the root module.
 
 Increased Minimum Supported Rust Version to 1.64.0.
 
-Removed `rust_1_57` version, making all code that once required the feature unconditional.
+Added `"debug_checks"` crate feature.
 
-Changed `const_panic` dependency to version 0.2, enabled unconditionally.
+Replaced usage of `debug-assertions` flag (for UB detection) with `"debug_checks"` crate feature.
+
+Removed `"rust_1_57"` crate feature, making all code that once required the feature unconditional.
 
 Changed `bytemuck` dependency to 1.13 version
 
@@ -88,8 +90,6 @@ Swapped `Inner` and `Outer` type parameters of `wrap*` and `peel*` functions to 
 Made all type parameters of `Is*`  types and `TypeSize` invariant, just in case that it's unsound for them to be covariant.
 
 Removed the `"debug_checks"` feature, replacing it with the built-in `debug_assertions` flag.
-
-Added `const_panic` 0.1.0 as a dependency, enabled by the `"rust_1_57"` feature.
 
 # 0.2
 

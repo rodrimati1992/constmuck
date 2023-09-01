@@ -73,7 +73,7 @@ impl<'a, Outer: ?Sized, Inner: ?Sized> __PeelRefArgs<'a, Outer, Inner> {
     where
         Outer: TransparentWrapper<Inner>
     {
-        #[cfg(debug_assertions)]
+        #[cfg(feature = "debug_checks")]
         if TWHelper::<Outer, Inner>::NOT_SAME_SIZE {
             unequal_ptr_size_panic(
                 core::mem::size_of::<*const Outer>(),
@@ -102,7 +102,7 @@ impl<'a, Outer: ?Sized, Inner: ?Sized> __WrapRefArgs<'a, Outer, Inner> {
     where
         Outer: TransparentWrapper<Inner>
     {
-        #[cfg(debug_assertions)]
+        #[cfg(feature = "debug_checks")]
         if TWHelper::<Outer, Inner>::NOT_SAME_SIZE {
             unequal_ptr_size_panic(
                 core::mem::size_of::<*const Inner>(),
@@ -116,11 +116,11 @@ impl<'a, Outer: ?Sized, Inner: ?Sized> __WrapRefArgs<'a, Outer, Inner> {
 
 ///////////////////////////
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 struct TWHelper<Outer: ?Sized, Inner: ?Sized>(PhantomData<Outer>, PhantomData<Inner>);
 
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 impl<Outer: ?Sized, Inner: ?Sized> TWHelper<Outer, Inner> 
 where
     Outer: TransparentWrapper<Inner>
@@ -133,6 +133,7 @@ where
 #[track_caller]
 #[cold]
 #[inline(never)]
+#[cfg(feature = "debug_checks")]
 const fn unequal_ptr_size_panic(size_of_from: usize, size_of_to: usize) -> ! {
     use crate::const_panic::{FmtArg as FA, PanicVal as PV};
 

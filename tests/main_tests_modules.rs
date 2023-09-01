@@ -13,9 +13,9 @@ mod main_tests {
 #[test]
 fn debug_flags() {
     if cfg!(feature = "__testdev") {
-        assert!(cfg!(debug_assertions));
+        assert!(cfg!(feature = "debug_checks"));
     }
     if cfg!(feature = "__testnodev") {
-        assert!(!cfg!(debug_assertions));
+        assert!(!cfg!(feature = "debug_checks"));
     }
 }

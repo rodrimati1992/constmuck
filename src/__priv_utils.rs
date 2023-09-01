@@ -30,6 +30,7 @@ pub union ManuallyDropAsInner<'a, T> {
 #[cold]
 #[inline(never)]
 #[track_caller]
+#[cfg(feature = "debug_checks")]
 pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
         PV::write_str("\nexpected transmute not to change the size,"),
@@ -43,6 +44,7 @@ pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: us
 #[cold]
 #[inline(never)]
 #[track_caller]
+#[cfg(feature = "debug_checks")]
 pub(crate) const fn transmute_unequal_align_panic(align_of_t: usize, align_of_u: usize) -> ! {
     crate::const_panic::concat_panic(&[&[
         PV::write_str("\nexpected transmute not to change alignment,"),

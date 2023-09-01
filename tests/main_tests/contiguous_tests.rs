@@ -18,7 +18,7 @@ unsafe impl Contiguous for Tiny {
     const MAX_VALUE: i8 = 2;
 }
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 #[repr(i32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Wrong {
@@ -27,7 +27,7 @@ enum Wrong {
     P1 = 1,
 }
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 unsafe impl Contiguous for Wrong {
     type Int = i16;
 
@@ -35,7 +35,7 @@ unsafe impl Contiguous for Wrong {
     const MAX_VALUE: i16 = 1;
 }
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 #[test]
 fn swapped_limits() {
     #[repr(transparent)]

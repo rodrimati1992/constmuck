@@ -16,6 +16,9 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
+[features]
+debug_checks = []
+
 [dependencies.const_panic]
 version = "0.2"
 default_features = false

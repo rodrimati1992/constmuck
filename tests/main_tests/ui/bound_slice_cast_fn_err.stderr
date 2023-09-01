@@ -49,12 +49,12 @@ error[E0277]: the trait bound `T: Pod` is not satisfied
    |
    = note: required for `T` to implement `NoUninit`
 note: required by a bound in `cast_slice_alt`
-  --> src/slice_fns.rs:56:8
+  --> src/slice_fns.rs:54:8
    |
-54 | pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
+52 | pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
    |              -------------- required by a bound in this function
-55 | where
-56 |     T: NoUninit,
+53 | where
+54 |     T: NoUninit,
    |        ^^^^^^^^ required by this bound in `cast_slice_alt`
 help: consider restricting type parameter `T`
    |
@@ -69,12 +69,12 @@ error[E0277]: the trait bound `U: Pod` is not satisfied
    |
    = note: required for `U` to implement `AnyBitPattern`
 note: required by a bound in `cast_slice_alt`
-  --> src/slice_fns.rs:57:8
+  --> src/slice_fns.rs:55:8
    |
-54 | pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
+52 | pub const fn cast_slice_alt<T, U>(from: &[T]) -> &[U]
    |              -------------- required by a bound in this function
 ...
-57 |     U: AnyBitPattern,
+55 |     U: AnyBitPattern,
    |        ^^^^^^^^^^^^^ required by this bound in `cast_slice_alt`
 help: consider restricting type parameter `U`
    |
@@ -127,12 +127,12 @@ error[E0277]: the trait bound `T: Pod` is not satisfied
     |
     = note: required for `T` to implement `NoUninit`
 note: required by a bound in `try_cast_slice_alt`
-   --> src/slice_fns.rs:139:8
+   --> src/slice_fns.rs:134:8
     |
-137 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+132 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
     |              ------------------ required by a bound in this function
-138 | where
-139 |     T: NoUninit,
+133 | where
+134 |     T: NoUninit,
     |        ^^^^^^^^ required by this bound in `try_cast_slice_alt`
 help: consider restricting type parameter `T`
     |
@@ -147,12 +147,12 @@ error[E0277]: the trait bound `U: Pod` is not satisfied
     |
     = note: required for `U` to implement `AnyBitPattern`
 note: required by a bound in `try_cast_slice_alt`
-   --> src/slice_fns.rs:140:8
+   --> src/slice_fns.rs:135:8
     |
-137 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
+132 | pub const fn try_cast_slice_alt<T, U>(from: &[T]) -> Result<&[U], PodCastError>
     |              ------------------ required by a bound in this function
 ...
-140 |     U: AnyBitPattern,
+135 |     U: AnyBitPattern,
     |        ^^^^^^^^^^^^^ required by this bound in `try_cast_slice_alt`
 help: consider restricting type parameter `U`
     |

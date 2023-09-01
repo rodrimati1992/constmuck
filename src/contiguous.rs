@@ -52,6 +52,7 @@ use bytemuck::Contiguous;
 
 use typewit::TypeEq;
 
+#[cfg(feature = "debug_checks")]
 use crate::const_panic::PanicVal;
 
 /// Converts `value: T` into `<T as Contiguous>::Int` (its integer representation).
@@ -124,6 +125,7 @@ macro_rules! declare_from_int_fns {
         #[cold]
         #[inline(never)]
         #[track_caller]
+        #[cfg(feature = "debug_checks")]
         const fn panic_impossible_bounds(min_value: PanicVal, max_value: PanicVal) -> ! {
             crate::const_panic::concat_panic(&[&[
                 PanicVal::write_str("\n\
@@ -223,7 +225,7 @@ macro_rules! declare_from_int_fns {
                         let min_value = te.to_right(T::MIN_VALUE);
                         let max_value = te.to_right(T::MAX_VALUE);
 
-                        #[cfg(debug_assertions)]
+                        #[cfg(feature = "debug_checks")]
                         if min_value > max_value {
                             use crate::const_panic::{FmtArg as FA};
 
