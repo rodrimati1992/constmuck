@@ -130,10 +130,10 @@ Undefined Behavior.
 
 # Minimum Supported Rust Version
 
-`constmuck` requires Rust 1.64.0.
+`constmuck` requires Rust 1.65.0.
 
 You can use the `"rust_latest_stable"` crate feature to get
-all items and functionality that requires stable Rust versions after 1.64.0.
+all items and functionality that requires stable Rust versions after 1.65.0.
 
 
 

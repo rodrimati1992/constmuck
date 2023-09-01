@@ -5,8 +5,14 @@ use core::mem::ManuallyDrop;
 use crate::const_panic::{FmtArg as FA, PanicVal as PV};
 
 #[repr(packed)]
-#[derive(Copy, Clone)]
+#[derive(Copy)]
 pub(crate) struct Packed<T>(pub(crate) T);
+
+impl<T: Copy> Clone for Packed<T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 // allows transmuting between arbitrary Sized types.
 #[repr(C)]

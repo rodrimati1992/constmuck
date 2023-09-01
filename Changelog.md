@@ -34,7 +34,7 @@ Added `pod_read_unaligned` and `try_pod_read_unaligned` functions
 
 Added reexport of `bytemuck::{ÀnyBitPattern, NoUninit}` in the root module.
 
-Increased Minimum Supported Rust Version to 1.64.0.
+Increased Minimum Supported Rust Version to 1.65.0.
 
 Added `"debug_checks"` crate feature.
 
