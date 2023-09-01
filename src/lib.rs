@@ -1,11 +1,13 @@
 //! Const equivalents of many [`bytemuck`] functions.
 //!
-//! `constmuck` uses `bytemuck`'s traits,
+//! `constmuck` uses [`bytemuck`'s traits],
 //! any type that implements those traits can be used with the
 //! relevant functions from this crate.
 //!
-//! The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
-//! each one describes how it's different.
+//! Because the `*_alt` functions are `const fn`s,
+//! they can't inspect the address of the reference parameter.
+//! This differs from their [`bytemuck`] equivalents,
+//! which use the address to determine alignment.
 //!
 //! # Examples
 //!
@@ -131,7 +133,8 @@
 //! all items and functionality that requires stable Rust versions after 1.65.0.
 //!
 //! [`bytemuck`]: bytemuck
-//! [`konst`]: https://docs.rs/konst/*/konst/index.html
+//! [`bytemuck`'s traits]: bytemuck#traits
+//! [`konst`]: https://docs.rs/konst/0.3/konst/index.html
 //! [`contiguous`]: ./contiguous/index.html
 //! [`wrapper`]: ./wrapper/index.html
 
@@ -142,7 +145,7 @@
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-#[cfg(all(doctest, feature = "derive"))]
+#[cfg(doctest)]
 #[doc = include_str!("../README.md")]
 pub struct ReadmeTest;
 

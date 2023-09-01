@@ -59,11 +59,7 @@ macro_rules! __priv_transmute_from_copy {
     }};
 }
 
-// Defined this to transmute references.
-//
-// Using this instead of `core::mem::transmute` to allow changing
-// reference transmutes to transmute references to `?Sized` types
-// (`std::mem::transmute` errors with those due to unknown sizes).
+// Cast references with feature-enabled debug checks
 //
 // this is unsafe to use for the same reason that `transmute::<&$from, &$to>` is,
 // the types might not be compatible.
@@ -74,11 +70,7 @@ macro_rules! __priv_transmute_ref {
     }};
 }
 
-// Defined this to transmute slices
-//
-// Using this instead of `core::mem::transmute`,
-// because the data pointer and length are not guaranteed to be laid out in
-// the same order for different `&[T]`s and `&[U]`s.
+// Cast slices with feature-enabled debug checks
 //
 // this is unsafe to use for the same reason that `transmute::<&$from, &$to>` is,
 // the types might not be compatible.

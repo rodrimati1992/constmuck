@@ -4,12 +4,15 @@
 
 Const equivalents of many [`bytemuck`] functions.
 
-`constmuck` uses `bytemuck`'s traits,
+`constmuck` uses [`bytemuck`'s traits],
 any type that implements those traits can be used with the
 relevant functions from this crate.
 
-The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
-each one describes how it's different.
+Because the `*_alt` functions are `const fn`s,
+they can't inspect the address of the reference parameter.
+This differs from their [`bytemuck`] equivalents, 
+which use the address to determine alignment.
+
 
 # Examples
 
@@ -138,7 +141,8 @@ all items and functionality that requires stable Rust versions after 1.65.0.
 
 
 [`bytemuck`]: https://docs.rs/bytemuck/1.*/bytemuck/
-[`konst`]: https://docs.rs/konst/*/konst/index.html
+[`bytemuck`'s traits]: https://docs.rs/bytemuck/1.*/bytemuck/index.html#traits
+[`konst`]: https://docs.rs/konst/0.3/konst/index.html
 [`contiguous`]: https://docs.rs/constmuck/*/constmuck/contiguous/index.html
 [`wrapper`]: https://docs.rs/constmuck/*/constmuck/wrapper/index.html
 

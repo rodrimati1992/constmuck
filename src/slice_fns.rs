@@ -33,10 +33,9 @@ where
 ///
 /// # Difference with `bytemuck`
 ///
-/// This function has [the same differences](crate::try_cast_slice_alt#differences)
-/// with [`bytemuck::cast_slice`]
-/// that [`try_cast_slice_alt`] does  with
-/// [`bytemuck::try_cast_slice`].
+/// This function requires `T` to have an alignment larger than or equal to `U`.
+/// [`bytemuck::cast_slice`] allows `T` to have a lower alignment than `U`,
+/// so long as the `from` reference happens to be aligned to `U`.
 ///
 /// # Example
 ///
@@ -87,7 +86,7 @@ where
 /// - The alignment of `T` is larger than `U`, returning a
 /// `Err(PodCastError::TargetAlignmentGreaterAndInputNotAligned)`.
 ///
-/// - `T` or `U` is zero-sized but the other type parameter isn't zero-sized,
+/// - `T` xor `U` is zero-sized, but the other type parameter isn't zero-sized,
 /// returning a `Err(PodCastError::SizeMismatch)`.
 ///
 /// - `from.len() * size_of::<T>()` does not divide evenly into `size_of::<U>()`,
@@ -97,9 +96,9 @@ where
 /// <span id="differences"></span>
 /// # Difference with `bytemuck`
 ///
-/// This function requires `T` to have an alignment larger than or equal to `U`,
-/// while [`bytemuck::try_cast_slice`] only requires the `from` reference
-/// to happen to be aligned to `U`.
+/// This function requires `T` to have an alignment larger than or equal to `U`.
+/// [`bytemuck::try_cast_slice`] allows `T` to have a lower alignment than `U`,
+/// so long as the `from` reference happens to be aligned to `U`.
 ///
 /// # Example
 ///

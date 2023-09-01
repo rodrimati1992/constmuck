@@ -85,9 +85,9 @@ where
 ///
 /// # Difference with `bytemuck`
 ///
-/// This function requires `T` to have an alignment larger than or equal to `U`,
-/// while [`bytemuck::cast_ref`] only requires the `from` reference
-/// to happen to be aligned to `U`.
+/// This function requires `T` to have an alignment larger than or equal to `U`.
+/// [`bytemuck::cast_ref`] allows `T` to have  to have a lower alignment than `U`,
+/// so long as the `from` reference happens to be aligned to `U`.
 ///
 /// # Example
 ///
@@ -135,9 +135,9 @@ where
 ///
 /// # Difference with `bytemuck`
 ///
-/// This function requires `T` to have an alignment larger than or equal to `U`,
-/// while [`bytemuck::try_cast_ref`] only requires the `from` reference
-/// to happen to be aligned to `U`.
+/// This function requires `T` to have an alignment larger than or equal to `U`.
+/// [`bytemuck::try_cast_ref`] allows `T` to have a lower alignment than `U`,
+/// so long as the `from` reference happens to be aligned to `U`.
 ///
 /// # Example
 ///
