@@ -126,6 +126,9 @@ Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 Enables [additional safety checks](#additional-checks) for detecting some 
 Undefined Behavior.
 
+- `"rust_latest_stable"` (disabled by default): 
+enables all `"rust_1_*"` features, there's currently none.
+
 
 # No-std support
 

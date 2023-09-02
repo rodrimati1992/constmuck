@@ -26,7 +26,7 @@ Changed `cast_slice_alt` and `try_cast_slice_alt` to support casting between dif
 
 Replaced all the `contiguous::from_` functions with new `from_integer` function
 
-Removed `FromInteger` and `IsContiguous` structs.
+Removed `contiguous::FromInteger` struct.
 
 Added `contiguous::Integer` trait
 
