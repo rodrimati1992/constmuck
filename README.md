@@ -2,18 +2,17 @@
 [![crates-io](https://img.shields.io/crates/v/constmuck.svg)](https://crates.io/crates/constmuck)
 [![api-docs](https://docs.rs/constmuck/badge.svg)](https://docs.rs/constmuck/*)
 
-Const equivalents of many [`bytemuck`] functions,
-and additional functionality.
+Const equivalents of many [`bytemuck`] functions.
 
-`constmuck` uses `bytemuck`'s traits,
+`constmuck` uses [`bytemuck`'s traits],
 any type that implements those traits can be used with the
 relevant functions from this crate.
 
-The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
-each one describes how it's different.
+Because the `*_alt` functions are `const fn`s,
+they can't inspect the address of the reference parameter.
+This differs from their [`bytemuck`] equivalents, 
+which use the address to determine alignment.
 
-This crate avoids requiring (unstable as of 2021) trait bounds in `const fn`s
-by using marker types to require that a trait is implemented.
 
 # Examples
 
@@ -27,7 +26,7 @@ This example demonstrates constructing an enum from its representation.
 
 ```rust
 
-use constmuck::{Contiguous, infer};
+use constmuck::Contiguous;
 
 use konst::{array, try_opt};
 
@@ -54,7 +53,7 @@ pub enum Color {
 
 impl Color {
     pub const fn from_int(n: u8) -> Option<Self> {
-        constmuck::contiguous::from_u8(n, infer!())
+        constmuck::contiguous::from_integer(n)
     }
     pub const fn from_array<const N: usize>(input: [u8; N]) -> Option<[Self; N]> {
         // `try_opt` returns from `from_array` on `None`,
@@ -74,7 +73,6 @@ This example demonstrates a type that wraps a `[T]`, constructed by reference.
 ```rust
 
 use constmuck::TransparentWrapper;
-use constmuck::IsTW;
 
 fn main() {
     const SLICE: &[u32] = &[3, 5, 8, 13, 21];
@@ -94,50 +92,28 @@ pub struct SliceWrapper<T>(pub [T]);
 impl<T> SliceWrapper<T> {
     // Using `constmuck` allows safely defining this function as a `const fn`
     pub const fn new(reff: &[T]) -> &Self {
-        constmuck::wrapper::wrap_ref!(reff, IsTW!())
+        constmuck::wrapper::wrap_ref!(reff)
     }
 }
 
 impl SliceWrapper<u32> {
     pub const fn sum(&self) -> u64 {
-        let mut sum = 0;
-        konst::for_range!{i in 0..self.0.len() =>
-            sum += self.0[i] as u64;
-        }
-        sum
+        konst::iter::eval!(&self.0,copied(),fold(0, |l, r| l + r as u64))
     }
     pub const fn find_first_even(&self) -> Option<(usize, u32)> {
-        konst::for_range!{i in 0..self.0.len() =>
-            if self.0[i] % 2 == 0 {
-                return Some((i, self.0[i]));
-            }
-        }
-        None
+        konst::iter::eval!(&self.0,copied(),enumerate(),find(|(i, n)| *n % 2 == 0))
     }
-    
 }
 
 
 ```
 
-
 # Additional checks
 
-Additional checks are enabled in debug builds,
-all of which cause panics when it'd have otherwise been Undefined Behavior
-(caused by unsound `unsafe impl`s or calling `unsafe` constructor functions),
-which means that there is a bug in some unsafe code somewhere.
-
-The precise checks are left unspecified so that they can change at any time.
-
-These checks are disabled by default in release builds,
-to enable them you can use this in your Cargo.toml:
-
-```toml
-[profile.release.package.constmuck]
-debug-assertions = true
-```
-
+The `"debug_checks"` crate feature (which is disabled by default)
+enables additional assertions in `constmuck` functions,
+these assertions panic in some cases where unsound impls of [`bytemuck`] traits
+would have caused Undefined Behavior.
 
 # Features
 
@@ -146,13 +122,13 @@ These are the features of this crate:
 - `"derive"`(disabled by default):
 Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 
-- `"rust_latest_stable"`(disabled by default):
-Enables all items and functionality that requires stable Rust versions after 1.56.0.
-Currently doesn't enable any other feature.
+- `"debug_checks"`(disabled by default):
+Enables [additional safety checks](#additional-checks) for detecting some 
+Undefined Behavior.
 
-- `"rust_1_57"`(disabled by default, requires Rust 1.57.0):
-Causes this crate to use the `const_panic` dependency,
-to improve the quality of panic messages.
+- `"rust_latest_stable"` (disabled by default): 
+enables all `"rust_1_*"` features, there's currently none.
+
 
 # No-std support
 
@@ -160,18 +136,16 @@ to improve the quality of panic messages.
 
 # Minimum Supported Rust Version
 
-`constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
+`constmuck` requires Rust 1.65.0.
 
 You can use the `"rust_latest_stable"` crate feature to get
-all items and functionality that requires stable Rust versions after 1.56.0.
+all items and functionality that requires stable Rust versions after 1.65.0.
 
-# Plans
 
-`1.1.0`: Add mutable equivalents of reference/slice methods.
-This will require adding an opt-in feature.
 
 [`bytemuck`]: https://docs.rs/bytemuck/1.*/bytemuck/
-[`konst`]: https://docs.rs/konst/*/konst/index.html
+[`bytemuck`'s traits]: https://docs.rs/bytemuck/1.*/bytemuck/index.html#traits
+[`konst`]: https://docs.rs/konst/0.3/konst/index.html
 [`contiguous`]: https://docs.rs/constmuck/*/constmuck/contiguous/index.html
 [`wrapper`]: https://docs.rs/constmuck/*/constmuck/wrapper/index.html
 

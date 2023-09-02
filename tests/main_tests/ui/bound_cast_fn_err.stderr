@@ -1,0 +1,311 @@
+error[E0277]: the trait bound `T: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_cast_fn_err.rs:3:25
+   |
+3  |         constmuck::cast(a),
+   |         --------------- ^ the trait `Pod` is not implemented for `T`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = note: required for `T` to implement `NoUninit`
+note: required by a bound in `constmuck::cast`
+  --> src/pod.rs:26:8
+   |
+24 | pub const fn cast<T, U>(from: T) -> U
+   |              ---- required by a bound in this function
+25 | where
+26 |     T: NoUninit,
+   |        ^^^^^^^^ required by this bound in `cast`
+help: consider restricting type parameter `T`
+   |
+1  | fn _test_cast<T: constmuck::Pod, U>(a: T, b: T) -> (U, U) {
+   |                ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_cast_fn_err.rs:3:9
+   |
+3  |         constmuck::cast(a),
+   |         ^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+   |
+   = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `constmuck::cast`
+  --> src/pod.rs:27:8
+   |
+24 | pub const fn cast<T, U>(from: T) -> U
+   |              ---- required by a bound in this function
+...
+27 |     U: AnyBitPattern,
+   |        ^^^^^^^^^^^^^ required by this bound in `cast`
+help: consider restricting type parameter `U`
+   |
+1  | fn _test_cast<T, U: constmuck::Pod>(a: T, b: T) -> (U, U) {
+   |                   ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:4:24
+    |
+4   |         bytemuck::cast(b),
+    |         -------------- ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::cast`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:253:16
+    |
+253 | pub fn cast<A: NoUninit, B: AnyBitPattern>(a: A) -> B {
+    |                ^^^^^^^^ required by this bound in `cast`
+help: consider restricting type parameter `T`
+    |
+1   | fn _test_cast<T: constmuck::Pod, U>(a: T, b: T) -> (U, U) {
+    |                ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:4:9
+    |
+4   |         bytemuck::cast(b),
+    |         ^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::cast`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:253:29
+    |
+253 | pub fn cast<A: NoUninit, B: AnyBitPattern>(a: A) -> B {
+    |                             ^^^^^^^^^^^^^ required by this bound in `cast`
+help: consider restricting type parameter `U`
+    |
+1   | fn _test_cast<T, U: constmuck::Pod>(a: T, b: T) -> (U, U) {
+    |                   ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_cast_fn_err.rs:12:29
+   |
+12 |         constmuck::try_cast(a).unwrap(),
+   |         ------------------- ^ the trait `Pod` is not implemented for `T`
+   |         |
+   |         required by a bound introduced by this call
+   |
+   = note: required for `T` to implement `NoUninit`
+note: required by a bound in `constmuck::try_cast`
+  --> src/pod.rs:63:8
+   |
+61 | pub const fn try_cast<T, U>(from: T) -> Result<U, PodCastError>
+   |              -------- required by a bound in this function
+62 | where
+63 |     T: NoUninit,
+   |        ^^^^^^^^ required by this bound in `try_cast`
+help: consider restricting type parameter `T`
+   |
+10 | fn _test_try_cast<T: constmuck::Pod, U>(a: T, b: T) -> (U, U) {
+   |                    ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+  --> tests/main_tests/ui/bound_cast_fn_err.rs:12:9
+   |
+12 |         constmuck::try_cast(a).unwrap(),
+   |         ^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+   |
+   = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `constmuck::try_cast`
+  --> src/pod.rs:64:8
+   |
+61 | pub const fn try_cast<T, U>(from: T) -> Result<U, PodCastError>
+   |              -------- required by a bound in this function
+...
+64 |     U: AnyBitPattern,
+   |        ^^^^^^^^^^^^^ required by this bound in `try_cast`
+help: consider restricting type parameter `U`
+   |
+10 | fn _test_try_cast<T, U: constmuck::Pod>(a: T, b: T) -> (U, U) {
+   |                       ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:13:28
+    |
+13  |         bytemuck::try_cast(b).unwrap(),
+    |         ------------------ ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::try_cast`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:334:20
+    |
+334 | pub fn try_cast<A: NoUninit, B: AnyBitPattern>(
+    |                    ^^^^^^^^ required by this bound in `try_cast`
+help: consider restricting type parameter `T`
+    |
+10  | fn _test_try_cast<T: constmuck::Pod, U>(a: T, b: T) -> (U, U) {
+    |                    ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:13:9
+    |
+13  |         bytemuck::try_cast(b).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::try_cast`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:334:33
+    |
+334 | pub fn try_cast<A: NoUninit, B: AnyBitPattern>(
+    |                                 ^^^^^^^^^^^^^ required by this bound in `try_cast`
+help: consider restricting type parameter `U`
+    |
+10  | fn _test_try_cast<T, U: constmuck::Pod>(a: T, b: T) -> (U, U) {
+    |                       ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:22:33
+    |
+22  |         constmuck::cast_ref_alt(a),
+    |         ----------------------- ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `cast_ref_alt`
+   --> src/pod.rs:106:8
+    |
+104 | pub const fn cast_ref_alt<T, U>(from: &T) -> &U
+    |              ------------ required by a bound in this function
+105 | where
+106 |     T: NoUninit,
+    |        ^^^^^^^^ required by this bound in `cast_ref_alt`
+help: consider restricting type parameter `T`
+    |
+20  | fn _test_cast_ref_alt<'a, T: constmuck::Pod, U>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                            ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:22:9
+    |
+22  |         constmuck::cast_ref_alt(a),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `cast_ref_alt`
+   --> src/pod.rs:107:8
+    |
+104 | pub const fn cast_ref_alt<T, U>(from: &T) -> &U
+    |              ------------ required by a bound in this function
+...
+107 |     U: AnyBitPattern,
+    |        ^^^^^^^^^^^^^ required by this bound in `cast_ref_alt`
+help: consider restricting type parameter `U`
+    |
+20  | fn _test_cast_ref_alt<'a, T, U: constmuck::Pod>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                               ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:23:28
+    |
+23  |         bytemuck::cast_ref(b),
+    |         ------------------ ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::cast_ref`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:275:20
+    |
+275 | pub fn cast_ref<A: NoUninit, B: AnyBitPattern>(a: &A) -> &B {
+    |                    ^^^^^^^^ required by this bound in `cast_ref`
+help: consider restricting type parameter `T`
+    |
+20  | fn _test_cast_ref_alt<'a, T: constmuck::Pod, U>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                            ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:23:9
+    |
+23  |         bytemuck::cast_ref(b),
+    |         ^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::cast_ref`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:275:33
+    |
+275 | pub fn cast_ref<A: NoUninit, B: AnyBitPattern>(a: &A) -> &B {
+    |                                 ^^^^^^^^^^^^^ required by this bound in `cast_ref`
+help: consider restricting type parameter `U`
+    |
+20  | fn _test_cast_ref_alt<'a, T, U: constmuck::Pod>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                               ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:32:37
+    |
+32  |         constmuck::try_cast_ref_alt(a).unwrap(),
+    |         --------------------------- ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `try_cast_ref_alt`
+   --> src/pod.rs:159:8
+    |
+157 | pub const fn try_cast_ref_alt<T, U>(from: &T) -> Result<&U, PodCastError>
+    |              ---------------- required by a bound in this function
+158 | where
+159 |     T: NoUninit,
+    |        ^^^^^^^^ required by this bound in `try_cast_ref_alt`
+help: consider restricting type parameter `T`
+    |
+30  | fn _test_try_cast_ref_alt<'a, T: constmuck::Pod, U>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                                ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:32:9
+    |
+32  |         constmuck::try_cast_ref_alt(a).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `try_cast_ref_alt`
+   --> src/pod.rs:160:8
+    |
+157 | pub const fn try_cast_ref_alt<T, U>(from: &T) -> Result<&U, PodCastError>
+    |              ---------------- required by a bound in this function
+...
+160 |     U: AnyBitPattern,
+    |        ^^^^^^^^^^^^^ required by this bound in `try_cast_ref_alt`
+help: consider restricting type parameter `U`
+    |
+30  | fn _test_try_cast_ref_alt<'a, T, U: constmuck::Pod>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                                   ++++++++++++++++
+
+error[E0277]: the trait bound `T: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:33:32
+    |
+33  |         bytemuck::try_cast_ref(b).unwrap(),
+    |         ---------------------- ^ the trait `Pod` is not implemented for `T`
+    |         |
+    |         required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `NoUninit`
+note: required by a bound in `bytemuck::try_cast_ref`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:347:24
+    |
+347 | pub fn try_cast_ref<A: NoUninit, B: AnyBitPattern>(
+    |                        ^^^^^^^^ required by this bound in `try_cast_ref`
+help: consider restricting type parameter `T`
+    |
+30  | fn _test_try_cast_ref_alt<'a, T: constmuck::Pod, U>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                                ++++++++++++++++
+
+error[E0277]: the trait bound `U: Pod` is not satisfied
+   --> tests/main_tests/ui/bound_cast_fn_err.rs:33:9
+    |
+33  |         bytemuck::try_cast_ref(b).unwrap(),
+    |         ^^^^^^^^^^^^^^^^^^^^^^ the trait `Pod` is not implemented for `U`
+    |
+    = note: required for `U` to implement `AnyBitPattern`
+note: required by a bound in `bytemuck::try_cast_ref`
+   --> /home/matias/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bytemuck-1.13.1/src/lib.rs:347:37
+    |
+347 | pub fn try_cast_ref<A: NoUninit, B: AnyBitPattern>(
+    |                                     ^^^^^^^^^^^^^ required by this bound in `try_cast_ref`
+help: consider restricting type parameter `U`
+    |
+30  | fn _test_try_cast_ref_alt<'a, T, U: constmuck::Pod>(a: &'a T, b: &'a T) -> (&'a U, &'a U) {
+    |                                   ++++++++++++++++

@@ -1,0 +1,83 @@
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:32:21
+   |
+32 |     const _: () = { peel(Pack(0u16)); };
+   |                     ^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change alignment, alignment goes from: 1 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:32:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:34:21
+   |
+34 |     const _: () = { peel(UnitW::<u16>([])); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change the size, size goes from: 0 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:34:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:36:21
+   |
+36 |     const _: () = { peel_ref(&Pack(0u16)); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change alignment, alignment goes from: 1 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:36:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:38:21
+   |
+38 |     const _: () = { peel_ref(&UnitW::<u16>([])); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change the size, size goes from: 0 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:38:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:40:21
+   |
+40 |     const _: () = { peel_slice(&[Pack(0u16)]); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change alignment, alignment goes from: 1 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:40:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:42:21
+   |
+42 |     const _: () = { peel_slice(&[UnitW::<u16>([])]); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change the size, size goes from: 0 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:42:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:44:21
+   |
+44 |     const _: () = { wrap::<Pack<_>, _>(0u16); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change alignment, alignment goes from: 1 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:44:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:46:21
+   |
+46 |     const _: () = { wrap::<UnitW<_>, _>(0u16); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change the size, size goes from: 2 to: 0', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:46:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:48:21
+   |
+48 |     const _: () = { wrap_ref::<Pack<_>, _>(&0u16); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change alignment, alignment goes from: 1 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:48:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:50:21
+   |
+50 |     const _: () = { wrap_ref::<UnitW<_>, _>(&0u16); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change the size, size goes from: 2 to: 0', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:50:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:52:21
+   |
+52 |     const _: () = { wrap_slice::<Pack<_>, _>(&[0u16]); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change alignment, alignment goes from: 1 to: 2', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:52:21
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_wrapper_err.rs:54:21
+   |
+54 |     const _: () = { wrap_slice::<UnitW<_>, _>(&[0u16]); };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+expected transmute not to change the size, size goes from: 2 to: 0', $DIR/tests/main_tests/ui/const_panic_wrapper_err.rs:54:21

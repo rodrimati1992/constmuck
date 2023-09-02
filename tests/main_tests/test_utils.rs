@@ -51,6 +51,8 @@ impl<T: Copy> Clone for Pack<T> {
     }
 }
 
+unsafe impl<T> TransparentWrapper<T> for Pack<T> {}
+
 unsafe impl<T: Zeroable> Zeroable for Pack<T> {}
 
 unsafe impl<T: Pod> Pod for Pack<T> {}

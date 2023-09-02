@@ -1,0 +1,26 @@
+error[E0080]: evaluation of constant value failed
+ --> tests/main_tests/ui/const_panic_other_err.rs:2:15
+  |
+2 | const _: u8 = constmuck::pod_read_unaligned(&[0u8; 2]);
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+the sizes of `T` and the slice are not the same
+slice length: 2
+size_of::<T>(): 1', $DIR/tests/main_tests/ui/const_panic_other_err.rs:2:15
+
+error[E0080]: evaluation of constant value failed
+ --> tests/main_tests/ui/const_panic_other_err.rs:3:16
+  |
+3 | const _: u32 = constmuck::pod_read_unaligned(&[0u8; 2]);
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+the sizes of `T` and the slice are not the same
+slice length: 2
+size_of::<T>(): 4', $DIR/tests/main_tests/ui/const_panic_other_err.rs:3:16
+
+error[E0080]: evaluation of constant value failed
+  --> tests/main_tests/ui/const_panic_other_err.rs:17:26
+   |
+17 |     let _: Option<Foo> = constmuck::contiguous::from_integer(4);
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at '
+`T` implements `Contiguous` where `T::MIN_VALUE` is larger than `T::MAX_VALUE`
+T::MIN_VALUE: 3
+T::MAX_VALUE: 2', $DIR/tests/main_tests/ui/const_panic_other_err.rs:17:26

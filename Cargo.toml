@@ -1,11 +1,11 @@
 [package]
 name = "constmuck"
-version = "0.3.0"
+version = "1.0.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 edition = "2021"
-rust-version = "1.56.0"
+rust-version = "1.65.0"
 license = "Zlib"
-description = "const-equivalents of bytemuck functions, and more"
+description = "const-equivalents of bytemuck functions"
 documentation = "https://docs.rs/constmuck/"
 readme="./README.md"
 keywords = ["no-std", "transmute", "casting", "const-fn"]
@@ -19,36 +19,35 @@ include = [
 ]
 
 [features]
-derive = ["bytemuck/derive", "syn"]
-rust_1_57 = ["constmuck_internal/rust_1_57"]
+derive = ["bytemuck/derive"]
+debug_checks = ["constmuck_internal/debug_checks"]
 rust_latest_stable = []
 
 #private features
-__testdev = []
-__testnodev = []
-
-# private feature
-ui_tests = []
+__ui_tests = []
 
 [dev-dependencies]
-static_assertions = "1.1"
 trybuild = "1.0"
 
 [dev-dependencies.konst]
-version = "0.2.12"
-features = ["rust_1_56"]
+version = "0.3.6"
+features = ["iter"]
 default-features = false
 
 [dependencies.constmuck_internal]
-version = "=0.3.0"
+version = "=1.0.0"
 path = "./constmuck_internal"
 
 [dependencies.bytemuck]
-version = "1.7.2"
+version = "1.13"
 features = ["min_const_generics"]
 default-features = false
 
-# for making minimum version testing pass
-[dependencies.syn]
-version = "1.0.76"
-optional = true
+[dev-dependencies.bytemuck]
+version = "1.13"
+features = ["min_const_generics", "derive"]
+default-features = false
+
+[dependencies.typewit]
+version = "1.5"
+default-features = false

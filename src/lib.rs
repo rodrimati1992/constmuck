@@ -1,15 +1,13 @@
-//! Const equivalents of many [`bytemuck`] functions,
-//! and additional functionality.
+//! Const equivalents of many [`bytemuck`] functions.
 //!
-//! `constmuck` uses `bytemuck`'s traits,
+//! `constmuck` uses [`bytemuck`'s traits],
 //! any type that implements those traits can be used with the
 //! relevant functions from this crate.
 //!
-//! The `*_alt` functions aren't exactly equivalent to the `bytemuck` ones,
-//! each one describes how it's different.
-//!
-//! This crate avoids requiring (unstable as of 2021) trait bounds in `const fn`s
-//! by using marker types to require that a trait is implemented.
+//! Because the `*_alt` functions are `const fn`s,
+//! they can't inspect the address of the reference parameter.
+//! This differs from their [`bytemuck`] equivalents,
+//! which use the address to determine alignment.
 //!
 //! # Examples
 //!
@@ -23,7 +21,7 @@
 //!
 //! ```rust
 //!
-//! use constmuck::{Contiguous, infer};
+//! use constmuck::Contiguous;
 //!
 //! use konst::{array, try_opt};
 //!
@@ -39,10 +37,7 @@
 //! }
 //!
 //! #[repr(u8)]
-//! # #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-//! # /*
 //! #[derive(Debug, PartialEq, Eq, Contiguous, Copy, Clone)]
-//! # */
 //! pub enum Color {
 //!     Red = 0,
 //!     Blue,
@@ -50,16 +45,10 @@
 //!     White,
 //!     Black,
 //! }
-//! # unsafe impl Contiguous for Color {
-//! #   type Int = u8;
-//! #
-//! #   const MIN_VALUE: u8 = 0;
-//! #   const MAX_VALUE: u8 = 4;
-//! # }
 //!
 //! impl Color {
 //!     pub const fn from_int(n: u8) -> Option<Self> {
-//!         constmuck::contiguous::from_u8(n, infer!())
+//!         constmuck::contiguous::from_integer(n)
 //!     }
 //!     pub const fn from_array<const N: usize>(input: [u8; N]) -> Option<[Self; N]> {
 //!         // `try_opt` returns from `from_array` on `None`,
@@ -78,7 +67,7 @@
 //!
 //! ```rust
 //!
-//! use constmuck::{IsTW, TransparentWrapper};
+//! use constmuck::TransparentWrapper;
 //!
 //! fn main() {
 //!     const SLICE: &[u32] = &[3, 5, 8, 13, 21];
@@ -92,38 +81,23 @@
 //! }
 //!
 //! #[repr(transparent)]
-//! # #[derive(Debug, PartialEq, Eq)]
-//! # /*
 //! #[derive(Debug, PartialEq, Eq, TransparentWrapper)]
-//! # */
 //! pub struct SliceWrapper<T>(pub [T]);
 //!
-//! # unsafe impl<T> TransparentWrapper<[T]> for SliceWrapper<T> {}
-//! #
 //! impl<T> SliceWrapper<T> {
 //!     // Using `constmuck` allows safely defining this function as a `const fn`
 //!     pub const fn new(reff: &[T]) -> &Self {
-//!         constmuck::wrapper::wrap_ref!(reff, IsTW!())
+//!         constmuck::wrapper::wrap_ref!(reff)
 //!     }
 //! }
 //!
 //! impl SliceWrapper<u32> {
 //!     pub const fn sum(&self) -> u64 {
-//!         let mut sum = 0;
-//!         konst::for_range!{i in 0..self.0.len() =>
-//!             sum += self.0[i] as u64;
-//!         }
-//!         sum
+//!         konst::iter::eval!(&self.0,copied(),fold(0, |l, r| l + r as u64))
 //!     }
 //!     pub const fn find_first_even(&self) -> Option<(usize, u32)> {
-//!         konst::for_range!{i in 0..self.0.len() =>
-//!             if self.0[i] % 2 == 0 {
-//!                 return Some((i, self.0[i]));
-//!             }
-//!         }
-//!         None
+//!         konst::iter::eval!(&self.0,copied(),enumerate(),find(|(i, n)| *n % 2 == 0))
 //!     }
-//!     
 //! }
 //!
 //!
@@ -131,20 +105,10 @@
 //!
 //! # Additional checks
 //!
-//! Additional checks are enabled in debug builds,
-//! all of which cause panics when it'd have otherwise been Undefined Behavior
-//! (caused by unsound `unsafe impl`s or calling `unsafe` constructor functions),
-//! which means that there is a bug in some unsafe code somewhere.
-//!
-//! The precise checks are left unspecified so that they can change at any time.
-//!
-//! These checks are disabled by default in release builds,
-//! to enable them you can use this in your Cargo.toml:
-//!
-//! ```toml
-//! [profile.release.package.constmuck]
-//! debug-assertions = true
-//! ```
+//! The `"debug_checks"` crate feature (which is disabled by default)
+//! enables additional assertions in `constmuck` functions,
+//! these assertions panic in some cases where unsound impls of [`bytemuck`] traits
+//! would have caused Undefined Behavior.
 //!
 //! # Features
 //!
@@ -153,13 +117,12 @@
 //! - `"derive"`(disabled by default):
 //! Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 //!
-//! - `"rust_latest_stable"`(disabled by default):
-//! Enables all items and functionality that requires stable Rust versions after 1.56.0.
-//! Currently doesn't enable any other feature.
+//! - `"debug_checks"`(disabled by default):
+//! Enables [additional safety checks](#additional-checks) for detecting some
+//! Undefined Behavior.
 //!
-//! - `"rust_1_57"`(disabled by default, requires Rust 1.57.0):
-//! Causes this crate to use the `const_panic` dependency,
-//! to improve the quality of panic messages.
+//! - `"rust_latest_stable"` (disabled by default):
+//! enables all `"rust_1_*"` features, there's currently none.
 //!
 //! # No-std support
 //!
@@ -167,13 +130,14 @@
 //!
 //! # Minimum Supported Rust Version
 //!
-//! `constmuck` requires Rust 1.56.0, because it uses transmute inside const fns.
+//! `constmuck` requires Rust 1.65.0.
 //!
 //! You can use the `"rust_latest_stable"` crate feature to get
-//! all items and functionality that requires stable Rust versions after 1.56.0.
+//! all items and functionality that requires stable Rust versions after 1.65.0.
 //!
 //! [`bytemuck`]: bytemuck
-//! [`konst`]: https://docs.rs/konst/*/konst/index.html
+//! [`bytemuck`'s traits]: bytemuck#traits
+//! [`konst`]: https://docs.rs/konst/0.3/konst/index.html
 //! [`contiguous`]: ./contiguous/index.html
 //! [`wrapper`]: ./wrapper/index.html
 
@@ -184,24 +148,18 @@
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-#[cfg(all(doctest, feature = "derive"))]
+#[cfg(doctest)]
 #[doc = include_str!("../README.md")]
 pub struct ReadmeTest;
 
 #[macro_use]
 mod macros;
 
-pub mod copying;
-
 pub mod contiguous;
-
-mod infer;
 
 mod pod;
 
 mod slice_fns;
-
-mod type_size;
 
 pub mod wrapper;
 
@@ -211,17 +169,16 @@ mod zeroable;
 pub mod __priv_utils;
 
 #[doc(no_inline)]
-pub use bytemuck::{self, Contiguous, Pod, PodCastError, TransparentWrapper, Zeroable};
+pub use bytemuck::{
+    self, AnyBitPattern, Contiguous, NoUninit, Pod, PodCastError, TransparentWrapper, Zeroable,
+};
 
 pub use crate::{
-    contiguous::is_contiguous::IsContiguous,
-    copying::is_copy::IsCopy,
-    infer::Infer,
-    pod::{cast, cast_ref_alt, try_cast, try_cast_ref_alt, IsPod},
-    slice_fns::{byte_array_of, cast_slice_alt, try_cast_slice_alt},
-    type_size::TypeSize,
-    wrapper::is_tw::IsTransparentWrapper,
-    zeroable::{zeroed, zeroed_array, IsZeroable},
+    pod::{
+        cast, cast_ref_alt, pod_read_unaligned, try_cast, try_cast_ref_alt, try_pod_read_unaligned,
+    },
+    slice_fns::{bytes_of, cast_slice_alt, try_cast_slice_alt},
+    zeroable::zeroed,
 };
 
 #[doc(hidden)]
@@ -230,7 +187,4 @@ pub mod __ {
     pub use core::ops::Range;
 }
 
-use constmuck_internal::panic_;
-
-#[cfg(feature = "rust_1_57")]
 use constmuck_internal::const_panic;

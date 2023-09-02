@@ -1,4 +1,4 @@
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 macro_rules! __check_size {
     ($from:ty, $to:ty) => {
         if core::mem::size_of::<$from>() != core::mem::size_of::<$to>() {
@@ -10,12 +10,12 @@ macro_rules! __check_size {
     };
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(feature = "debug_checks"))]
 macro_rules! __check_size {
     ($from:ty, $to:ty) => {};
 }
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "debug_checks")]
 macro_rules! __check_same_alignment {
     ($from:ty, $to:ty) => {
         if core::mem::align_of::<$from>() != core::mem::align_of::<$to>() {
@@ -27,7 +27,7 @@ macro_rules! __check_same_alignment {
     };
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(not(feature = "debug_checks"))]
 macro_rules! __check_same_alignment {
     ($from:ty, $to:ty) => {};
 }
@@ -59,38 +59,24 @@ macro_rules! __priv_transmute_from_copy {
     }};
 }
 
-// Defined this to transmute references.
-//
-// Using this instead of `core::mem::transmute` to allow changing
-// reference transmutes to transmute references to `?Sized` types
-// (`std::mem::transmute` errors with those due to unknown sizes).
+// Cast references with feature-enabled debug checks
 //
 // this is unsafe to use for the same reason that `transmute::<&$from, &$to>` is,
 // the types might not be compatible.
 macro_rules! __priv_transmute_ref {
     ($from:ty, $to:ty, $reference:expr) => {{
         __check_size! {$from, $to}
-        crate::__priv_utils::PtrToRef::<$to> {
-            ptr: $reference as *const $from as *const $to,
-        }
-        .reff
+        &*($reference as *const $from as *const $to)
     }};
 }
 
-// Defined this to transmute slices
-//
-// Using this instead of `core::mem::transmute`,
-// because the data pointer and length are not guaranteed to be laid out in
-// the same order for different `&[T]`s and `&[U]`s.
+// Cast slices with feature-enabled debug checks
 //
 // this is unsafe to use for the same reason that `transmute::<&$from, &$to>` is,
 // the types might not be compatible.
 macro_rules! __priv_transmute_slice {
     ($from:ty, $to:ty, $reference:expr) => {{
         __check_size! {$from, $to}
-        crate::__priv_utils::PtrToRef::<[$to]> {
-            ptr: $reference as *const [$from] as *const [$to],
-        }
-        .reff
+        &*($reference as *const [$from] as *const [$to])
     }};
 }

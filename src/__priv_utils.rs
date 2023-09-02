@@ -1,9 +1,18 @@
 #![allow(missing_debug_implementations)]
 
-use core::{
-    marker::PhantomData,
-    mem::{size_of, ManuallyDrop},
-};
+use core::mem::ManuallyDrop;
+
+use crate::const_panic::{FmtArg as FA, PanicVal as PV};
+
+#[repr(packed)]
+#[derive(Copy)]
+pub(crate) struct Packed<T>(pub(crate) T);
+
+impl<T: Copy> Clone for Packed<T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 // allows transmuting between arbitrary Sized types.
 #[repr(C)]
@@ -18,132 +27,112 @@ pub(crate) union TransmuterFromCopy<F: Copy, T> {
     pub(crate) to: ManuallyDrop<T>,
 }
 
-// For dereferencing raw pointers,
-// since `&*raw_ptr` doesn't work in const contexts yet.
-#[repr(C)]
-pub(crate) union PtrToRef<'a, P: ?Sized> {
-    pub(crate) ptr: *const P,
-    pub(crate) reff: &'a P,
-}
-
 #[repr(C)]
 pub union ManuallyDropAsInner<'a, T> {
     pub(crate) outer: &'a ManuallyDrop<T>,
     pub(crate) inner: &'a T,
 }
 
-pub(crate) const fn manuallydrop_as_inner<T>(outer: &ManuallyDrop<T>) -> &T {
-    unsafe { ManuallyDropAsInner { outer }.inner }
-}
-
-// checking that the size of an array is just `size_of::<T>() * LEN`
-//
-pub(crate) struct SizeIsStride<T, const LEN: usize>(PhantomData<fn() -> T>);
-
-impl<T, const LEN: usize> SizeIsStride<T, LEN> {
-    pub(crate) const V: bool = { size_of::<[T; LEN]>() != size_of::<T>() * LEN };
-
-    #[cold]
-    #[inline(never)]
-    #[allow(unconditional_panic)]
-    pub(crate) const fn panic() -> ! {
-        let x = 0;
-        [/* uh oh, size != stride */][x]
-    }
-}
-
-#[cfg_attr(feature = "rust_1_57", track_caller)]
-#[allow(unused_variables)]
 #[cold]
 #[inline(never)]
+#[track_caller]
+#[cfg(feature = "debug_checks")]
 pub(crate) const fn transmute_unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
-    crate::panic_! {
-        {
-            [(/* expected transmute not to change the size */)][size_of_t];
-            loop{}
-        }
-        {
-            crate::const_panic::concat_panic!{
-                "\nexpected transmute not to change the size,",
-                " size goes from: ", size_of_t,
-                " to: ", size_of_u,
-            }
-        }
-    }
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nexpected transmute not to change the size,"),
+        PV::write_str(" size goes from: "),
+        PV::from_usize(size_of_t, FA::DEBUG),
+        PV::write_str(" to: "),
+        PV::from_usize(size_of_u, FA::DEBUG),
+    ]])
 }
 
-#[cfg_attr(feature = "rust_1_57", track_caller)]
-#[allow(unused_variables)]
 #[cold]
 #[inline(never)]
+#[track_caller]
+#[cfg(feature = "debug_checks")]
 pub(crate) const fn transmute_unequal_align_panic(align_of_t: usize, align_of_u: usize) -> ! {
-    crate::panic_! {
-        {
-            [(/* expected transmute not to change the alignment */)][align_of_t];
-            loop{}
-        }
-        {
-            crate::const_panic::concat_panic!{
-                "\nexpected transmute not to change alignment,",
-                " alignment goes from: ", align_of_t,
-                " to: ", align_of_u,
-            }
-        }
-    }
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nexpected transmute not to change alignment,"),
+        PV::write_str(" alignment goes from: "),
+        PV::from_usize(align_of_t, FA::DEBUG),
+        PV::write_str(" to: "),
+        PV::from_usize(align_of_u, FA::DEBUG),
+    ]])
 }
 
-#[cfg_attr(feature = "rust_1_57", track_caller)]
-#[allow(unused_variables)]
 #[cold]
 #[inline(never)]
+#[track_caller]
 pub(crate) const fn unequal_size_panic(size_of_t: usize, size_of_u: usize) -> ! {
-    crate::panic_! {
-        {
-            [/* the size of T and U is not the same */][size_of_t]
-        }
-        {
-            crate::const_panic::concat_panic!{
-                "\nthe size of T and U is not the same",
-                "\nsize_of::<T>(): ", size_of_t,
-                "\nsize_of::<U>(): ", size_of_u,
-            }
-        }
-    }
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nthe sizes of T and U are not the same"),
+        PV::write_str("\nsize_of::<T>(): "),
+        PV::from_usize(size_of_t, FA::DEBUG),
+        PV::write_str("\nsize_of::<U>(): "),
+        PV::from_usize(size_of_u, FA::DEBUG),
+    ]])
 }
-#[cfg_attr(feature = "rust_1_57", track_caller)]
-#[allow(unused_variables)]
+
 #[cold]
 #[inline(never)]
-pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: usize) -> ! {
-    crate::panic_! {
-        {
-            [/* the alignment of T is lower than U */][align_of_t]
-        }
-        {
-            crate::const_panic::concat_panic!{
-                "\nThe alignment of T is lower than U",
-                "\nalign_of::<T>(): ", align_of_t,
-                "\nalign_of::<U>(): ", align_of_u,
-            }
-        }
-    }
+#[track_caller]
+pub(crate) const fn unequal_bytes_size_panic(size_of_slice: usize, size_of_t: usize) -> ! {
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nthe sizes of `T` and the slice are not the same"),
+        PV::write_str("\nslice length: "),
+        PV::from_usize(size_of_slice, FA::DEBUG),
+        PV::write_str("\nsize_of::<T>(): "),
+        PV::from_usize(size_of_t, FA::DEBUG),
+    ]])
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[cold]
+#[inline(never)]
+#[track_caller]
+pub(crate) const fn incompatible_alignment_panic(align_of_t: usize, align_of_u: usize) -> ! {
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nthe alignment of `T` is lower than `U`"),
+        PV::write_str("\nalign_of::<T>(): "),
+        PV::from_usize(align_of_t, FA::DEBUG),
+        PV::write_str("\nalign_of::<U>(): "),
+        PV::from_usize(align_of_u, FA::DEBUG),
+    ]])
+}
 
-    #[test]
-    fn manuallydrop_as_inner_test() {
-        macro_rules! case {
-            ($value:expr) => {
-                assert_eq!(manuallydrop_as_inner(&ManuallyDrop::new($value)), &$value);
-            };
-        }
+#[cold]
+#[inline(never)]
+#[track_caller]
+pub(crate) const fn slice_does_not_divide_evenly_panic(
+    slice_len: usize,
+    size_of_t: usize,
+    size_of_u: usize,
+) -> ! {
+    let byte_size = slice_len * size_of_t;
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str("\nthe input slice of `T` doesn't divide evenly into a slice of `U`s"),
+        PV::write_str("\nslice.len() * size_of::<T>(): "),
+        PV::from_usize(byte_size, FA::DEBUG),
+        PV::write_str("\nsize_of::<U>(): "),
+        PV::from_usize(size_of_u, FA::DEBUG),
+        PV::write_str("\nexcess bytes: "),
+        PV::from_usize(byte_size % size_of_u, FA::DEBUG),
+    ]])
+}
 
-        case!("hello");
-        case!(100);
-        case!(true);
-        case!(false);
-    }
+#[cold]
+#[inline(never)]
+#[track_caller]
+pub(crate) const fn slice_cast_zst_panic(size_of_t: usize, size_of_u: usize) -> ! {
+    crate::const_panic::concat_panic(&[&[
+        PV::write_str(if size_of_t == 0 {
+            "\nattempted to cast slice of zero-sized `T` to slice of non-zero-sized `U`"
+        } else {
+            "\nattempted to cast slice of non-zero-sized `T` to slice of zero-sized `U`"
+        }),
+        PV::write_str("\nsize_of::<T>(): "),
+        PV::from_usize(size_of_t, FA::DEBUG),
+        PV::write_str("\nsize_of::<U>(): "),
+        PV::from_usize(size_of_u, FA::DEBUG),
+    ]])
 }

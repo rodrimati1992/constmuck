@@ -1,4 +1,4 @@
-#[cfg(all(not(miri), feature = "ui_tests"))]
+#[cfg(all(not(miri), feature = "__ui_tests"))]
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();

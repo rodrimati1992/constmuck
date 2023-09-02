@@ -1,7 +1,15 @@
-error[E0759]: `reff` has lifetime `'a` but it needs to satisfy a `'static` lifetime requirement
+error: lifetime may not live long enough
  --> tests/main_tests/ui/wrap_ref_fn_lt_err.rs:5:5
   |
 4 | const fn foo<'a>(reff: &'a u8) -> &'static Wrapping<u8> {
-  |                        ------ this data with lifetime `'a`...
-5 |     wrap_ref(reff, constmuck::IsTW!())
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...is captured and required to live as long as `'static` here
+  |              -- lifetime `'a` defined here
+5 |     wrap_ref(reff)
+  |     ^^^^^^^^^^^^^^ returning this value requires that `'a` must outlive `'static`
+
+error: lifetime may not live long enough
+ --> tests/main_tests/ui/wrap_ref_fn_lt_err.rs:9:5
+  |
+8 | const fn bar<'a>(reff: &'a &'a u8) -> &'a Wrapping<&'static u8> {
+  |              -- lifetime `'a` defined here
+9 |     wrap_ref(reff)
+  |     ^^^^^^^^^^^^^^ returning this value requires that `'a` must outlive `'static`

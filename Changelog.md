@@ -1,6 +1,54 @@
 This changelog is a summary of the changes made in each release.
 
-# 0.3.0
+# 1.0
+
+### 1.0.0
+
+Rewrote all functions to not take any `Is*`/`TypeSize` marker types, instead using the same trait bounds as their `bytemuck` counterparts.
+
+`zeroed` now panics if the type is larger than 1MiB.
+
+Removed these items:
+- `Infer`
+- `IsContiguous`: Macro and struct
+- `IsCopy`: macro and struct
+- `IsPod`: macro and struct
+- `IsTW`
+- `IsTransparentWrapper`
+- `IsZeroable`
+- `TypeSize`
+- `copying`: module
+- `infer`
+- `map_bound`
+- `zeroed_array`
+
+Changed `cast_slice_alt` and `try_cast_slice_alt` to support casting between different element sizes, in the same way that `bytemuck` does.
+
+Replaced all the `contiguous::from_` functions with new `from_integer` function
+
+Removed `contiguous::FromInteger` struct.
+
+Added `contiguous::Integer` trait
+
+Added `pod_read_unaligned` and `try_pod_read_unaligned` functions
+
+Added reexport of `bytemuck::{ÀnyBitPattern, NoUninit}` in the root module.
+
+Added reexport of `bytemuck::Contiguous` in the `contiguous` module.
+
+Added reexport of `bytemuck::TransparentWrapper` in the `wrapper` module.
+
+Increased Minimum Supported Rust Version to 1.65.0.
+
+Added `"debug_checks"` crate feature.
+
+Replaced usage of `debug-assertions` flag (for UB detection) with `"debug_checks"` crate feature.
+
+Removed `"rust_1_57"` crate feature, making all code that once required the feature unconditional.
+
+Changed `bytemuck` dependency to 1.13 version
+
+# 0.3
 
 ### 0.3.0
 
@@ -46,8 +94,6 @@ Swapped `Inner` and `Outer` type parameters of `wrap*` and `peel*` functions to 
 Made all type parameters of `Is*`  types and `TypeSize` invariant, just in case that it's unsound for them to be covariant.
 
 Removed the `"debug_checks"` feature, replacing it with the built-in `debug_assertions` flag.
-
-Added `const_panic` 0.1.0 as a dependency, enabled by the `"rust_1_57"` feature.
 
 # 0.2
 

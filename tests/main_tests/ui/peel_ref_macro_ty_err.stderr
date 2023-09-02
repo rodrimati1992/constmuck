@@ -1,12 +1,53 @@
-error[E0759]: `reff` has lifetime `'a` but it needs to satisfy a `'static` lifetime requirement
- --> tests/main_tests/ui/peel_ref_macro_ty_err.rs:5:5
-  |
-4 | const fn foo<'a>(reff: &'a Wrapping<&'a u8>) -> &'a &'static u8 {
-  |                        -------------------- this data with lifetime `'a`...
-5 |     peel_ref!(reff, constmuck::IsTW!())
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |     |
-  |     ...is captured here...
-  |     ...and is required to live as long as `'static` here
-  |
-  = note: this error originates in the macro `$crate::wrapper_inner` (in Nightly builds, run with -Z macro-backtrace for more info)
+error[E0308]: mismatched types
+  --> tests/main_tests/ui/peel_ref_macro_ty_err.rs:10:5
+   |
+9  | const fn foo(reff: &Wrapping<u8>) -> &u16 {
+   |                                      ---- expected `&u16` because of return type
+10 |     peel_ref!(reff)
+   |     ^^^^^^^^^^^^^^^ expected `&u16`, found `&u8`
+   |
+   = note: expected reference `&u16`
+              found reference `&u8`
+   = note: this error originates in the macro `$crate::wrapper_inner` which comes from the expansion of the macro `peel_ref` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> tests/main_tests/ui/peel_ref_macro_ty_err.rs:14:5
+   |
+14 |     peel_ref!(reff, Trans<u8>)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     expected `&Trans<u8>`, found `&Wrapping<u8>`
+   |     here the type of `inner` is inferred to be `&Wrapping<u8>`
+   |
+   = note: expected reference `&Trans<u8>`
+              found reference `&Wrapping<u8>`
+   = note: this error originates in the macro `$crate::wrapper_inner` which comes from the expansion of the macro `peel_ref` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `Wrapping<u8>: TransparentWrapper<u16>` is not satisfied
+  --> tests/main_tests/ui/peel_ref_macro_ty_err.rs:18:5
+   |
+18 |     peel_ref!(reff, _, u16)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ the trait `TransparentWrapper<u16>` is not implemented for `Wrapping<u8>`
+   |
+   = help: the trait `TransparentWrapper<T>` is implemented for `Wrapping<T>`
+note: required by a bound in `constmuck_internal::__PeelRefArgs::<'a, Outer, Inner>::__call`
+  --> constmuck_internal/src/lib.rs:74:16
+   |
+72 |     pub const unsafe fn __call(self) -> &'a Inner
+   |                         ------ required by a bound in this associated function
+73 |     where
+74 |         Outer: TransparentWrapper<Inner>
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `__PeelRefArgs::<'a, Outer, Inner>::__call`
+   = note: this error originates in the macro `$crate::wrapper_inner` which comes from the expansion of the macro `peel_ref` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> tests/main_tests/ui/peel_ref_macro_ty_err.rs:22:5
+   |
+21 | const fn different_inner_than_returned(reff: &Wrapping<u8>) -> &u16 {
+   |                                                                ---- expected `&u16` because of return type
+22 |     peel_ref!(reff, _, u8)
+   |     ^^^^^^^^^^^^^^^^^^^^^^ expected `&u16`, found `&u8`
+   |
+   = note: expected reference `&u16`
+              found reference `&u8`
+   = note: this error originates in the macro `$crate::wrapper_inner` which comes from the expansion of the macro `peel_ref` (in Nightly builds, run with -Z macro-backtrace for more info)
