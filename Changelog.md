@@ -1,5 +1,13 @@
 This changelog is a summary of the changes made in each release.
 
+# 1.1
+
+### 1.1.0
+
+Added `"rust_1_75"` crate feature, this allows `zeroed` to return types of any size.
+
+Changed `"rust_latest_stable"` crate feature into enabling `"rust_1_75"`  feature
+
 # 1.0
 
 ### 1.0.0

@@ -31,9 +31,9 @@ fn zeroable_test() {
     case! {Option<&u32>, None}
 }
 
-#[cfg(feature = "rust_1_75")]
 #[test]
-fn zeroed_on_stable() {
+#[cfg_attr(not(feature = "rust_1_75"), should_panic)]
+fn zeroed_of_large_type() {
     // spawning a thread to ensure that the stack has enough space for the array
     std::thread::Builder::new()
         .stack_size(5 * 1024 * 1024)
