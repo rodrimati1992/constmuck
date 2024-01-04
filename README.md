@@ -126,8 +126,11 @@ Enables `bytemuck`'s `"derive"` feature and reexports its derives.
 Enables [additional safety checks](#additional-checks) for detecting some 
 Undefined Behavior.
 
+- `"rust_1_75"` (disabled by default):
+allows [`constmuck::zeroed`] to construct types of any size.
+
 - `"rust_latest_stable"` (disabled by default): 
-enables all `"rust_1_*"` features, there's currently none.
+enables all `"rust_1_*"` features.
 
 
 # No-std support
@@ -148,4 +151,4 @@ all items and functionality that requires stable Rust versions after 1.65.0.
 [`konst`]: https://docs.rs/konst/0.3/konst/index.html
 [`contiguous`]: https://docs.rs/constmuck/*/constmuck/contiguous/index.html
 [`wrapper`]: https://docs.rs/constmuck/*/constmuck/wrapper/index.html
-
+[`constmuck::zeroed`]: https://docs.rs/constmuck/*/constmuck/fn.zeroed.html

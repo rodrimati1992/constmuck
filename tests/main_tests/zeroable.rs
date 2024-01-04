@@ -30,3 +30,17 @@ fn zeroable_test() {
     case! {*const u8, 0 as *const u8}
     case! {Option<&u32>, None}
 }
+
+#[cfg(feature = "rust_1_75")]
+#[test]
+fn zeroed_on_stable() {
+    // spawning a thread to ensure that the stack has enough space for the array
+    std::thread::Builder::new()
+        .stack_size(5 * 1024 * 1024)
+        .spawn(|| {
+            let _ = zeroed::<[u8; 1_048_577]>();
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
