@@ -30,9 +30,7 @@ jobs:
 
     - uses: actions/checkout@v2
     - name: ci-1_75-onwards
-      # uncomment after github updates its stable Rust version
-      # if: ${{ matrix.rust != '1.65.0' }}
-      if: ${{ matrix.rust == '1.75.0' || matrix.rust == 'beta' || matrix.rust == 'nightly' }}
+      if: ${{ matrix.rust != '1.65.0' }}
       run: |
         rustup override set ${{ matrix.rust }}
         cargo update
